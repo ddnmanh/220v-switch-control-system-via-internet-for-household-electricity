@@ -9,7 +9,8 @@ export default function Index() {
                 alignItems: "center",
             }}
         >
-            <Text>Base app Android with React Native Expo</Text>
+            <Text>Vui lòng khởi động lại ứng dụng</Text>
+            <Text>Không tìm thấy trang!!!</Text>
         </View>
     );
 }
