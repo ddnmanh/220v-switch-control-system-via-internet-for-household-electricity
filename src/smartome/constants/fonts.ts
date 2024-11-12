@@ -1,0 +1,35 @@
+
+const fontsGlobal: Record<string, string> = {
+    // mainBlack: "Montserrat-Black",
+    // mainBlackItalic: "Montserrat-BlackItalic",
+    // mainBoldItalic: "Montserrat-BoldItalic",
+    // mainBold: "Montserrat-Bold",
+    // mainExtraBoldItalic: "Montserrat-ExtraBoldItalic",
+    // mainExtraBold: "Montserrat-ExtraBold",
+    // mainExtraLightItalic: "Montserrat-ExtraLightItalic",
+    // mainExtraLight: "Montserrat-ExtraLight",
+    // mainLightItalic: "Montserrat-LightItalic",
+    // mainLight: "Montserrat-Light",
+    // mainMediumItalic: "Montserrat-MediumItalic",
+    // mainMedium: "Montserrat-Medium",
+    // mainRegular: "Montserrat-Regular",
+    // mainSemiBoldItalic: "Montserrat-SemiBoldItalic",
+    // mainSemiBold: "Montserrat-SemiBold",
+    // mainThinItalic: "Montserrat-ThinItalic",
+    // mainThin: "Montserrat-Thin",
+
+    mainBlack: "Roboto-Black",
+    mainBlackItalic: "Roboto-BlackItalic",
+    mainBoldItalic: "Roboto-BoldItalic",
+    mainBold: "Roboto-Bold",
+    mainItalic: "Roboto-Italic",
+    mainLightItalic: "Roboto-LightItalic",
+    mainLight: "Roboto-Light",
+    mainMediumItalic: "Roboto-MediumItalic",
+    mainMedium: "Roboto-Medium",
+    mainRegular: "Roboto-Regular",
+    mainThinItalic: "Roboto-ThinItalic",
+    mainThin: "Roboto-Thin",
+};
+
+export default fontsGlobal;
