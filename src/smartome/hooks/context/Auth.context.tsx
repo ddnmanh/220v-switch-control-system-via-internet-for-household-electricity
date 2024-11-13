@@ -15,7 +15,6 @@ interface AuthContextProviderProps {
 
 const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const router = useRouter();
 
     const getTokens = async () => {
         try {
@@ -55,7 +54,6 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
 
     useEffect(() => {
         checkLoginStatus();
-        console.log(process.env.EXPO_PUBLIC_DOMAIN_SERVER);
     }, []);
 
     return (

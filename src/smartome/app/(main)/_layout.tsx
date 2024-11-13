@@ -4,13 +4,21 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import TabIconCPN from '@/components/TabIcon';
 import Account from './account';
 import Auto from './auto';
+import variablesGlobal from '@/constants/variables';
+import { DynamicValuesContext } from '@/hooks/context/DynamicValues.context';
+import { HouseContext } from '@/hooks/context/HouseData.context';
+import { ImageBackground } from 'react-native';
+
 import MainHomeLayout from './(home)/_layout';
 
-import variablesGlobal from '@/constants/variables';
 
 const Tab = createBottomTabNavigator();
 
 export default function MainLayout() {
+
+    const { dimensionsSize } = React.useContext(DynamicValuesContext) || { dimensionsSize: { width: 0, height: 0 } };
+    const { houseDataChosen } = React.useContext(HouseContext) || { houseDataChosen: null };
+
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
@@ -44,8 +52,28 @@ export default function MainLayout() {
                     shadowOpacity: 0,
                 },
                 tabBarShowLabel: false,
-                tabBarActiveTintColor: "#000",
-                tabBarInactiveTintColor: '#ccc',
+                tabBarActiveTintColor: "#FFF",
+                tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.4)',
+                tabBarBackground: () => (
+                    <ImageBackground
+                        source={{ uri: houseDataChosen?.image_bg }}
+                        resizeMode='cover'
+                        blurRadius={30}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            overflow: 'hidden',
+                            backgroundColor: 'rgba(0, 0, 0, 1)',
+                        }}
+                        imageStyle={{
+                            width: '100%',
+                            height: dimensionsSize?.height,
+                            transform: [
+                                { translateY: -((dimensionsSize?.height || 0)- variablesGlobal?.heigthTabBar) },
+                            ]
+                        }}
+                    ></ImageBackground>
+                )
             })}
         >
             <Tab.Screen name="home" component={MainHomeLayout} options={{ title: 'Trang chủ', headerShown: false }} />

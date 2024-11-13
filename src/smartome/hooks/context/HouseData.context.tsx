@@ -20,7 +20,7 @@ const fake_house = [
     {
         id: 1,
         name: 'Nhà Chính',
-        image_bg: 'http://192.168.1.4:3000/images/background-app-warm.jpg',
+        image_bg: 'https://picsum.photos/id/28/360/761',
         areas: [
             {
                 id: 1,
@@ -95,7 +95,7 @@ const fake_house = [
     {
         id: 2,
         name: 'Nhà Trọ',
-        image_bg: 'http://192.168.1.4:3000/images/background-app-mountain.jpg',
+        image_bg: 'https://picsum.photos/id/20/360/761',
         areas: [
             {
                 id: 1,
