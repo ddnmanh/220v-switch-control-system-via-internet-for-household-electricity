@@ -1,5 +1,8 @@
 import React, { ReactNode } from 'react';
 import LoadStaticInitContextProvider from './LoadStaticInit.context';
+import DynamicValuesContextProvider from './DynamicValues.context';
+import AuthContextProvider from './Auth.context';
+import HouseContextProvider from './HouseData.context';
 
 interface MainContextProps {
     children: ReactNode;
@@ -7,9 +10,15 @@ interface MainContextProps {
 
 const MainContext: React.FC<MainContextProps> = ({ children }) => {
     return (
-        <LoadStaticInitContextProvider>
-            {children}
-        </LoadStaticInitContextProvider>
+        <DynamicValuesContextProvider>
+            <LoadStaticInitContextProvider>
+                <AuthContextProvider>
+                    <HouseContextProvider>
+                        {children}
+                    </HouseContextProvider>
+                </AuthContextProvider>
+            </LoadStaticInitContextProvider>
+        </DynamicValuesContextProvider>
     );
 };
 
