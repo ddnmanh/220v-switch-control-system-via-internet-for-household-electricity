@@ -39,7 +39,7 @@ export default function MainLayout() {
                             iconName = 'defaultIcon';
                             break;
                     }
-                    return <TabIconCPN label=' ' iconName={iconName} src={null} size={size} color={color} focused={focused} />;
+                    return <TabIconCPN label='' iconName={iconName} src={null} size={size} color={color} focused={focused} />;
                 },
                 tabBarStyle: {
                     position: 'absolute',

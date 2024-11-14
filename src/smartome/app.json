@@ -7,6 +7,7 @@
     "icon": "./assets/images/app/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/app/splash.png",
       "resizeMode": "contain",
@@ -19,7 +20,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/app/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.dnmanh.smartome"
     },
     "web": {
       "bundler": "metro",
@@ -28,10 +30,19 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a64f6fd9-99ab-4ffd-bab8-161ceb56ee5a"
+      }
     }
   }
 }
