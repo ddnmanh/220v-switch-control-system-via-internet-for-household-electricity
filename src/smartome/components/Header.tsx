@@ -10,6 +10,7 @@ import { HouseContext } from '@/hooks/context/HouseData.context';
 import { useNavigation } from '@react-navigation/native';
 import useMyAnimation from '@/hooks/animated/Animation.animated';
 import { DynamicValuesContext } from '@/hooks/context/DynamicValues.context';
+import { useRouter } from 'expo-router';
 
 const HeaderCPN = ({ ...props }) => {
 
@@ -57,14 +58,33 @@ const HeaderCPN = ({ ...props }) => {
     const handleGotoArea = (roomID: number) => {
         handleChooseAreaByID && handleChooseAreaByID(roomID);
         gatewayToggleDropDown('more');
-        navigation.navigate('area' as never);
+        navigation.navigate(
+            "(main)", {
+                screen: "(home)",
+                params: {
+                    screen: "area",
+                },
+            }
+        );
     }
 
     const handleChangeChooseHouse = (id_house: number) => {
         handleChoosenHouseByID && handleChoosenHouseByID(id_house);
         handleChooseAreaByID && handleChooseAreaByID(0);
+        gatewayToggleDropDown('more'); 
+        navigation.navigate(
+            "(main)", {
+                screen: "(home)",
+                params: {
+                    screen: "index",
+                },
+            }
+        );
+    }
+
+    const handleGotoHouseSetting = () => {
         gatewayToggleDropDown('more');
-        navigation.navigate('index' as never);
+        navigation.navigate("(house)", { screen: "housesetting" });
     }
 
     return (
@@ -207,6 +227,9 @@ const HeaderCPN = ({ ...props }) => {
                                     <>
                                         <TouchableOpacity
                                             style={styles.dropDown_item}
+                                            onPress={() => {
+                                                handleGotoHouseSetting();
+                                            }}
                                         >
                                             <View style={styles.dropDown_item_icon}></View>
                                             <Text style={styles.dropDown_item_text}>Cài đặt nhà</Text>

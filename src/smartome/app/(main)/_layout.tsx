@@ -76,7 +76,7 @@ export default function MainLayout() {
                 )
             })}
         >
-            <Tab.Screen name="home" component={MainHomeLayout} options={{ title: 'Trang chủ', headerShown: false }} />
+            <Tab.Screen name="(home)" component={MainHomeLayout} options={{ title: 'Trang chủ', headerShown: false }} />
             <Tab.Screen name="auto" component={Auto} options={{ title: 'Auto', headerShown: false }} />
             <Tab.Screen name="account" component={Account} options={{ title: 'Account', headerShown: false }} />
         </Tab.Navigator>
