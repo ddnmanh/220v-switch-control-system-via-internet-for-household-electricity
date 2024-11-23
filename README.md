@@ -36,7 +36,7 @@ Dự án này sử dụng tổ hợp nhiều giao thức truyền thông khác n
         -   `app` chứa tài nguyên coding dành cho ứng dụng trên thiết bị di động (Android app). Thư mục làm việc `./src/app`
         -   `server` chứa tài nguyên coding cho server. Thư mục làm việc `./src/server`
         -   `mqtt` chứa tài nguyên xây dựng - cấu hình MQTT Broker. Thư mục làm việc: `./src/mqtt-broker`
-        -   `equipment` chứa tài nguyên cho các thiết bị vật lý trong dự án. Thực mục làm việc: `./src/equipment`
+        -   `devices` chứa tài nguyên cho các thiết bị vật lý trong dự án. Thực mục làm việc: `./src/devices`
 -   `doc` các tài nguyên về mặt thông tin (Tài liệu dự án, giới thiệu dự án, bài báo cáo,...)
     - Thự mục làm việc: `./assets, ./propress-report, ./thesis`
 ### 1.2 Quy Tắc Làm Việc Với Nhánh
