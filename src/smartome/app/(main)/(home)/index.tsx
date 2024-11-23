@@ -10,6 +10,7 @@ import IconCPN from '@/components/Icon';
 import { HouseContext } from '@/hooks/context/HouseData.context';
 import { useFocusEffect } from '@react-navigation/native';
 import PaaCard from '@/components/PadCard';
+import SwitchDevice from '@/components/devices/Switch';
 
 
 const variablesInComponent = {
@@ -98,25 +99,9 @@ const Index = () => {
                                 <Text style={styles.house_areaName}>{area.name}</Text>
                                 <View style={styles.device_container}>
                                     {
-                                        area.devices.map((device:any, index:number) => (
-                                            <BlurView key={index} intensity={variablesInComponent.intensityDeviceItemBlur} tint='dark' style={[styles.device_item, styles.device_item_blur, { width: deviceItemSize.width, height: deviceItemSize.height }]}>
-                                                <TouchableOpacity style={[styles.device_item_content, styles.device_item_device]}>
-                                                    <View style={styles.device_item_content_top}>
-                                                        <View style={styles.content_top_icon}>
-                                                            <IconCPN iconName={device.status ? 'lightSwitchOnSolid' : 'lightSwitchOffSolid'} size={'100%'} color={device.status ? '#0ea5e9' : '#a3a3a3'}></IconCPN>
-                                                        </View>
-                                                        <View style={styles.content_top_right}>
-                                                            <Text style={styles.content_top_nameDevice}>Công tắt</Text>
-                                                            <Text style={styles.content_top_statusOnline}>{device.status ? 'Online' : 'Offline'}</Text>
-                                                            <Text style={styles.content_top_statusDevice}>{device.status ? 'Đang mở' : 'Đang đóng'}</Text>
-                                                        </View>
-                                                    </View>
-                                                    <View style={styles.device_item_content_bottom}>
-                                                        <Text style={styles.device_item_name}>{device.name}</Text>
-                                                    </View>
-                                                </TouchableOpacity>
-                                            </BlurView>
-                                        ))
+                                        area.devices.map((device:any, index:number) => {
+                                            return <SwitchDevice key={index} device={device} />
+                                        })
                                     }
                                 </View>
                             </View>

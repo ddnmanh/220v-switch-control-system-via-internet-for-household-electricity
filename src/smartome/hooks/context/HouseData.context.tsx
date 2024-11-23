@@ -29,22 +29,34 @@ const fake_house = [
                     {
                         id: 1,
                         name: 'Đèn trần',
-                        status: true
+                        online: false,
+                        state: false,
+                        topicSend: "sw1/receive",
+                        topicReceive: "sw1/send"
                     },
                     {
                         id: 2,
                         name: 'Quạt trần',
-                        status: true
+                        online: false,
+                        state: false,
+                        topicSend: "sw2/receive",
+                        topicReceive: "sw2/send"
                     },
                     {
                         id: 3,
                         name: 'Điều hòa trái',
-                        status: false
+                        online: false,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     },
                     {
                         id: 4,
                         name: 'Điều hòa phải',
-                        status: false
+                        online: false,
+                        state: true,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     }
                 ]
             },
@@ -55,17 +67,26 @@ const fake_house = [
                     {
                         id: 1,
                         name: 'Đèn lớn',
-                        status: true
+                        online: true,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     },
                     {
                         id: 2,
                         name: 'Đèn ngủ',
-                        status: true
+                        online: true,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     },
                     {
                         id: 3,
                         name: 'Điều hòa',
-                        status: false
+                        online: false,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     }
                 ]
             },
@@ -76,17 +97,26 @@ const fake_house = [
                     {
                         id: 1,
                         name: 'Quạt hút khói',
-                        status: true
+                        online: true,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     },
                     {
                         id: 2,
                         name: 'Đèn lớn',
-                        status: true
+                        online: true,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     },
                     {
                         id: 3,
                         name: 'Bếp điện',
-                        status: false
+                        online: false,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     }
                 ]
             }
@@ -104,22 +134,34 @@ const fake_house = [
                     {
                         id: 1,
                         name: 'Đèn lớn',
-                        status: true
+                        online: true,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     },
                     {
                         id: 2,
                         name: 'Quạt để bàn',
-                        status: true
+                        online: true,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     },
                     {
                         id: 3,
                         name: 'Nguồn điện cho máy tính',
-                        status: false
+                        online: false,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     },
                     {
                         id: 4,
                         name: 'Đèn ngủ',
-                        status: false
+                        online: false,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     }
                 ]
             },
@@ -130,7 +172,10 @@ const fake_house = [
                     {
                         id: 1,
                         name: 'Đèn tắm',
-                        status: true
+                        online: true,
+                        state: false,
+                        topicSend: "temporary/receive",
+                        topicReceive: "temporary/send"
                     }
                 ]
             }

@@ -4,6 +4,7 @@ import DynamicValuesContextProvider from './DynamicValues.context';
 import AuthContextProvider from './Auth.context';
 import HouseContextProvider from './HouseData.context';
 import { StatusBar } from 'react-native';
+import { MQTTContextProvider } from './MQTT.context';
 
 interface MainContextProps {
     children: ReactNode;
@@ -14,10 +15,12 @@ const MainContext: React.FC<MainContextProps> = ({ children }) => {
         <DynamicValuesContextProvider>
             <LoadStaticInitContextProvider>
                 <AuthContextProvider>
-                    <HouseContextProvider>
-                        <StatusBar backgroundColor="rgba(0, 0, 0, 0)" translucent={true} />
-                        {children}
-                    </HouseContextProvider>
+                    <MQTTContextProvider>
+                        <HouseContextProvider>
+                            <StatusBar backgroundColor="rgba(0, 0, 0, 0)" translucent={true} />
+                            {children}
+                        </HouseContextProvider>
+                    </MQTTContextProvider>
                 </AuthContextProvider>
             </LoadStaticInitContextProvider>
         </DynamicValuesContextProvider>

@@ -1,12 +1,14 @@
 
 import React from 'react';
-import { Button, FlatList, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, FlatList, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, Vibration, View } from 'react-native';
 import { DynamicValuesContext, DimensionsSizeITF, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
 import { HouseContext } from '@/hooks/context/HouseData.context';
 import HeaderCPN from '@/components/Header';
 import variablesGlobal from '@/constants/variables';
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
+import SwitchDevice from '@/components/devices/Switch';
+
 
 const variablesInComponent = {
     textPrimary: '#fff',
@@ -28,6 +30,9 @@ const Area = () => {
     };
 
     const [scrollY, setScrollY] = React.useState(0);
+
+    console.log(areaDataChosen);
+
 
     return (
         <SafeAreaView style={{width: dimensionsSize?.width, height: dimensionsSize?.height}}>
@@ -58,25 +63,9 @@ const Area = () => {
                     <View style={styles.clusterAreaOfHouse}>
                         <View style={styles.device_container}>
                             {
-                                areaDataChosen?.devices?.map((device:any, index:number) => (
-                                    <BlurView key={index} intensity={70} tint='dark' style={[styles.device_item, styles.device_item_blur, { width: deviceItemSize.width, height: deviceItemSize.height }]}>
-                                        <TouchableOpacity style={[styles.device_item_content, styles.device_item_device]}>
-                                            <View style={styles.device_item_content_top}>
-                                                <View style={styles.content_top_icon}>
-                                                    <IconCPN iconName={device.status ? 'lightSwitchOnSolid' : 'lightSwitchOffSolid'} size={'100%'} color={device.status ? '#0ea5e9' : '#a3a3a3'}></IconCPN>
-                                                </View>
-                                                <View style={styles.content_top_right}>
-                                                    <Text style={styles.content_top_nameDevice}>Công tắt</Text>
-                                                    <Text style={styles.content_top_statusOnline}>{device.status ? 'Online' : 'Offline'}</Text>
-                                                    <Text style={styles.content_top_statusDevice}>{device.status ? 'Đang mở' : 'Đang đóng'}</Text>
-                                                </View>
-                                            </View>
-                                            <View style={styles.device_item_content_bottom}>
-                                                <Text style={styles.device_item_name}>{device.name}</Text>
-                                            </View>
-                                        </TouchableOpacity>
-                                    </BlurView>
-                                ))
+                                areaDataChosen?.devices?.map((device:any, index:number) => {
+                                    return <SwitchDevice key={index} device={device} />
+                                })
                             }
                         </View>
                     </View>
