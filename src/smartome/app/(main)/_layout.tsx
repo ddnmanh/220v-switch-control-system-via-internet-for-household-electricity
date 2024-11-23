@@ -26,7 +26,7 @@ export default function MainLayout() {
                     let iconName;
 
                     switch (route.name) {
-                        case 'home':
+                        case '(home)':
                             iconName = focused ? 'homeSolid' : 'homeRegular';
                             break;
                         case 'auto':

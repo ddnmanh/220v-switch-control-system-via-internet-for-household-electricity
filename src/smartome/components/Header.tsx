@@ -58,28 +58,14 @@ const HeaderCPN = ({ ...props }) => {
     const handleGotoArea = (roomID: number) => {
         handleChooseAreaByID && handleChooseAreaByID(roomID);
         gatewayToggleDropDown('more');
-        navigation.navigate(
-            "(main)", {
-                screen: "(home)",
-                params: {
-                    screen: "area",
-                },
-            }
-        );
+        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "area" } });
     }
 
     const handleChangeChooseHouse = (id_house: number) => {
         handleChoosenHouseByID && handleChoosenHouseByID(id_house);
         handleChooseAreaByID && handleChooseAreaByID(0);
-        gatewayToggleDropDown('more'); 
-        navigation.navigate(
-            "(main)", {
-                screen: "(home)",
-                params: {
-                    screen: "index",
-                },
-            }
-        );
+        gatewayToggleDropDown('more');
+        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } );
     }
 
     const handleGotoHouseSetting = () => {
