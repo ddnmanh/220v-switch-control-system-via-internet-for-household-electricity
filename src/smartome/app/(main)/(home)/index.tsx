@@ -100,7 +100,7 @@ const Index = () => {
                                 <View style={styles.device_container}>
                                     {
                                         area.devices.map((device:any, index:number) => {
-                                            return <SwitchDevice key={area.id+"-"+device.id+"-"+index} device={device} />
+                                            return <SwitchDevice key={houseDataChosen.id+"-"+area.id+"-"+device.id} device={device} />
                                         })
                                     }
                                 </View>
