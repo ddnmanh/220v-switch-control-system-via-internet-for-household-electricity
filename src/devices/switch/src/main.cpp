@@ -3,22 +3,39 @@
 #include <ESP8266WiFi.h>
 #include <MyButtonLib.h>  // Import thư viện đã tách
 #include <PubSubClient.h>
+#include <EEPROM.h>
+#include <ESP8266WebServer.h>
+
+String client_id = "SWITCH_001";  // Thay khi nạp code cho mỗi thiết bị
+
+#define EEPROM_SIZE 256
+
+// Khởi tạo Web Server trên cổng 80
+ESP8266WebServer server(80);
+String accessPointPass = "12345678"; // Thay khi nạp code cho mỗi thiết bị
+WiFiClient espClient;
+PubSubClient mqtt_client(espClient);
+
 
 // WiFi settings
-const char *ssid = "labech_dnm";
-const char *password = "techlab@dnmanh";
-const char *mqtt_broker = "192.168.1.4";
-const char *mqtt_username = "switch";
-const char *mqtt_password = "123";
-const int mqtt_port = 1883;
-String client_id = "switch-001";
+String ownerId = "";
+bool isSaveState = true;
+bool isVerifyWhenReset = true;
+String ssid = ""; // labech_dnm
+String password = ""; // techlab@dnmanh
+String mqttAddress = "192.168.1.4";
+String mqttUsername = "devicesUser";
+String mqttPassword = "123Devices123";
+int mqttPort = 1883;
+int GMTSeconds = 25200; // 7h
+
+bool isSTAMode = false; // true: device mode, false: access point mode
+
 
 // MQTT topic
 const char *send_topic = "sw1/send";        // Gửi trạng thái nút
 const char *receive_topic = "sw1/receive";  // Nhận lệnh từ server
-
-WiFiClient espClient;
-PubSubClient mqtt_client(espClient);
+ 
 
 //----Khai báo nút bấm--------------------
 #define BUTTON_PIN D1                  // Định nghĩa chân của nút
@@ -29,26 +46,118 @@ unsigned long pressHoldTime = 1000;    // Thời gian giữ nút
 //----Khai báo Relay---------------------
 #define RELAY_PIN D4
 bool relayState = false;
-#define LED_PIN D2
+#define LED_PIN D2 
 
 //---------------------------------------
 unsigned long currentMillisForMQTT = millis();
 unsigned long lastMQTTReconnect = 0;                    // Thời điểm lần thử kết nối cuối cùng
-const unsigned long MQTTReconnectInterval = 1000 * 10;  // Milliseconds
+const unsigned long MQTTReconnectInterval = 1000 * 60;  // Milliseconds
 
 unsigned long currentMillisForWiFi = millis();
 unsigned long lastWiFiReconnect = 0;                    // Lưu thời điểm lần thử kết nối WiFi cuối cùng
-const unsigned long wiFiReconnectInterval = 1000 * 10;  // Milliseconds
+const unsigned long wiFiReconnectInterval = 1000 * 60;  // Milliseconds
 short timesWiFiConnect = 0;                             // Số lần thử kết nối WiFi
 bool wifiConnected = false;
 
-void connectToWiFi();
+bool isEEPROMEmpty();
+
+void loadEEPROM();
+
+String readFromEEPROM(String nameValue);
+
+void saveToEEPROM(String nameValue, String data);
+
+int getMemoriesIndexStart(String nameValue);
+
+void handleControllLed(int numOn, int timeOn, int timeOff);
+
+void handleClearAllUserData();
+
+void controllResetValue();
+
+bool checkStationMode();
+
+void setupMQTT();
 
 void connectToMQTTBroker();
+
+bool checkMQTTConnection();
+
+void startAccessPoint();
+
+void connectToWiFi();
+
+bool checkWiFiConnection();
 
 void mqttCallback(char *topic, byte *payload, unsigned int length);
 
 void publishJson(const char *topic, const char *id, const char *type, bool value);
+ 
+
+void setup() {
+    Serial.begin(9600);
+    pinMode(LED_PIN, OUTPUT);
+    EEPROM.begin(EEPROM_SIZE);   
+
+    // Lưu dữ liệu mặc định vào EEPROM
+    saveToEEPROM("isSaveState", "FALSE");
+    saveToEEPROM("isVerifyWhenReset", "FALSE"); 
+    saveToEEPROM("MQTTAddress", mqttAddress);
+    saveToEEPROM("MQTTUsername", mqttUsername);
+    saveToEEPROM("MQTTPass", mqttPassword);
+    saveToEEPROM("MQTTPort", String(mqttPort));
+
+    // Đọc dữ liệu từ EEPROM
+    loadEEPROM(); 
+ 
+
+    connectToWiFi();
+
+    isSTAMode = checkStationMode();
+
+    if (isSTAMode && !checkWiFiConnection()) {
+        Serial.println("Setup in AP mode");
+        delay(1000); // Đợi 1s trước khi chuyển mode
+        startAccessPoint();
+    } else {
+        Serial.println("Setup in STA mode");
+        setupMQTT(); 
+        connectToMQTTBroker();
+    } 
+}
+
+
+
+void loop() { 
+    controllResetValue();
+
+    if (ssid == "") {  
+        server.handleClient(); // Lắng nghe yêu cầu HTTP
+    } else {
+        if (checkWiFiConnection()) {
+            if (checkMQTTConnection()) {
+                mqtt_client.loop();
+            } else {
+                connectToMQTTBroker();
+            }
+        } else {
+            connectToWiFi();
+        }
+    }
+
+    usrStatusButton = listenButton(BUTTON_PIN, debounceDelay, pressHoldTime); // NO, PRESS, HOLD
+    if (usrStatusButton == HOLD) { 
+        Serial.println("Reset all data");
+        handleControllLed(5, 100, 100);
+        handleClearAllUserData(); 
+    }
+
+    if (usrStatusButton == PRESS) {
+        Serial.println("Button pressed");
+        relayState = !relayState;
+        digitalWrite(LED_PIN, relayState ? HIGH : LOW); 
+    }
+}
 
 void controllResetValue() {
     if (timesWiFiConnect >= 7) {
@@ -56,24 +165,38 @@ void controllResetValue() {
     }
 }
 
-void setup() {
-    Serial.begin(9600);
-
-    pinMode(LED_PIN, OUTPUT);
-
-    connectToWiFi();
-    mqtt_client.setServer(mqtt_broker, mqtt_port);
-    mqtt_client.setCallback(mqttCallback);
-    connectToMQTTBroker();
+bool checkStationMode() {
+    WiFiMode_t currentMode = WiFi.getMode();
+    if (currentMode == WIFI_STA) {
+        return true;
+    }
+    return false;
 }
 
+
 void connectToWiFi() {
+    currentMillisForWiFi = millis();
+
     if (WiFi.status() == WL_CONNECTED) return;
+
+    WiFi.mode(WIFI_STA);
+
 
     if (currentMillisForWiFi - lastWiFiReconnect >= wiFiReconnectInterval * timesWiFiConnect || lastWiFiReconnect == 0) {
         timesWiFiConnect++;
         lastWiFiReconnect = currentMillisForWiFi;
         Serial.println("Attempting to connect to WiFi...");
+
+        ssid = readFromEEPROM("SSID");
+
+        // if (ssid == "") { 
+        //     return false;
+        // } 
+        password = readFromEEPROM("SSIDPass"); 
+
+        Serial.printf("SSID: %s\n", ssid.c_str());
+        Serial.printf("Password: %s\n", password.c_str());
+
         WiFi.begin(ssid, password);
 
         unsigned long startAttemptTime = millis();
@@ -82,27 +205,53 @@ void connectToWiFi() {
             Serial.print(".");
         }
 
-        if (WiFi.status() == WL_CONNECTED) {
-            wifiConnected = true;
+        if (WiFi.status() == WL_CONNECTED) { 
             Serial.println("\nConnected to the WiFi network");
             Serial.print("IP address: ");
             Serial.println(WiFi.localIP());
-        } else {
-            wifiConnected = false;
+        } else { 
             Serial.println("\nFailed to connect to WiFi. Will retry in 5 minutes.");
         }
-    }
+    } 
 }
 
+bool checkWiFiConnection() { 
+
+    // Check if the device is in Station mode
+    if (WiFi.getMode() == WIFI_STA) { 
+
+        // Check if the device is connected to the WiFi network
+        if (WiFi.status() == WL_CONNECTED) {  
+            return true;
+        }
+        return false;
+    } 
+
+    return false;
+}
+
+
+void setupMQTT() {
+    mqtt_client.setServer(mqttAddress.c_str(), mqttPort);
+    mqtt_client.setCallback(mqttCallback);
+}
+
+
 void connectToMQTTBroker() {
+    currentMillisForMQTT = millis();
     if (mqtt_client.connected()) return;
 
-    currentMillisForMQTT = millis();
 
     if (currentMillisForMQTT - lastMQTTReconnect >= MQTTReconnectInterval || lastMQTTReconnect == 0) {
         lastMQTTReconnect = currentMillisForMQTT;
         Serial.printf("Attempting to connect to MQTT Broker as %s...\n", client_id.c_str());
-        if (mqtt_client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+
+        Serial.printf("MQTT Address: %s\n", mqttAddress.c_str());
+        Serial.printf("MQTT Username: %s\n", mqttUsername.c_str());
+        Serial.printf("MQTT Password: %s\n", mqttPassword.c_str());
+        Serial.printf("MQTT Port: %d\n", mqttPort);
+
+        if (mqtt_client.connect(client_id.c_str(), mqttUsername.c_str(), mqttPassword.c_str())) {
             Serial.println("Connected to MQTT broker");
             mqtt_client.subscribe(receive_topic);
             publishJson(send_topic, "", "NOTI", relayState);
@@ -112,6 +261,13 @@ void connectToMQTTBroker() {
             Serial.println(" Will retry in 5 minutes.");
         }
     }
+}
+
+bool checkMQTTConnection() {
+    if (mqtt_client.connected()) {
+        return true;
+    }
+    return false;
 }
 
 void mqttCallback(char *topic, byte *payload, unsigned int length) {
@@ -133,6 +289,7 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
     if (strcmp(topic, receive_topic) == 0) {
         JsonDocument doc;  // Khai báo JsonDocument
         DeserializationError error = deserializeJson(doc, incomingMessage);
+        
         if (error) {
             Serial.println("Failed to parse JSON");
             return;
@@ -184,19 +341,169 @@ void publishJson(const char *topic, const char *id, const char *type, bool value
     }
 }
 
-void loop() {
-    controllResetValue();
 
-    connectToWiFi();
-    if (wifiConnected) {
-        connectToMQTTBroker();
-        mqtt_client.loop();
+// Hàm khởi động WiFi ở chế độ Access Point
+void startAccessPoint() {
+
+    WiFi.disconnect(); // Ngắt kết nối WiFi hiện tại
+    delay(100);
+
+    WiFi.mode(WIFI_AP);
+    delay(100);
+
+    WiFi.softAP(client_id+"_WIFI", accessPointPass);
+
+    Serial.println("ESP is in AP mode. Connect to SSID 'ESP-AP-Setup' and send POST requests.");
+    Serial.printf("AP Status: %d\n", WiFi.status());
+    Serial.printf("AP IP: %s\n", WiFi.softAPIP().toString().c_str());
+
+    // listen on http://192.168.4.1/setWiFi
+    server.on("/setWiFi", HTTP_GET, []() {
+        if (server.hasArg("ownerId") && server.hasArg("gmt") && server.hasArg("ssid") && server.hasArg("password")) {
+
+            ownerId = server.arg("ownerId");
+            GMTSeconds = server.arg("gmt").toInt() * 60 * 60;
+            ssid = server.arg("ssid");
+            password = server.arg("password");
+
+            saveToEEPROM("ownerId", ownerId);
+            saveToEEPROM("GMTSeconds", String(GMTSeconds));
+            saveToEEPROM("SSID", ssid);
+            saveToEEPROM("SSIDPass", password);
+
+            server.send(200, "application/json", "{\"status\":\"success\", \"message\":\"WiFi credentials saved. Restart ESP.\"}");
+            delay(3000);
+            ESP.restart();
+        } else {
+            server.send(400, "application/json", "{\"status\":\"error\", \"message\":\"Missing 'ownerId' or 'ssid' or 'password'\"}");
+        }
+    });
+
+    server.begin();
+}
+ 
+// Đọc dữ liệu từ EEPROM
+void loadEEPROM() {  
+    ownerId = readFromEEPROM("ownerId");
+    isSaveState = readFromEEPROM("isSaveState") == "TRUE" ? true : false;
+    isVerifyWhenReset = readFromEEPROM("isVerifyWhenReset") == "TRUE" ? true : false;
+    GMTSeconds = readFromEEPROM("GMTSeconds").toInt();
+    ssid = readFromEEPROM("SSID");
+    password = readFromEEPROM("SSIDPass");
+    mqttAddress = readFromEEPROM("MQTTAddress");
+    mqttUsername = readFromEEPROM("MQTTUsername");
+    mqttPassword = readFromEEPROM("MQTTPass");
+    mqttPort = readFromEEPROM("MQTTPort").toInt(); 
+}
+
+// Hàm kiểm tra xem EEPROM có trống không
+bool isEEPROMEmpty() {
+    for (int i = 0; i < EEPROM_SIZE; i++) {
+        if (EEPROM.read(i) != 0xFF) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Hàm lưu chuỗi vào EEPROM
+void saveToEEPROM(String nameValue, String data) { 
+    int memoriesIndexStart = getMemoriesIndexStart(nameValue); 
+
+    if (memoriesIndexStart == -1) { 
+        return;
     }
 
-    usrStatusButton = listenButton(BUTTON_PIN, debounceDelay, pressHoldTime);
-    if (usrStatusButton != NO) {
-        relayState = !relayState;
-        digitalWrite(LED_PIN, relayState ? HIGH : LOW);
-        publishJson(send_topic, "", "NOTI", relayState);
+    byte data_length = data.length(); 
+    EEPROM.write(memoriesIndexStart, data_length); 
+
+    memoriesIndexStart += 1;
+    for (int i = memoriesIndexStart; i < (memoriesIndexStart + data_length); i++) {
+        EEPROM.write(i, data[i - memoriesIndexStart]);
+    } 
+    EEPROM.commit(); 
+}
+
+// Hàm đọc chuỗi từ EEPROM
+String readFromEEPROM(String nameValue) {
+
+    int memoriesIndexStart = getMemoriesIndexStart(nameValue); 
+
+    if (memoriesIndexStart == -1) { 
+        return "";
+    }
+
+    byte length = EEPROM.read(memoriesIndexStart);
+ 
+    if (length == 255) return ""; 
+
+    memoriesIndexStart += 1;
+
+    String value = "";
+    for (int i = memoriesIndexStart; i < (memoriesIndexStart + length); i++) {
+        value += char(EEPROM.read(i));
+    } 
+ 
+    return value;
+}
+
+
+void clearEEPROM(String nameValue) {  
+    int memoriesIndexStart = getMemoriesIndexStart(nameValue);
+    if (memoriesIndexStart == -1) { 
+        return;
+    }
+
+    byte length = EEPROM.read(memoriesIndexStart);
+    if (length == 255) return; 
+
+    for (int i = memoriesIndexStart; i < (memoriesIndexStart + length); i++) {
+        EEPROM.write(i, 0xFF);
+    }
+    EEPROM.commit(); 
+}
+
+int getMemoriesIndexStart(String nameValue) { 
+    if (nameValue == "ownerId") {
+        return 1; // 0 - 14
+    } else if (nameValue == "isSaveState") {
+        return 16; // 16 - 20
+    } else if (nameValue == "isVerifyWhenReset") {
+        return 22; // 22 - 28
+    } else if (nameValue == "GMTSeconds") {
+        return 30; // 30 - 34
+    } else if (nameValue == "SSID") {
+        return 37; // 37 - 68
+    } else if (nameValue == "SSIDPass") {
+        return 70; // 70 - 101
+    } else if (nameValue == "MQTTAddress") {
+        return 103; // 103 - 127  
+    } else if (nameValue == "MQTTUsername") {
+        return 129; // 129 - 144
+    } else if (nameValue == "MQTTPass") {
+        return 146; // 146 - 177
+    } else if (nameValue == "MQTTPort") {
+        return 179; // 179 - 183
+    } 
+    return -1;
+}
+
+void handleClearAllUserData() {  
+    clearEEPROM("ownerId"); 
+    saveToEEPROM("isSaveState", "FALSE");
+    saveToEEPROM("isVerifyWhenReset", "FALSE");
+    saveToEEPROM("GMTSeconds", "0");
+    clearEEPROM("SSID");
+    clearEEPROM("SSIDPass"); 
+} 
+
+void handleControllLed(int numOn, int timeOn, int timeOff) {
+    if (numOn > 0) {
+        for (int i = 0; i < numOn; i++) {
+            digitalWrite(LED_PIN, HIGH);
+            delay(timeOn);
+            digitalWrite(LED_PIN, LOW);
+            delay(timeOff);
+        }
     }
 }
