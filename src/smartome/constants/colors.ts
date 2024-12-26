@@ -24,10 +24,10 @@ const colorGlobal: Record<string, string> = {
     btnSuccess: '#10B981',
     btnLink: '#3490dc',
 
-    backColor: '#FFFFFF',
+    backColor: '#FFF',
     borderLine: '#d4d4d8',
 
-    border: '#d1d5db',
+    border: '#d4d4d8',
 };
 
 export default colorGlobal;

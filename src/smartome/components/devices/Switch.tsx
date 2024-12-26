@@ -34,11 +34,11 @@ interface SwitchDeviceProps {
 
 const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
     const {
-        subscribe,
-        publish,
-        setOnMessageArrived,
-        removeOnMessageArrived,
-        connected
+        subscribeTopicMQTT,
+        publishToTopicMQTT,
+        setOnMessageArrivedFromMQTT,
+        removeOnMessageArrivedFromMQTT,
+        isMQTTConnected,
     } = useMQTTContext();
 
     const [thisDevice, setThisDevice] = useState<SwitchDevice>(device);
@@ -51,7 +51,7 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
         (type: string = "CONTROLL") => {
             const strTimestamp = new Date().getTime().toString();
             setIdRequire(strTimestamp);
-            publish(
+            publishToTopicMQTT(
                 thisDevice.topicSend,
                 JSON.stringify({
                     type: type,
@@ -60,11 +60,15 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
                 })
             );
         },
-        [thisDevice, publish]
+        [thisDevice, publishToTopicMQTT]
     );
 
     useEffect(() => {
-        if (connected) subscribe(thisDevice.topicReceive);
+        if (isMQTTConnected) subscribeTopicMQTT(thisDevice.topicReceive);
+        if (isMQTTConnected) handleControllToEquipment("STATUS");
+    }, [isMQTTConnected, subscribeTopicMQTT])
+
+    useEffect(() => {
 
         const handleMessage = (message: Message) => {
             if (message.destinationName === thisDevice.topicReceive) {
@@ -108,19 +112,17 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
             }
         };
 
-        setOnMessageArrived(handleMessage);
-        return () => removeOnMessageArrived(handleMessage);
+        if (isMQTTConnected) setOnMessageArrivedFromMQTT(handleMessage);
+
+
+        return () => removeOnMessageArrivedFromMQTT(handleMessage);
     }, [
         thisDevice.topicReceive,
-        subscribe,
-        setOnMessageArrived,
-        removeOnMessageArrived,
+        subscribeTopicMQTT,
+        setOnMessageArrivedFromMQTT,
+        removeOnMessageArrivedFromMQTT,
         idRequire,
     ]);
-
-    useEffect(() => {
-        if (connected) handleControllToEquipment("STATUS");
-    }, [connected]);
 
 
     return (
@@ -138,7 +140,7 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
                     <View style={styles.device_item_content_top}>
                         <TouchableOpacity
                             style={styles.content_top_icon}
-                            onPress={() => handleControllToEquipment("CONTROLL")}
+                            onPress={() => isMQTTConnected ? handleControllToEquipment("CONTROLL") : {}}
                         >
                             <IconCPN iconName={thisDevice.state ? 'lightSwitchOnSolid' : 'lightSwitchOffSolid'} size={'100%'} color={thisDevice.state ? '#0ea5e9' : '#a3a3a3'}></IconCPN>
                         </TouchableOpacity>

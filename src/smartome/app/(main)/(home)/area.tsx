@@ -17,7 +17,12 @@ const variablesInComponent = {
     intensityDeviceItemBlur: 70,
 }
 
-const Area = () => {
+const Area = ({route}: any) => {
+
+    const { idArea } = route.params || {};
+
+    console.log("Area screen id area " + idArea);
+
 
     const { dimensionsSize, deviceItemSize } = React.useContext(DynamicValuesContext) || {
         dimensionsSize: { width: 0, height: 0 } as DimensionsSizeITF,

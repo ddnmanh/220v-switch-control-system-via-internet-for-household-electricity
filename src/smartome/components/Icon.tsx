@@ -1,6 +1,6 @@
 import { Image } from 'react-native';
 import React from 'react';
-import iconsGlobal from '../constants/icons';
+import iconsGlobal from '@/constants/icons';
 
 interface IconCPNProps {
     iconName?: string | null;

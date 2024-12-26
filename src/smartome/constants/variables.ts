@@ -1,9 +1,9 @@
 
 const variablesGlobal : Record<string, number> = {
-    borderRadius: 7,
+    borderRadius: 10,
     inputFontSize: 16,
     inputPaddingX: 10,
-    inputPaddingY: 7,
+    inputPaddingY: 10,
     marginScreenAppHorizontal: 15,
     spaceScreenAppOnTop: 40,
     heigthTabBar: 80,

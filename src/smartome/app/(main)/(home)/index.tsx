@@ -8,7 +8,7 @@ import useMyAnimation from '@/hooks/animated/Animation.animated';
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
 import { HouseContext } from '@/hooks/context/HouseData.context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import PaaCard from '@/components/PadCard';
 import SwitchDevice from '@/components/devices/Switch';
 
@@ -23,7 +23,9 @@ const variablesInComponent = {
 
 const Index = () => {
 
-    const { houseDataChosen, handleChooseAreaByID } = React.useContext(HouseContext) || {};
+    const navigation = useNavigation();
+
+    const { housesData, houseDataChosen, handleChoosenHouseByID, handleChooseAreaByID } = React.useContext(HouseContext) || {};
 
     const { dimensionsSize, deviceItemSize } = React.useContext(DynamicValuesContext) || {
         dimensionsSize: { width: 0, height: 0 } as DimensionsSizeITF,
@@ -56,6 +58,10 @@ const Index = () => {
         }, [])
     );
 
+    const handleGotoAddDevice = () => {
+        navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: houseDataChosen.id, idArea: null } });
+    }
+
     return (
         <SafeAreaView style={{ width: dimensionsSize?.width, height: dimensionsSize?.height, }}>
             <ImageBackground
@@ -82,7 +88,9 @@ const Index = () => {
                     <View style={styles.clusterAddDevice}>
                         <Text style={styles.house_name}>{houseDataChosen?.name || 'Nhà Của Tôi'}</Text>
                         <BlurView intensity={variablesInComponent.intensityDeviceItemBlur} tint='dark' style={[styles.device_item, styles.device_item_blur, { width: deviceItemSize.width, height: deviceItemSize.height }]}>
-                            <TouchableOpacity style={[styles.device_item_content, styles.device_item_add]}>
+                            <TouchableOpacity style={[styles.device_item_content, styles.device_item_add]}
+                                onPress={() => handleGotoAddDevice()}
+                            >
                                 <View style={styles.device_item_addBtn}>
                                     <View style={styles.device_item_addBtn_icon}>
                                         <IconCPN iconName={'plusRegular'} size={18} color={'#fff'}></IconCPN>

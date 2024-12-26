@@ -58,7 +58,7 @@ const HeaderCPN = ({ ...props }) => {
     const handleGotoArea = (roomID: number) => {
         handleChooseAreaByID && handleChooseAreaByID(roomID);
         gatewayToggleDropDown('more');
-        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "area" } });
+        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "area", params: { idArea: roomID } } });
     }
 
     const handleChangeChooseHouse = (id_house: number) => {
@@ -71,6 +71,11 @@ const HeaderCPN = ({ ...props }) => {
     const handleGotoHouseSetting = () => {
         gatewayToggleDropDown('more');
         navigation.navigate("(house)", { screen: "housesetting" });
+    }
+
+    const handleGotoAddDevice = () => {
+        gatewayToggleDropDown('add');
+        navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: houseDataChosen.id, idArea: areaDataChosen.id } });
     }
 
     return (
@@ -100,7 +105,7 @@ const HeaderCPN = ({ ...props }) => {
                     &&
                     <TouchableOpacity
                         style={styles.backButton}
-                        onPress={() => navigation.goBack() }
+                        onPress={() => navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } ) }
                     >
                         <IconCPN iconName='angleLeftRegular' size={18} color='#fff'></IconCPN>
                         <Text style={styles.backButton_text}>Nhà</Text>
@@ -146,6 +151,7 @@ const HeaderCPN = ({ ...props }) => {
                                     <>
                                         <TouchableOpacity
                                             style={styles.dropDown_item}
+                                            onPress={() => handleGotoAddDevice()}
                                         >
                                             <View style={styles.dropDown_item_icon}></View>
                                             <Text style={styles.dropDown_item_text}>Thêm Thiết Bị</Text>
