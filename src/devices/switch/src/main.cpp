@@ -148,14 +148,16 @@ void loop() {
     usrStatusButton = listenButton(BUTTON_PIN, debounceDelay, pressHoldTime); // NO, PRESS, HOLD
     if (usrStatusButton == HOLD) { 
         Serial.println("Reset all data");
-        handleControllLed(5, 100, 100);
         handleClearAllUserData(); 
+        handleControllLed(5, 100, 100);
+        ESP.restart();
     }
 
     if (usrStatusButton == PRESS) {
         Serial.println("Button pressed");
         relayState = !relayState;
-        digitalWrite(LED_PIN, relayState ? HIGH : LOW); 
+        digitalWrite(LED_PIN, relayState ? HIGH : LOW);
+        publishJson(send_topic, "", "NOTI", relayState);
     }
 }
 
@@ -189,9 +191,9 @@ void connectToWiFi() {
 
         ssid = readFromEEPROM("SSID");
 
-        // if (ssid == "") { 
-        //     return false;
-        // } 
+        if (ssid == "") { 
+            return;
+        } 
         password = readFromEEPROM("SSIDPass"); 
 
         Serial.printf("SSID: %s\n", ssid.c_str());
