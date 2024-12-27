@@ -27,17 +27,22 @@ export const MQTTContextProvider: React.FC<MQTTContextProviderProps> = ({ childr
     const messageCallbacks = useRef<Array<(message: Paho.Message) => void>>([]);
     const [isMQTTConnected, setIsMQTTConnected] = useState<boolean>(false);
 
+
+    const isConnectedRef = useRef(false); // Dùng ref để theo dõi trạng thái kết nối MQTT
+
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
-            if (state.type === 'wifi' && state.isConnected) {
+            if (state.type === 'wifi' && state.isConnected && !isConnectedRef.current) {
                 handleConnectMQTT();
-            } else {
+                isConnectedRef.current = true; // Cập nhật trạng thái đã kết nối
+            } else if (!state.isConnected && isConnectedRef.current) {
                 handleDisconnectMQTT();
+                isConnectedRef.current = false; // Cập nhật trạng thái đã ngắt kết nối
             }
         });
 
         return () => {
-            handleDisconnectMQTT();
+            handleDisconnectMQTT(); // Đảm bảo ngắt kết nối khi component unmount
             unsubscribe();
         };
     }, []);
