@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package auth;
+
+import "google/protobuf/struct.proto"; 
+
+service AuthService {
+  rpc Register (RegisterReq) returns (CommonRes) {}
+  rpc SignIn (SignInReq) returns (CommonRes) {}
+  rpc ValidateToken (ValidateTokenReq) returns (CommonRes) {}
+}
+
+// Common 
+message FieldError {
+  string property = 1;
+  string message = 2;
+}
+
+message CommonRes { 
+  int32 code = 1;
+  string status = 2;
+  repeated FieldError message = 3;
+  google.protobuf.Struct data = 4;
+} 
+
+// Register
+message RegisterReq {
+  string username = 1;
+  string password = 2;
+  string email = 3; 
+} 
+
+// SignIn
+message SignInReq {
+  string username = 1;
+  string password = 2;
+} 
+
+// Validate token
+message ValidateTokenReq {
+  string token = 1;
+  string type = 2;
+} 
