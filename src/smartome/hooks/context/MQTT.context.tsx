@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import Paho from "paho-mqtt";
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import { WifiContext } from "./Wifi.context";
 
 // Định nghĩa kiểu cho ngữ cảnh MQTT
 interface MQTTContextType {
@@ -23,32 +24,26 @@ interface MQTTContextProviderProps {
 }
 
 export const MQTTContextProvider: React.FC<MQTTContextProviderProps> = ({ children }) => {
+
+    const {isWifiConnected} = useContext(WifiContext) || {isWifiConnected: false};
+
     const clientRef = useRef<Paho.Client | null>(null);
     const messageCallbacks = useRef<Array<(message: Paho.Message) => void>>([]);
     const [isMQTTConnected, setIsMQTTConnected] = useState<boolean>(false);
 
-
-    const isConnectedRef = useRef(false); // Dùng ref để theo dõi trạng thái kết nối MQTT
-
-    useEffect(() => {
-        const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
-            if (state.type === 'wifi' && state.isConnected && !isConnectedRef.current) {
-                handleConnectMQTT();
-                isConnectedRef.current = true; // Cập nhật trạng thái đã kết nối
-            } else if (!state.isConnected && isConnectedRef.current) {
-                handleDisconnectMQTT();
-                isConnectedRef.current = false; // Cập nhật trạng thái đã ngắt kết nối
-            }
-        });
-
-        return () => {
-            handleDisconnectMQTT(); // Đảm bảo ngắt kết nối khi component unmount
-            unsubscribe();
-        };
-    }, []);
+    React.useEffect(() => {
+        if (isWifiConnected) {
+            handleConnectMQTT();
+        } else {
+            handleDisconnectMQTT();
+        }
+    }, [isWifiConnected])
 
 
     const handleConnectMQTT = () => {
+
+        console.log("Connecting to MQTT Broker...");
+
 
         const client = new Paho.Client(
             process.env.EXPO_PUBLIC_MQTT_BROKER_HOST as string || '192.168.1.4',
