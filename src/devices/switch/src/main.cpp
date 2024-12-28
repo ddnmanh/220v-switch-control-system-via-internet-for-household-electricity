@@ -353,6 +353,7 @@ void startAccessPoint() {
     WiFi.mode(WIFI_AP);
     delay(100);
 
+    WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
     WiFi.softAP(client_id+"_WIFI", accessPointPass);
 
     Serial.println("ESP is in AP mode. Connect to SSID 'ESP-AP-Setup' and send POST requests.");
