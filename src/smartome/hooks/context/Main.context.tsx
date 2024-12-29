@@ -1,3 +1,4 @@
+
 import React, { ReactNode } from 'react';
 import LoadStaticInitContextProvider from './LoadStaticInit.context';
 import DynamicValuesContextProvider from './DynamicValues.context';
@@ -7,6 +8,7 @@ import { StatusBar } from 'react-native';
 import { MQTTContextProvider } from './MQTT.context';
 import { WifiContextProvider } from './Wifi.context';
 import { GPSContextProvider } from './GPS.context';
+
 
 interface MainContextProps {
     children: ReactNode;

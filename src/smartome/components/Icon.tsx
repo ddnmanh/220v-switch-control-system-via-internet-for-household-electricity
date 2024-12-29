@@ -11,15 +11,25 @@ interface IconCPNProps {
     style?: any;
 }
 
-const IconCPN: React.FC<IconCPNProps> = ({ iconName, src, size=15, rotate=0, color, style }) => {
+
+const IconCPN: React.FC<IconCPNProps> = ({ iconName, src, size = 15, rotate = 0, color, style }) => {
+
     return (
         <Image
             source={src || (iconName ? iconsGlobal[iconName] : iconsGlobal['default'])}
-            style={[{ width: size, height: size, transform: [{ rotate: `${rotate}deg` }] }, style]}
-            tintColor={color || '#fff'}
+            style={[
+                {
+                    width: size,
+                    height: size,
+                    transform: [{ rotate: `${rotate}deg` }],
+                    ...(color ? { tintColor: color } : {}), // Chỉ thêm tintColor khi có giá trị color
+                },
+                style
+            ]}
             resizeMode="contain"
         />
     );
 };
+
 
 export default IconCPN;
