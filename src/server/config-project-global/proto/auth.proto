@@ -6,6 +6,8 @@ import "google/protobuf/struct.proto";
 
 service AuthService {
   rpc Register (RegisterReq) returns (CommonRes) {}
+  rpc ResendOTPVerifyRegisterAccount (ResendOTPVerifyRegisterAccountReq) returns (CommonRes) {}
+  rpc OTPVerifyRegisterAccount (OTPVerifyRegisterAccountReq) returns (CommonRes) {} 
   rpc SignIn (SignInReq) returns (CommonRes) {}
   rpc ValidateToken (ValidateTokenReq) returns (CommonRes) {}
 }
@@ -25,10 +27,23 @@ message CommonRes {
 
 // Register
 message RegisterReq {
-  string username = 1;
-  string password = 2;
-  string email = 3; 
-} 
+  string firstname = 1;
+  string lastname = 2;
+  string username = 3;
+  string password = 4;
+  string email = 5;
+}
+
+message ResendOTPVerifyRegisterAccountReq {
+  int32 id_register = 1;
+  string email = 2;
+}
+
+// Verify OTP when register account
+message OTPVerifyRegisterAccountReq {
+  string email = 1;
+  string otp = 2;
+}
 
 // SignIn
 message SignInReq {

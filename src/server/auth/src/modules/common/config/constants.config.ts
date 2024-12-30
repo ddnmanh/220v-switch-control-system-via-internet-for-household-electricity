@@ -1,7 +1,7 @@
 
 export const config = () => ({
     api_ui_detect_url: process.env.API_UI_DETECT_URL || 'http://localhost:5000/detect',
-    app_run_port: process.env.APP_RUN_PORT || 8000,
+    app_run_port: process.env.APP_RUN_PORT || 50051,
     secret_key_access_token: process.env.JTW_SECRET_KEY_ACCESS_TOKEN || 'secret-access-token-Key',
     secret_key_refresh_token: process.env.JTW_SECRET_KEY_REFRESH_TOKEN || 'secret-refresh-token-Key',
     access_token_seconds_live: parseInt(process.env.JTW_ACCESS_TOKEN_SECONDS_LIVE) || 1800, // 30 minutes
@@ -15,4 +15,10 @@ export const config = () => ({
     database_username: process.env.DATABASE_USERNAME || 'root',
     database_password: process.env.DATABASE_PASSWORD || '123456789',
     database_name: process.env.DATABASE_NAME || 'microservice_auth',
+    // Email
+    email_host: process.env.EMAIL_HOST || 'smtp.ethereal.email',
+    email_port: parseInt(process.env.EMAIL_PORT) || 587,
+    email_secure: process.env.EMAIL_SECURE || false,
+    email_user: process.env.EMAIL_USER || '',
+    email_pass: process.env.EMAIL_PASSWORD || '',
 });

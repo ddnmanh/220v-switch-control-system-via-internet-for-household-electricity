@@ -1,4 +1,4 @@
- 
+
 import { IsString, MinLength } from "class-validator";
 
 export class SignInDto {
@@ -8,5 +8,5 @@ export class SignInDto {
 
     @IsString()
     @MinLength(8, { message: 'Username must be at least 8 characters long' })
-    public password: string; 
+    public password: string;
 }

@@ -27,9 +27,22 @@ export interface CommonRes {
 
 /** Register */
 export interface RegisterReq {
+  firstname: string;
+  lastname: string;
   username: string;
   password: string;
   email: string;
+}
+
+export interface ResendOTPVerifyRegisterAccountReq {
+  idRegister: number;
+  email: string;
+}
+
+/** Verify OTP when register account */
+export interface OTPVerifyRegisterAccountReq {
+  email: string;
+  otp: string;
 }
 
 /** SignIn */
@@ -51,6 +64,10 @@ wrappers[".google.protobuf.Struct"] = { fromObject: Struct.wrap, toObject: Struc
 export interface AuthServiceClient {
   register(request: RegisterReq): Observable<CommonRes>;
 
+  resendOtpVerifyRegisterAccount(request: ResendOTPVerifyRegisterAccountReq): Observable<CommonRes>;
+
+  otpVerifyRegisterAccount(request: OTPVerifyRegisterAccountReq): Observable<CommonRes>;
+
   signIn(request: SignInReq): Observable<CommonRes>;
 
   validateToken(request: ValidateTokenReq): Observable<CommonRes>;
@@ -59,6 +76,14 @@ export interface AuthServiceClient {
 export interface AuthServiceController {
   register(request: RegisterReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
+  resendOtpVerifyRegisterAccount(
+    request: ResendOTPVerifyRegisterAccountReq,
+  ): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+
+  otpVerifyRegisterAccount(
+    request: OTPVerifyRegisterAccountReq,
+  ): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+
   signIn(request: SignInReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
   validateToken(request: ValidateTokenReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
@@ -66,7 +91,13 @@ export interface AuthServiceController {
 
 export function AuthServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["register", "signIn", "validateToken"];
+    const grpcMethods: string[] = [
+      "register",
+      "resendOtpVerifyRegisterAccount",
+      "otpVerifyRegisterAccount",
+      "signIn",
+      "validateToken",
+    ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("AuthService", method)(constructor.prototype[method], method, descriptor);

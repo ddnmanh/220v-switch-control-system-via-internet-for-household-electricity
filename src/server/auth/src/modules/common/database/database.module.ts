@@ -3,7 +3,11 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import UserEntity from '../../../entity/User.entity';
-import RefreshTokenEntity from '../../../entity/RefreshToken.entity';
+import RefreshTokenEntity from '../../../entity/LogInHistory.entity';
+import PasswordHistoryEntity from 'src/entity/PasswordHistory.entity';
+import LogInHistoryEntity from '../../../entity/LogInHistory.entity';
+import UserRegiterEntity from 'src/entity/UserRegister.entity';
+import OTPEntity from 'src/entity/OTP.entity';
 
 @Module({
     imports: [
@@ -20,7 +24,10 @@ import RefreshTokenEntity from '../../../entity/RefreshToken.entity';
                 database: configService.get<string>('database_name'),
                 entities: [
                     UserEntity,
-                    RefreshTokenEntity
+                    PasswordHistoryEntity,
+                    LogInHistoryEntity,
+                    UserRegiterEntity,
+                    OTPEntity
                 ],
                 synchronize: true,
             }),

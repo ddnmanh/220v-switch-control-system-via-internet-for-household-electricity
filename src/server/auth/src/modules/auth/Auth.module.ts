@@ -1,25 +1,32 @@
 
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthService } from './service/Auth.service'; 
-import { AutController } from './Auth.controller';  
+import { AuthService } from './service/Auth.service';
+import { AutController } from './Auth.controller';
 import { CommonModule } from '../common/common.module';
 import { UserRepository } from './repository/User.repository';
 import UserEntity from 'src/entity/User.entity';
-import RefreshTokenEntity from 'src/entity/RefreshToken.entity';
-import { RefreshTokenRepository } from './repository/RefreshToken.repository';
+import { LogInHistoryRepository } from './repository/LogInHistory.repository';
 import { JWTService } from './service/JWT.service';
+import PasswordHistoryEntity from 'src/entity/PasswordHistory.entity';
+import LogInHistoryEntity from 'src/entity/LogInHistory.entity';
+import UserRegiterEntity from 'src/entity/UserRegister.entity';
+import OTPEntity from 'src/entity/OTP.entity';
+import { UserRegisterRepository } from './repository/UserRegister.repository';
+import { OTPRepository } from './repository/OTP.repository';
 
 @Module({
-    imports: [ 
-        CommonModule, 
-        TypeOrmModule.forFeature([RefreshTokenEntity, UserEntity]),
+    imports: [
+        CommonModule,
+        TypeOrmModule.forFeature([UserEntity, PasswordHistoryEntity, LogInHistoryEntity, UserRegiterEntity, OTPEntity]),
     ],
     providers: [
         AuthService,
         JWTService,
         UserRepository,
-        RefreshTokenRepository,
+        LogInHistoryRepository,
+        UserRegisterRepository,
+        OTPRepository
     ],
     controllers: [AutController],
     exports: [
@@ -27,6 +34,6 @@ import { JWTService } from './service/JWT.service';
         JWTService,
         UserRepository,
         TypeOrmModule
-    ], 
+    ],
 })
 export class AuthModule {}

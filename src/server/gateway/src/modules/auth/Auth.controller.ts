@@ -2,7 +2,7 @@
 import { Body, Controller, Inject, OnModuleInit, Post, Res, UseGuards } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { AuthServiceClient, RegisterReq, AUTH_SERVICE_NAME, SignInReq } from './auth.pb';
+import { AuthServiceClient, RegisterReq, AUTH_SERVICE_NAME, SignInReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq } from './auth.pb';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import StandardizeRes from '../../config/response/response.config';
@@ -29,11 +29,6 @@ export class AuthController implements OnModuleInit {
     @Post('register')
     private async register(@Body() body: RegisterReq): Promise<any> {
         console.log('register in gateway');
-
-        // throw new Error('Method not found káhdaskjdhakjs 12312312');
-
-        // throw new HttpException('Method not found káhdaskjdhakjs', 100);
-
         try {
             const data: any = await firstValueFrom(this.svc.register({...body}));
 
@@ -41,9 +36,26 @@ export class AuthController implements OnModuleInit {
 
             return new StandardizeRes(data).resp();
         } catch (error: any) {
+            return CatchingCommunicategRPC.catchRPCError(error);
+        }
+    }
 
-            // console.log('error in gateway', error);
+    @Post('register/resend-otp')
+    private async resendOTPVerifyRegisterAccount(@Body() body: ResendOTPVerifyRegisterAccountReq): Promise<any> {
+        try {
+            let data: any = await firstValueFrom(this.svc.resendOtpVerifyRegisterAccount(body));
+            return new StandardizeRes(data).resp();
+        } catch (error: any) {
+            return CatchingCommunicategRPC.catchRPCError(error);
+        }
+    }
 
+    @Post('register/verify-otp')
+    private async verifyOTPRegisterAccount(@Body() body: OTPVerifyRegisterAccountReq): Promise<any> {
+        try {
+            let data: any = await firstValueFrom(this.svc.otpVerifyRegisterAccount(body));
+            return new StandardizeRes(data).resp();
+        } catch (error: any) {
             return CatchingCommunicategRPC.catchRPCError(error);
         }
     }
