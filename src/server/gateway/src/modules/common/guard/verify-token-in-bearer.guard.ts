@@ -26,8 +26,6 @@ export class VerifyTokenInBearerGuard implements CanActivate {
 
         const token = this.extractTokenFromHeader(request);
 
-        console.log('token', token);
-
 
         if (!token) {
             throw new UnauthorizedException('Access token not found');
@@ -40,8 +38,6 @@ export class VerifyTokenInBearerGuard implements CanActivate {
                     secret: this.globalConstants.get('secret_key_access_token'),
                 }
             );
-
-            console.log('payload', payload);
 
 
             request[this.globalConstants.get('var_name_user_after_decode_token')] = payload;

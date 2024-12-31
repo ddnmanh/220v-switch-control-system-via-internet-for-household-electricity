@@ -1,7 +1,7 @@
 import { Body, Controller } from "@nestjs/common";
 import { AuthService } from "./service/Auth.service";
 import { ConfigService } from "@nestjs/config";
-import { AUTH_SERVICE_NAME, SignInReq, CommonRes, RegisterReq, ValidateTokenReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq } from "./auth.pb";
+import { AUTH_SERVICE_NAME, LogInReq, CommonRes, RegisterReq, ValidateTokenReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq, LogOutReq } from "./auth.pb";
 import { GrpcMethod } from "@nestjs/microservices";
 import StandardizeRes from "src/config/response/response.config";
 import { ServiceRes } from "src/DTO/ServiceRes.dto";
@@ -36,6 +36,19 @@ export class AutController {
     @GrpcMethod(AUTH_SERVICE_NAME, 'otpVerifyRegisterAccount')
     public async otpVerifyRegisterAccount(body: OTPVerifyRegisterAccountReq): Promise<CommonRes> {
         let data:ServiceRes = await this.authService.otpVerifyRegisterAccount(body);
+        return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
+    }
+
+
+    @GrpcMethod(AUTH_SERVICE_NAME, 'LogIn')
+    public async logIn(@Body() payload: LogInReq): Promise<CommonRes> {
+        let data:ServiceRes = await this.authService.logIn(payload);
+        return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
+    }
+
+    @GrpcMethod(AUTH_SERVICE_NAME, 'logOut')
+    public async logOut(body: LogOutReq): Promise<CommonRes> {
+        let data:ServiceRes = await this.authService.logOut(body);
         return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
     }
 

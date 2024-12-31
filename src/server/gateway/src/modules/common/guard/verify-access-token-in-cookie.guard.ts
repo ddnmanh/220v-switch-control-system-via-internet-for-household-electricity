@@ -28,7 +28,6 @@ export class VerifyAccessTokenInCookieGuard implements CanActivate {
 
         console.log('token', token);
 
-
         if (!token) {
             throw new UnauthorizedException('Access token not found');
         }
@@ -53,6 +52,8 @@ export class VerifyAccessTokenInCookieGuard implements CanActivate {
 
     private extractTokenFromCookie(request: Request): string | undefined {
         console.log(' extractTokenFromCookie');
+        console.log(this.globalConstants.get('name_cookie_access_token'));
+
 
         return request.cookies[this.globalConstants.get('name_cookie_access_token')];
     }

@@ -21,7 +21,6 @@ export class UserRepository {
         user.firstname = firstname;
         user.lastname = lastname;
         user.username = username;
-        user.password = password;
         user.email = email;
         user.role = role;
         return this.userRepository.save(user);

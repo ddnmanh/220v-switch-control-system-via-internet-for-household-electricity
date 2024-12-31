@@ -46,9 +46,13 @@ export interface OTPVerifyRegisterAccountReq {
 }
 
 /** SignIn */
-export interface SignInReq {
+export interface LogInReq {
   username: string;
   password: string;
+}
+
+export interface LogOutReq {
+  refreshToken: string;
 }
 
 /** Validate token */
@@ -68,7 +72,9 @@ export interface AuthServiceClient {
 
   otpVerifyRegisterAccount(request: OTPVerifyRegisterAccountReq): Observable<CommonRes>;
 
-  signIn(request: SignInReq): Observable<CommonRes>;
+  logIn(request: LogInReq): Observable<CommonRes>;
+
+  logOut(request: LogOutReq): Observable<CommonRes>;
 
   validateToken(request: ValidateTokenReq): Observable<CommonRes>;
 }
@@ -84,7 +90,9 @@ export interface AuthServiceController {
     request: OTPVerifyRegisterAccountReq,
   ): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
-  signIn(request: SignInReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+  logIn(request: LogInReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+
+  logOut(request: LogOutReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
   validateToken(request: ValidateTokenReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 }
@@ -95,7 +103,8 @@ export function AuthServiceControllerMethods() {
       "register",
       "resendOtpVerifyRegisterAccount",
       "otpVerifyRegisterAccount",
-      "signIn",
+      "logIn",
+      "logOut",
       "validateToken",
     ];
     for (const method of grpcMethods) {

@@ -14,11 +14,16 @@ import UserRegiterEntity from 'src/entity/UserRegister.entity';
 import OTPEntity from 'src/entity/OTP.entity';
 import { UserRegisterRepository } from './repository/UserRegister.repository';
 import { OTPRepository } from './repository/OTP.repository';
+import { PasswordHistoryRepository } from './repository/PasswordHistory.repository';
 
 @Module({
     imports: [
         CommonModule,
-        TypeOrmModule.forFeature([UserEntity, PasswordHistoryEntity, LogInHistoryEntity, UserRegiterEntity, OTPEntity]),
+        TypeOrmModule.forFeature([
+            UserEntity, PasswordHistoryEntity,
+            LogInHistoryEntity, UserRegiterEntity,
+            OTPEntity
+        ]),
     ],
     providers: [
         AuthService,
@@ -26,7 +31,8 @@ import { OTPRepository } from './repository/OTP.repository';
         UserRepository,
         LogInHistoryRepository,
         UserRegisterRepository,
-        OTPRepository
+        OTPRepository,
+        PasswordHistoryRepository
     ],
     controllers: [AutController],
     exports: [

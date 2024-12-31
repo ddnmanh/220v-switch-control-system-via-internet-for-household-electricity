@@ -16,6 +16,8 @@ import { OTPRepository } from '../repository/OTP.repository';
 import OTPEntity from 'src/entity/OTP.entity';
 import { GenerateUUIDService } from 'src/modules/common/generate-uuid/GenerateUUID.service';
 import { UserRegisterResDTO } from 'src/DTO/userRegister.dto';
+import { PasswordHistoryRepository } from '../repository/PasswordHistory.repository';
+import { LogOutReq } from '../auth.pb';
 
 @Injectable()
 export class AuthService {
@@ -29,8 +31,15 @@ export class AuthService {
     private readonly globalConstants: ConfigService;
     private readonly userRegiterRepository: UserRegisterRepository;
     private readonly GenerateUUIDService: GenerateUUIDService;
+    private readonly passwordHistoryRepository: PasswordHistoryRepository;
 
-    constructor(aR: UserRepository, otpR: OTPRepository, uRR: UserRegisterRepository, rTR: LogInHistoryRepository, eS: EncryptService, jS: JWTService, emS: EmailService, gC: ConfigService, gUS: GenerateUUIDService) {
+    constructor(
+        aR: UserRepository, otpR: OTPRepository,
+        uRR: UserRegisterRepository, rTR: LogInHistoryRepository,
+        eS: EncryptService, jS: JWTService, emS: EmailService,
+        gC: ConfigService, gUS: GenerateUUIDService,
+        pHR: PasswordHistoryRepository
+    ) {
         this.userRepository = aR;
         this.otpRepository = otpR;
         this.userRegiterRepository = uRR;
@@ -40,6 +49,7 @@ export class AuthService {
         this.emailService = emS;
         this.globalConstants = gC;
         this.GenerateUUIDService = gUS;
+        this.passwordHistoryRepository = pHR;
     }
 
     async registerUser(body: RegisterUserDto): Promise<ServiceRes> {
@@ -123,29 +133,24 @@ export class AuthService {
 
     async otpVerifyRegisterAccount(body: OTPVerifyRegisterAccountReq): Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
-
-        console.log("otpVerifyRegisterAccount");
-        console.log(body);
-
-
-
         try {
             let userVerify = await this.userRegiterRepository.findUserWithOtpByEmail(body.email);
 
             if (!userVerify) {
                 statusMessage.push( {property: 'email', message: 'Cannot found user register by email!'} );
-            }
+            } else {
+                let isMatchOTP = false;
+                userVerify?.otpRelation?.forEach((otp: OTPEntity) => {
+                    if (otp.otp === body.otp) {
+                        isMatchOTP = true;
+                    }
+                });
 
-            let isMatchOTP = false;
-            userVerify?.otpRelation?.forEach((otp: OTPEntity) => {
-                if (otp.otp === body.otp) {
-                    isMatchOTP = true;
+                if (!isMatchOTP) {
+                    statusMessage.push( {property: 'otp', message: 'OTP is incorrect'} );
                 }
-            });
-
-            if (!isMatchOTP) {
-                statusMessage.push( {property: 'otp', message: 'OTP is incorrect'} );
             }
+
 
             if (statusMessage.length > 0) {
                 return new ServiceRes('Verify account register is failed', statusMessage, null);
@@ -160,6 +165,7 @@ export class AuthService {
                 userRes.username = user.username;
                 userRes.email = user.email;
                 userRes.role = user.role;
+
                 return new ServiceRes('Verify account register is successfully', statusMessage, userRes);
             } else {
                 throw new Error('Cannot create user from user register');
@@ -172,6 +178,100 @@ export class AuthService {
         }
     }
 
+
+    async logIn(body: SignInDto): Promise<ServiceRes> {
+
+        let statusMessage:ErrServiceRes[] = [];
+
+        if (body.username === '' || !body.username) statusMessage.push( {property: 'username', message: 'Username must not empty'} );
+        if (body.password === '' || !body.password) statusMessage.push( {property: 'password', message: 'Password must not empty'} );
+
+        if (statusMessage.length > 0) {
+            return new ServiceRes('Sign-in information is invalid', statusMessage, null);
+        }
+
+        try {
+
+            const userLogIn = await this.userRepository.findOneByUsername(body.username);
+
+            if (!userLogIn) { // Username is incorrect
+                statusMessage.push( {property: 'username', message: 'Username is incorrect'} );
+            } else if (!await this.encryptService.comparePasswordHashed(body.password, userLogIn.password)) { // Password is incorrect
+                statusMessage.push( {property: 'password', message: 'Password is incorrect'} );
+            }
+
+            if (statusMessage.length > 0) {
+                return new ServiceRes('Sign-in information is invalid', statusMessage, null);
+            }
+
+            // Destructure user to remove sensitive or unnecessary fields
+            let { password, isDelete, createdAt, ...userInfoModified } = userLogIn as UserEntity;
+
+            // Generate access token and refresh token
+            const [access_token, refresh_token] = await Promise.all([
+                this.jwtService.generaAccessToken(userInfoModified),
+                this.jwtService.generaRefreshToken(userInfoModified)
+            ]);
+
+            await this.logInHistoryRepository.updateExpiredOldLogInHistory(userLogIn);
+
+            // Save refresh token to database
+            let logInHistory = await this.logInHistoryRepository.saveOne(userLogIn, refresh_token);
+
+            return new ServiceRes(
+                'Sign-in successfully',
+                statusMessage,
+                {
+                    accessToken: {
+                        token: access_token,
+                        expiresIn: this.globalConstants.get('access_token_seconds_live')
+                    },
+                    refreshToken: {
+                        token: logInHistory.token,
+                        expiresIn: this.globalConstants.get('refresh_token_seconds_live')
+                    }
+                }
+            );
+        } catch (error) {
+            console.log(`AuthService:signIn : ${error.message}`);
+            return new ServiceRes('Error when sign-in', [{ property: 'error', message: error.message }], null);
+        }
+    }
+
+    async logOut(body: LogOutReq): Promise<ServiceRes> {
+        let statusMessage:ErrServiceRes[] = [];
+
+        console.log(body);
+
+        try {
+            await this.logInHistoryRepository.softDeleteRefreshToken(body.refreshToken);
+            return new ServiceRes('Log-out uccessfully', statusMessage, null);
+        } catch (error) {
+            console.log(`AuthService:logOut : ${error.message}`);
+            return new ServiceRes('Error when log-out', [{ property: 'error', message: error.message }], null);
+        }
+    }
+
+    // async saveRefreshToken(user_id: number, refresh_token: string): Promise<RefreshTokenDto> {
+
+    //     let success = await this.logInHistoryRepository.createOne(user_id.toString(), refresh_token);
+
+    //     let row = new RefreshTokenDto();
+
+    //     if (success.token === undefined) {
+    //         return row;
+    //     }
+
+    //     // convert RefreshToken entity to RefreshTokenDto
+    //     row.id = success.id;
+    //     // row.idUser = success.user.id;
+    //     // row.idUser = "1";
+    //     row.token = success.token;
+    //     row.createdAt = success.createdAt;
+    //     row.updatedAt = success.updatedAt;
+
+    //     return row;
+    // }
 
 
     // Check if username is already taken

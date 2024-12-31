@@ -21,8 +21,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 ? [{ property: 'server', message: responseMessage || 'Something went wrong, maybe not you but us, it will work again soon!' }]
                 : responseMessage['message'];
 
-
-
         response.status(status).json( // Read README.md for more information
             this.convertCamelToSnake({
                 code: status,

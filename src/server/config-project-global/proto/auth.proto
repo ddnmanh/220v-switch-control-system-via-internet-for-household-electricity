@@ -8,7 +8,8 @@ service AuthService {
   rpc Register (RegisterReq) returns (CommonRes) {}
   rpc ResendOTPVerifyRegisterAccount (ResendOTPVerifyRegisterAccountReq) returns (CommonRes) {}
   rpc OTPVerifyRegisterAccount (OTPVerifyRegisterAccountReq) returns (CommonRes) {} 
-  rpc SignIn (SignInReq) returns (CommonRes) {}
+  rpc LogIn (LogInReq) returns (CommonRes) {}
+  rpc LogOut (LogOutReq) returns (CommonRes) {}
   rpc ValidateToken (ValidateTokenReq) returns (CommonRes) {}
 }
 
@@ -46,10 +47,14 @@ message OTPVerifyRegisterAccountReq {
 }
 
 // SignIn
-message SignInReq {
+message LogInReq {
   string username = 1;
   string password = 2;
 } 
+
+message LogOutReq {
+  string refresh_token = 1;
+}
 
 // Validate token
 message ValidateTokenReq {

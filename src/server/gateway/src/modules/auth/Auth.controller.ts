@@ -2,13 +2,14 @@
 import { Body, Controller, Inject, OnModuleInit, Post, Res, UseGuards } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { AuthServiceClient, RegisterReq, AUTH_SERVICE_NAME, SignInReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq } from './auth.pb';
+import { AuthServiceClient, RegisterReq, AUTH_SERVICE_NAME, LogInReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq, LogOutReq } from './auth.pb';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import StandardizeRes from '../../config/response/response.config';
 import { CatchingCommunicategRPC } from 'src/config/catching/catchingCommunicategRPC.catching';
 import { VerifyAccessTokenInCookieGuard } from '../common/guard/verify-access-token-in-cookie.guard';
 import { VerifyTokenInBearerGuard } from '../common/guard/verify-token-in-bearer.guard';
+import { VerifyRefreshTokenInCookieGuard } from '../common/guard/verify-refresh-token-in-cookie.guard';
 
 @Controller('api/auth')
 export class AuthController implements OnModuleInit {
@@ -60,10 +61,10 @@ export class AuthController implements OnModuleInit {
         }
     }
 
-    @Post('sign-in')
-    private async login(@Body() body: SignInReq, @Res({ passthrough: true }) response: Response): Promise<any> {
+    @Post('log-in')
+    private async login(@Body() body: LogInReq, @Res({ passthrough: true }) response: Response): Promise<any> {
         try {
-            let data: any = await firstValueFrom(this.svc.signIn({ username: body.username, password: body.password }));
+            let data: any = await firstValueFrom(this.svc.logIn({ username: body.username, password: body.password }));
 
             if (data.data !== null) {
                 // Attach access token and refresh token to cookie
@@ -88,9 +89,22 @@ export class AuthController implements OnModuleInit {
         }
     }
 
+    @Post('log-out')
+    private async logout(@Body() body: LogOutReq, @Res({ passthrough: true }) response: Response): Promise<any> {
+        try {
+            response.clearCookie(this.configService.get('name_cookie_refresh_token'));
+            response.clearCookie(this.configService.get('name_cookie_access_token'));
+
+            let data: any = await firstValueFrom(this.svc.logOut(body));
+
+            return new StandardizeRes(data).resp();
+        } catch (error: any) {
+            return CatchingCommunicategRPC.catchRPCError(error);
+        }
+    }
+
     @Post('validate-token')
     @UseGuards(VerifyTokenInBearerGuard)
-    // @UseGuards(VerifyAccessTokenInCookieGuard)
     private async validateToken(@Body() body: any): Promise<any> {
 
         console.log('validateToken in gateway');
