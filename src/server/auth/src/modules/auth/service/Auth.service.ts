@@ -4,11 +4,10 @@ import { EncryptService } from '../../common/encrypt/Encrypt.service';
 import { ConfigService } from '@nestjs/config';
 import UserEntity, { UserRole } from 'src/entity/User.entity';
 import { LogInHistoryRepository } from '../repository/LogInHistory.repository';
-import { RefreshTokenDto } from 'src/DTO/refresh-token.dto';
 import { JWTService } from './JWT.service';
 import { ErrServiceRes, ServiceRes } from 'src/DTO/ServiceRes.dto';
 import { RegisterUserDto, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq, UserResDTO } from 'src/DTO/user.dto';
-import { SignInDto } from 'src/DTO/auth.dto';
+import { LogInDto } from 'src/DTO/auth.dto';
 import { UserRegisterRepository } from '../repository/UserRegister.repository';
 import UserRegiterEntity from 'src/entity/UserRegister.entity';
 import { EmailService } from 'src/modules/common/email/Email.service';
@@ -30,15 +29,13 @@ export class AuthService {
     private readonly emailService: EmailService;
     private readonly globalConstants: ConfigService;
     private readonly userRegiterRepository: UserRegisterRepository;
-    private readonly GenerateUUIDService: GenerateUUIDService;
     private readonly passwordHistoryRepository: PasswordHistoryRepository;
 
     constructor(
         aR: UserRepository, otpR: OTPRepository,
         uRR: UserRegisterRepository, rTR: LogInHistoryRepository,
         eS: EncryptService, jS: JWTService, emS: EmailService,
-        gC: ConfigService, gUS: GenerateUUIDService,
-        pHR: PasswordHistoryRepository
+        gC: ConfigService, pHR: PasswordHistoryRepository
     ) {
         this.userRepository = aR;
         this.otpRepository = otpR;
@@ -48,7 +45,6 @@ export class AuthService {
         this.jwtService = jS;
         this.emailService = emS;
         this.globalConstants = gC;
-        this.GenerateUUIDService = gUS;
         this.passwordHistoryRepository = pHR;
     }
 
@@ -156,9 +152,12 @@ export class AuthService {
                 return new ServiceRes('Verify account register is failed', statusMessage, null);
             }
 
-            let user = await this.userRepository.createOne(userVerify.firstname, userVerify.lastname, userVerify.username, userVerify.password, userVerify.email, UserRole.USER);
+            let user = await this.userRepository.createOne(userVerify.firstname, userVerify.lastname, userVerify.username, userVerify.email, UserRole.USER);
 
             if (user) {
+
+                await this.passwordHistoryRepository.createOne(user, userVerify.password);
+
                 await this.userRegiterRepository.deleteUserRegister(userVerify);
                 let userRes = new UserResDTO();
                 userRes.id = user.id;
@@ -179,7 +178,7 @@ export class AuthService {
     }
 
 
-    async logIn(body: SignInDto): Promise<ServiceRes> {
+    async logIn(body: LogInDto): Promise<ServiceRes> {
 
         let statusMessage:ErrServiceRes[] = [];
 
@@ -196,7 +195,7 @@ export class AuthService {
 
             if (!userLogIn) { // Username is incorrect
                 statusMessage.push( {property: 'username', message: 'Username is incorrect'} );
-            } else if (!await this.encryptService.comparePasswordHashed(body.password, userLogIn.password)) { // Password is incorrect
+            } else if (!await this.encryptService.comparePasswordHashed(body.password, userLogIn.userPassword[0].password)) { // Password is incorrect
                 statusMessage.push( {property: 'password', message: 'Password is incorrect'} );
             }
 
@@ -205,7 +204,7 @@ export class AuthService {
             }
 
             // Destructure user to remove sensitive or unnecessary fields
-            let { password, isDelete, createdAt, ...userInfoModified } = userLogIn as UserEntity;
+            let { userPassword, isDelete, createdAt, ...userInfoModified } = userLogIn as UserEntity;
 
             // Generate access token and refresh token
             const [access_token, refresh_token] = await Promise.all([
@@ -216,7 +215,7 @@ export class AuthService {
             await this.logInHistoryRepository.updateExpiredOldLogInHistory(userLogIn);
 
             // Save refresh token to database
-            let logInHistory = await this.logInHistoryRepository.saveOne(userLogIn, refresh_token);
+            let logInHistory = await this.logInHistoryRepository.saveOne(userLogIn, refresh_token, body);
 
             return new ServiceRes(
                 'Sign-in successfully',
@@ -240,9 +239,6 @@ export class AuthService {
 
     async logOut(body: LogOutReq): Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
-
-        console.log(body);
-
         try {
             await this.logInHistoryRepository.softDeleteRefreshToken(body.refreshToken);
             return new ServiceRes('Log-out uccessfully', statusMessage, null);
@@ -251,28 +247,6 @@ export class AuthService {
             return new ServiceRes('Error when log-out', [{ property: 'error', message: error.message }], null);
         }
     }
-
-    // async saveRefreshToken(user_id: number, refresh_token: string): Promise<RefreshTokenDto> {
-
-    //     let success = await this.logInHistoryRepository.createOne(user_id.toString(), refresh_token);
-
-    //     let row = new RefreshTokenDto();
-
-    //     if (success.token === undefined) {
-    //         return row;
-    //     }
-
-    //     // convert RefreshToken entity to RefreshTokenDto
-    //     row.id = success.id;
-    //     // row.idUser = success.user.id;
-    //     // row.idUser = "1";
-    //     row.token = success.token;
-    //     row.createdAt = success.createdAt;
-    //     row.updatedAt = success.updatedAt;
-
-    //     return row;
-    // }
-
 
     // Check if username is already taken
     private async isExistsUserByUsername(username: string = ''): Promise<boolean> {

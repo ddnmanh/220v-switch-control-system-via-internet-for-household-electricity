@@ -14,7 +14,7 @@ export class UserRepository {
         private readonly generateUUIDService: GenerateUUIDService, // Inject GenerateUUIDService
     ) {}
 
-    async createOne(firstname: string, lastname: string, username: string, password: string, email: string, role: UserRole): Promise<UserEntity> {
+    async createOne(firstname: string, lastname: string, username: string, email: string, role: UserRole): Promise<UserEntity> {
         let user = new UserEntity();
         // Tạo ID cho user trước khi lưu vào DB
         user.id = this.generateUUIDService.generateIdWithLength(6);
@@ -26,8 +26,18 @@ export class UserRepository {
         return this.userRepository.save(user);
     }
 
-    async findOneByUsername(username: string = ''): Promise<UserEntity | null> {
-        return this.userRepository.findOne({ where: { username: username } });
+    async findOneByUsername(usn: string = ''): Promise<UserEntity | null> {
+        return await this.userRepository
+            .createQueryBuilder('user')
+            .leftJoinAndSelect(
+                'user.userPassword',
+                'userPassword',
+                'userPassword.isActive = :isActive', // Điều kiện where cho mối quan hệ
+                { isActive: true }
+            )
+            .where('user.username = :username', { username: usn })
+            .where('user.isDelete = :isDelete', { isDelete: false })
+            .getOne();
     }
 
     async findOneByEmail(email: string = ''): Promise<UserEntity | null> {

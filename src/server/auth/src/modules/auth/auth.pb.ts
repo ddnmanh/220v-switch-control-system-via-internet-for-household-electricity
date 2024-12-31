@@ -45,10 +45,12 @@ export interface OTPVerifyRegisterAccountReq {
   otp: string;
 }
 
-/** SignIn */
+/** Log in */
 export interface LogInReq {
   username: string;
   password: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface LogOutReq {

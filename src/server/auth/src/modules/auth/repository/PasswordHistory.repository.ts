@@ -11,7 +11,7 @@ export class PasswordHistoryRepository {
 
     constructor(
         @InjectRepository(PasswordHistoryEntity)
-        private readonly userRepository: Repository<PasswordHistoryEntity>,
+        private readonly passwordHistoryEntity: Repository<PasswordHistoryEntity>,
         private readonly generateUUIDService: GenerateUUIDService, // Inject GenerateUUIDService
     ) {}
 
@@ -19,22 +19,24 @@ export class PasswordHistoryRepository {
         let passHis = new PasswordHistoryEntity();
         passHis.user = user;
         passHis.password = password;
-        return this.userRepository.save(passHis);
+        return this.passwordHistoryEntity.save(passHis);
     }
 
-    async updateNoActiveOldPass(user: UserEntity): Promise<PasswordHistoryEntity[]> {
-        let passHis: PasswordHistoryEntity[] = await this.userRepository.find({
-            where: {
-                user: { id: user.id },
-                isActive: true
-            }
-        });
+    // Phương thức cập nhật tất cả mật khẩu cũ của người dùng thành không hoạt động
+    async updateNoActiveOldPass(user: UserEntity): Promise<number> {
+        const result = await this.passwordHistoryEntity
+            .createQueryBuilder()
+            .update(PasswordHistoryEntity)
+            .set({ isActive: false })
+            .where('userId = :userId', { userId: user.id })
+            .andWhere('isActive = true')
+            .execute();
 
-        // Cập nhật isActive cho từng bản ghi
-        passHis.forEach((pass) => {
-            pass.isActive = false;
-        });
+        if (result.affected === 0) {
+            console.log('Không có bản ghi mật khẩu nào để cập nhật!');
+        }
 
-        return this.userRepository.save(passHis);
+        // Trả về số bản ghi được cập nhật
+        return result.affected || 0;
     }
 }

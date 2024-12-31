@@ -64,7 +64,7 @@ export class AuthController implements OnModuleInit {
     @Post('log-in')
     private async login(@Body() body: LogInReq, @Res({ passthrough: true }) response: Response): Promise<any> {
         try {
-            let data: any = await firstValueFrom(this.svc.logIn({ username: body.username, password: body.password }));
+            let data: any = await firstValueFrom(this.svc.logIn(body));
 
             if (data.data !== null) {
                 // Attach access token and refresh token to cookie

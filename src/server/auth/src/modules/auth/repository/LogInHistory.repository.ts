@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { LogInDto } from 'src/DTO/auth.dto';
 import LogInHistoryEntity from 'src/entity/LogInHistory.entity';
 import UserEntity from 'src/entity/User.entity';
 import { Repository } from 'typeorm';
@@ -16,11 +17,13 @@ export class LogInHistoryRepository {
     ) { }
 
     // Phương thức lưu một bản ghi lịch sử đăng nhập
-    async saveOne(user: UserEntity, token: string): Promise<LogInHistoryEntity> {
+    async saveOne(user: UserEntity, token: string, otherData: LogInDto): Promise<LogInHistoryEntity> {
         let logInHistoryEntity = new LogInHistoryEntity();
 
         logInHistoryEntity.user = user;
         logInHistoryEntity.token = token;
+        logInHistoryEntity.latitude = otherData.latitude;
+        logInHistoryEntity.longitude = otherData.longitude;
 
         return this.logInHistoryRepository.save(logInHistoryEntity);
     }

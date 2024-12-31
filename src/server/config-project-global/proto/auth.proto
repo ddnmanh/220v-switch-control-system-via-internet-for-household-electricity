@@ -46,10 +46,12 @@ message OTPVerifyRegisterAccountReq {
   string otp = 2;
 }
 
-// SignIn
+// Log in
 message LogInReq {
   string username = 1;
   string password = 2;
+  double latitude = 3;
+  double longitude = 4;
 } 
 
 message LogOutReq {

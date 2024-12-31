@@ -27,9 +27,6 @@ export default class UserEntity extends BaseEntity {
     @Column({ name: 'username', type: 'varchar', length: 50, nullable: false, unique: true })
     public username!: string;
 
-    @Column({ name: 'password', type: 'varchar', length: 250, nullable: false })
-    public password!: string;
-
     @Column({ name: 'email', type: 'varchar', length: 100, nullable: false, unique: true })
     public email!: string;
 

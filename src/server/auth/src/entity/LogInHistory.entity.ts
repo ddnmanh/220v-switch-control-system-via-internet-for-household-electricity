@@ -10,10 +10,10 @@ export default class LogInHistoryEntity extends BaseEntity {
     public token!: string;
 
     @Column({ name: 'latitude', type: 'float', default: 0 })
-    public latitude!: boolean;
+    public latitude!: number;
 
     @Column({ name: 'longitude', type: 'float', default: 0 })
-    public longitude!: boolean;
+    public longitude!: number;
 
     @Column({ name: 'is_expired', type: 'boolean', default: false })
     public isExpired!: boolean;
