@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import HeaderCPN from '@/components/Header';
 import variablesGlobal from '@/constants/variables';
@@ -34,6 +34,11 @@ const Index = () => {
 
     const backgroundOnHeaderAnimation = useMyAnimation({ opacity: 0, translateY: 0, scale: 1, rotate: 0});
     const houseNameOnHeaderAnimation = useMyAnimation({ opacity: 0, translateY: 0, scale: 1, rotate: 0});
+
+
+    // useEffect(() => {
+    //     navigation.navigate( "(auth)", { screen: "logInScreen" } );
+    // }, [])
 
     const [scrollY, setScrollY] = React.useState(0);
 

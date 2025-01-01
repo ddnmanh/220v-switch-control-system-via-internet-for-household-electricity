@@ -48,9 +48,7 @@ const InputCPN: React.FC<InputCPNProps> = ({label, type='text', placeholder, val
                     </TouchableOpacity>
                 }
             </View>
-            {
-                errorMessage && <Text style={styles.errorMessage}>{errorMessage}</Text>
-            }
+            <Text style={styles.errorMessage}>{errorMessage ? errorMessage : ''}</Text>
         </View>
     )
 }
@@ -86,8 +84,8 @@ const styles = StyleSheet.create({
         fontSize: variablesGlobal.inputFontSize,
     },
     errorMessage: {
-        marginTop: 2,
         fontSize: 12,
         color: colorGlobal.danger,
+        lineHeight: 12,
     }
 })

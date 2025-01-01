@@ -7,47 +7,88 @@ import InputCPN from '@/components/Input';
 import colorGlobal from '@/constants/colors';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import AuthenFetch from '@/fetch/Authen.fetch';
+import { ResponseDTO, ResponseMessageDTO } from '@/types/FetchDTO';
+import axios from 'axios';
+import { AuthContext } from '@/hooks/context/Auth.context';
 
 
 const LogInScreen = () => {
 
     const navigation = useNavigation();
 
-    const [emailInput, setEmailInput] = React.useState({value: '', errorMessage: ''});
-    const [usernameInput, setUsernameInput] = React.useState({value: '', errorMessage: ''});
-    const [passwordInput, setPasswordInput] = React.useState({value: '', errorMessage: ''});
+    const { saveToken, setTimeLiveAccessToken } = React.useContext(AuthContext) || {};
 
-    const handleLogIn = () => {
-        console.log('Email:', emailInput.value);
-        console.log('Username:', usernameInput.value);
-        console.log('Password:', passwordInput.value);
-    }
+    const [usernameInput, setUsernameInput] = React.useState({ value: 'ndm', errorMessage: '' });
+    const [passwordInput, setPasswordInput] = React.useState({ value: '123456@Abcc', errorMessage: '' });
+    const [isLogIn, setIsLogIn] = React.useState(false);
+
+    const handleLogIn = async () => {
+        setIsLogIn(true);
+        try {
+            const response = await AuthenFetch.logIn({
+                username: usernameInput.value,
+                password: passwordInput.value,
+            });
+
+            saveToken && saveToken(process.env.EXPO_PUBLIC_TOKEN_ACCESS_NAME || 'access_token', response.data.access_token.token);
+            saveToken && saveToken(process.env.EXPO_PUBLIC_TOKEN_REFRESH_NAME || 'refresh_token', response.data.refresh_token.token);
+
+            // setTimeLiveAccessToken && setTimeLiveAccessToken(response.data.access_token.expires_in*1000);
+            setTimeLiveAccessToken && setTimeLiveAccessToken(20000);
+
+            navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } )
+
+        } catch (error:any) {
+            const response:ResponseDTO = error?.response?.data;
+
+            // Kiểm tra mã lỗi
+            if (response.code === 400) {
+                response.message.forEach((mess:ResponseMessageDTO) => {
+                    if (mess.property === 'username') {
+                        setUsernameInput({
+                            ...usernameInput,
+                            errorMessage: mess.message,
+                        });
+                    }
+                    if (mess.property === 'password') {
+                        setPasswordInput({
+                            ...passwordInput,
+                            errorMessage: mess.message,
+                        });
+                    }
+                });
+            }
+        }
+        setIsLogIn(false);
+    };
+
 
     const handleCheckInput = () => {
         let isCheck = true;
 
-        let emailValidate = isValidEmail(emailInput.value);
-        if (!emailValidate.isValid) {
-            setEmailInput({...emailInput, errorMessage: emailValidate.errors[0]});
-            isCheck = false;
-        } else {
-            setEmailInput({...emailInput, errorMessage: ''});
-        }
+        // let emailValidate = isValidEmail(emailInput.value);
+        // if (!emailValidate.isValid) {
+        //     setEmailInput({...emailInput, errorMessage: emailValidate.errors[0]});
+        //     isCheck = false;
+        // } else {
+        //     setEmailInput({...emailInput, errorMessage: ''});
+        // }
 
         let usernameValidate = isValidUsername(usernameInput.value);
         if (!usernameValidate.isValid) {
-            setUsernameInput({...usernameInput, errorMessage: usernameValidate.errors[0]});
+            setUsernameInput({ ...usernameInput, errorMessage: usernameValidate.errors[0] });
             isCheck = false;
         } else {
-            setUsernameInput({...usernameInput, errorMessage: ''});
+            setUsernameInput({ ...usernameInput, errorMessage: '' });
         }
 
         let passwordValidate = isValidPassword(passwordInput.value);
         if (!passwordValidate.isValid) {
-            setPasswordInput({...passwordInput, errorMessage: passwordValidate.errors[0]});
+            setPasswordInput({ ...passwordInput, errorMessage: passwordValidate.errors[0] });
             isCheck = false;
         } else {
-            setPasswordInput({...passwordInput, errorMessage: ''});
+            setPasswordInput({ ...passwordInput, errorMessage: '' });
         }
 
         if (isCheck) {
@@ -82,7 +123,7 @@ const LogInScreen = () => {
             errors: Object.entries(rules)
                 .filter(([_, value]) => !value)
                 .map(([key]) => {
-                    switch(key) {
+                    switch (key) {
                         case 'hasAtSymbol': return 'Email phải chứa ký tự @';
                         case 'hasDot': return 'Email phải chứa dấu chấm';
                         case 'validLength': return 'Email phải từ 5 đến 255 ký tự';
@@ -132,7 +173,7 @@ const LogInScreen = () => {
             errors: Object.entries(rules)
                 .filter(([_, value]) => !value)
                 .map(([key]) => {
-                    switch(key) {
+                    switch (key) {
                         case 'validCharacters':
                             return 'Username chỉ được chứa chữ cái latinh, số và dấu gạch dưới';
                         case 'validLength':
@@ -218,25 +259,22 @@ const LogInScreen = () => {
         <SafeAreaView style={styles.container} edges={['right', 'left', 'bottom', 'top']}>
             <View style={styles.viewInput}>
                 <Text style={styles.viewInput_title}>Đăng nhập</Text>
+                <View style={{ marginTop: 25 }}></View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <InputCPN label="Email" placeholder="letuanngoc@gmail.com" autoCapitalize="none" value={emailInput.value} errorMessage={emailInput.errorMessage} onChange={(text) => setEmailInput(prev => ({...prev, value: text}))}></InputCPN>
+                    <InputCPN label="Tên đăng nhập" placeholder="tuanngoc, lethanh, tramanh,..." autoCapitalize="none" value={usernameInput.value} errorMessage={usernameInput.errorMessage} onChange={(text) => setUsernameInput(prev => ({ ...prev, value: text }))}></InputCPN>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <InputCPN label="Tên đăng nhập" placeholder="tuanngoc, lethanh, tramanh,..." autoCapitalize="none" value={usernameInput.value} errorMessage={usernameInput.errorMessage} onChange={(text) => setUsernameInput(prev => ({...prev, value: text}))}></InputCPN>
+                    <InputCPN label="Mật khẩu" type='password' placeholder="Nên sử dụng ký tự in hoa và đặc biệt" autoCapitalize="none" value={passwordInput.value} errorMessage={passwordInput.errorMessage} onChange={(text) => setPasswordInput(prev => ({ ...prev, value: text }))}></InputCPN>
                 </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <InputCPN label="Mật khẩu" type='password' placeholder="Nên sử dụng ký tự in hoa và đặc biệt" autoCapitalize="none" value={passwordInput.value} errorMessage={passwordInput.errorMessage} onChange={(text) => setPasswordInput(prev => ({...prev, value: text}))}></InputCPN>
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                </View>
-                <ButtonCPN content='Đăng nhập' type='primary' handlePress={() => handleCheckInput() } disable={false} />
+                <View style={{ marginTop: 10 }}></View>
+                <ButtonCPN content='Đăng nhập' type='primary' handlePress={() => handleCheckInput()} disable={isLogIn} isLoading={isLogIn}/>
             </View>
             <View>
                 <View style={styles.linkBar}>
-                    <TouchableWithoutFeedback onPress={() => navigation.navigate( "(auth)", { screen: "signUpScreen" } ) }>
+                    <TouchableWithoutFeedback onPress={() => navigation.navigate("(auth)", { screen: "signUpScreen" })}>
                         <Text style={styles.linkBar_link}>Đăng ký</Text>
                     </TouchableWithoutFeedback>
-                    <TouchableWithoutFeedback onPress={() => {} }>
+                    <TouchableWithoutFeedback onPress={() => { }}>
                         <Text style={styles.linkBar_link}>Bạn quên mật khẩu?</Text>
                     </TouchableWithoutFeedback>
                 </View>
@@ -246,7 +284,7 @@ const LogInScreen = () => {
             </View>
             <View style={styles.ortherMethodView}>
                 <View>
-                    <ButtonCPN content='Google' type='cancel' handlePress={() => {}} disable={true} icon={{ name: 'google', size: 22 }} />
+                    <ButtonCPN content='Google' type='cancel' handlePress={() => { }} disable={true} icon={{ name: 'google', size: 22 }} />
                 </View>
                 <View>
                     <ButtonCPN content='Microsoft' type='cancel' handlePress={() => { }} disable={true} icon={{ name: 'microsoft', size: 22 }} />
@@ -275,7 +313,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'stretch',
         justifyContent: 'flex-start',
-        rowGap: 18,
+        rowGap: 5,
     },
     viewInput_title: {
         textAlign: 'center',
@@ -293,7 +331,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     linkBar_line: {
-        marginVertical: 28,
+        marginVertical: 50,
         borderTopWidth: 1,
         borderTopColor: colorGlobal.borderLine,
         position: 'relative',

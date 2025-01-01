@@ -1,41 +1,74 @@
-import { fetchJSONData } from "../config/axios";
+import { axiosJSONData } from "../config/axios";
 
-export default new class AuthenFetch {
-    sign_in: string;
-    sign_up: string;
-    sign_out: string;
-    register: string;
-    validate_token: string;
+// Enum cho loại token
+enum TokenType {
+    ACCESS = 'access',
+    REFRESH = 'refresh',
+    NONE = 'none',
+}
 
-    constructor() {
-        this.sign_in = '/auth/sign-in';
-        this.sign_up = '/auth/sign-up';
-        this.sign_out = '/auth/sign-out';
-        this.register = '/auth/register';
-        this.validate_token = '/auth/validate-token';
+class AuthenFetch {
+    private endpoints = {
+        logIn: '/auth/log-in',
+        signUp: '/auth/sign-up',
+        logOut: '/auth/log-out',
+        register: '/auth/register',
+        validateToken: '/auth/validate-token',
+        renewAccessToken: '/auth/renew-access-token',
+        getUserInfo: '/auth/user-info'
+    };
+
+    async logIn(data: Record<string, any>): Promise<any> {
+        return axiosJSONData(this.endpoints.logIn, 'POST', data, TokenType.NONE);
     }
 
-    async SignIn(data:any) {
-        return await fetchJSONData(this.sign_in, 'POST', data, '');
+    async signUp(data: Record<string, any>): Promise<any> {
+        return axiosJSONData(this.endpoints.signUp, 'POST', data, TokenType.ACCESS);
     }
 
-    async SignUp(data:any) {
-        return await fetchJSONData(this.sign_up, 'POST', data, '');
+        /**
+     * Get user information
+     * @param {Record<string, any>} data: { refresh_token: string }
+     * refresh_token is refresh token
+     * @returns {Promise<any>}
+     */
+    async logOut(data: Record<string, any>): Promise<any> {
+        return axiosJSONData(this.endpoints.logOut, 'POST', data, undefined);
     }
 
-    async SignOut() {
-        return await fetchJSONData(this.sign_out, 'POST', null, 'all');
+    async register(data: Record<string, any>): Promise<any> {
+        return axiosJSONData(this.endpoints.register, 'POST', data, TokenType.ACCESS);
     }
 
-    async Register(data:any) {
-        return await fetchJSONData(this.register, 'POST', data, '');
+    async validateAccessToken(): Promise<any> {
+        return axiosJSONData(this.endpoints.validateToken, 'POST', null, TokenType.ACCESS);
     }
 
-    async ValidateAccessToken() {
-        return await fetchJSONData(this.validate_token, 'POST', null, 'access');
+    async validateRefreshToken(): Promise<any> {
+        return axiosJSONData(this.endpoints.validateToken, 'POST', null, TokenType.REFRESH);
     }
 
-    async ValidateRefreshToken() {
-        return await fetchJSONData(this.validate_token, 'POST', null, 'refresh');
+    /**
+     * Get user information
+     * @param {Record<string, any>} data: { token: string, type: string }
+     * token is fresh token
+     * type is 'REFRESH'
+     * @returns {Promise<any>}
+     */
+    async renewAccessToken(data: Record<string, any>): Promise<any> {
+        return axiosJSONData(this.endpoints.renewAccessToken, 'POST', data, TokenType.REFRESH);
+    }
+
+    /**
+     * Get user information
+     * @param {Record<string, any>} data: { token: string, type: string }
+     * token is access token
+     * type is 'ACCESS'
+     * @returns {Promise<any>}
+     */
+    async getUserInfo(data: Record<string, any>): Promise<any> {
+        return axiosJSONData(this.endpoints.getUserInfo, 'POST', data, TokenType.ACCESS);
     }
 }
+
+export default new AuthenFetch();

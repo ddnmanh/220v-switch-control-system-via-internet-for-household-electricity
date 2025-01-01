@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'stretch',
         justifyContent: 'flex-start',
-        rowGap: 18,
+        rowGap: 5,
         columnGap: 18,
     },
     viewInput_title: {

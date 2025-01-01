@@ -23,10 +23,6 @@ interface ButtonProps {
 
 
 const ButtonCPN = (props: ButtonProps) => {
-
-    console.log(props.icon);
-
-
     return (
         <TouchableOpacity
             disabled={props.disable}

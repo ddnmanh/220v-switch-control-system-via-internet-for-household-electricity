@@ -59,14 +59,14 @@ export const MQTTContextProvider: React.FC<MQTTContextProviderProps> = ({ childr
                 setIsMQTTConnected(true);
             },
             onFailure: (err: any) => {
-                console.error("MQTT Connection failed", err);
+                console.log("MQTT Connection failed", err);
             },
             userName: process.env.EXPO_PUBLIC_MQTT_BROKER_USERNAME as string || 'app',
             password: process.env.EXPO_PUBLIC_MQTT_BROKER_PASSWORD as string || '123',
         });
 
         client.onConnectionLost = (response: any) => {
-            console.error("MQTT Connection lost", response.errorMessage);
+            console.log("MQTT Connection lost", response.errorMessage);
             setIsMQTTConnected(false);
         };
 
@@ -82,11 +82,11 @@ export const MQTTContextProvider: React.FC<MQTTContextProviderProps> = ({ childr
                 clientRef.current.subscribe(topic, { qos: 0 });
                 console.log(`Subscribed to topic: ${topic}`);
             } catch (error) {
-                console.error("Error subscribing to topic:", error);
+                console.log("Error subscribing to topic:", error);
                 console.log(error);
             }
         } else {
-            console.error("Client is not ready or not connected.");
+            console.log("Client is not ready or not connected.");
         }
     };
 
@@ -97,7 +97,7 @@ export const MQTTContextProvider: React.FC<MQTTContextProviderProps> = ({ childr
             clientRef.current.send(msg);
             console.log(`Published message to topic: ${topic}`, message);
         } else {
-            console.error("Client not connected. Please wait...");
+            console.log("Client not connected. Please wait...");
         }
     };
 

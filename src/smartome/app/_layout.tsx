@@ -21,3 +21,63 @@ export default function RootLayout() {
         </MainContext>
     );
 }
+
+
+// import { useContext } from 'react';
+// import { createStackNavigator } from '@react-navigation/stack';
+// import MainContext from '@/hooks/context/Main.context';
+// import LoadingScreen from './screens/LoadingScreen';
+// import { AuthContext } from '@/hooks/context/Auth.context';
+
+// const Stack = createStackNavigator();
+
+// export default function RootLayout() {
+//     const { isAuthenticated, isLoading } = useContext(AuthContext);
+
+//     if (isLoading) {
+//         return (
+//             <MainContext>
+//                 <LoadingScreen />
+//             </MainContext>
+//         );
+//     }
+
+//     return (
+//         <MainContext>
+//             <Stack.Navigator>
+//                 {isAuthenticated ? (
+//                     // Các màn hình cho người dùng đã đăng nhập
+//                     <>
+//                         <Stack.Screen
+//                             name="(main)"
+//                             component={MainLayout}
+//                             options={{ headerShown: false }}
+//                         />
+//                         <Stack.Screen
+//                             name="(house)"
+//                             component={HouseLayout}
+//                             options={{ headerShown: false }}
+//                         />
+//                         <Stack.Screen
+//                             name="(devices)"
+//                             component={DeviceLayout}
+//                             options={{ headerShown: false }}
+//                         />
+//                     </>
+//                 ) : (
+//                     // Màn hình authentication
+//                     <Stack.Screen
+//                         name="(auth)"
+//                         component={AuthLayout}
+//                         options={{ headerShown: false }}
+//                     />
+//                 )}
+//                 <Stack.Screen
+//                     name="+not-found"
+//                     component={NotFound}
+//                     options={{ title: 'Oops!' }}
+//                 />
+//             </Stack.Navigator>
+//         </MainContext>
+//     );
+// }
