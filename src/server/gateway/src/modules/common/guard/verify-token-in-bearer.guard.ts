@@ -32,13 +32,13 @@ export class VerifyTokenInBearerGuard implements CanActivate {
         }
 
         try {
+
             const payload = await this.jwtService.verifyAsync(
                 token,
                 {
                     secret: this.globalConstants.get('secret_key_access_token'),
                 }
             );
-
 
             request[this.globalConstants.get('var_name_user_after_decode_token')] = payload;
         } catch {
@@ -50,6 +50,7 @@ export class VerifyTokenInBearerGuard implements CanActivate {
     private extractTokenFromHeader(request: any): string | undefined {
 
         const authHeader = request.headers['authorization'];
+
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return undefined;
         }

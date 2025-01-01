@@ -11,6 +11,9 @@ service AuthService {
   rpc LogIn (LogInReq) returns (CommonRes) {}
   rpc LogOut (LogOutReq) returns (CommonRes) {}
   rpc ValidateToken (ValidateTokenReq) returns (CommonRes) {}
+  rpc GetUserInfo (GetUserInfoReq) returns (CommonRes) {}
+  rpc RenewAccessToken (RenewAccessTokenReq) returns (CommonRes) {}
+
 }
 
 // Common 
@@ -60,6 +63,18 @@ message LogOutReq {
 
 // Validate token
 message ValidateTokenReq {
+  string token = 1;
+  string type = 2;
+} 
+
+// Get user info
+message GetUserInfoReq {
+  string token = 1;
+  string type = 2;
+} 
+
+// Renew access token
+message RenewAccessTokenReq {
   string token = 1;
   string type = 2;
 } 

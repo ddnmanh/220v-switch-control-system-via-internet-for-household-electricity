@@ -30,27 +30,6 @@ export class LogInHistoryRepository {
 
     // Cập nhật tất cả các bản ghi lịch sử đăng nhập của người dùng với isExpired = true
     async updateExpiredOldLogInHistory(user: UserEntity): Promise<void> {
-        // // Lấy tất cả lịch sử đăng nhập của người dùng, chỉ các bản ghi chưa hết hạn
-        // let logInHistoryEntities: LogInHistoryEntity[] = await this.logInHistoryRepository.find({
-        //     where: {
-        //         user: { id: user.id }, // Sử dụng id người dùng để kiểm tra
-        //         isExpired: false
-        //     },
-        //     relations: ['user'] // Đảm bảo rằng quan hệ 'user' được tải
-        // });
-
-        // // Nếu không tìm thấy bản ghi, log thông báo để kiểm tra
-        // if (logInHistoryEntities.length === 0) {
-        //     console.log('Không có lịch sử đăng nhập nào để cập nhật!');
-        // }
-
-        // // Cập nhật isExpired cho từng bản ghi
-        // logInHistoryEntities.forEach((logInHistory) => {
-        //     logInHistory.isExpired = true;
-        // });
-
-        // // Lưu lại các bản ghi đã được cập nhật
-        // return this.logInHistoryRepository.save(logInHistoryEntities);
 
         const result = await this.logInHistoryRepository
             .createQueryBuilder()
@@ -73,4 +52,14 @@ export class LogInHistoryRepository {
             .where("token = :token", { token })
             .execute();
     }
+
+    async findOneByToken(token: string): Promise<LogInHistoryEntity | null> {
+        return await this.logInHistoryRepository.findOne({
+            where: {
+                token: token,
+                isExpired: false,
+            },
+        });
+    }
+
 }

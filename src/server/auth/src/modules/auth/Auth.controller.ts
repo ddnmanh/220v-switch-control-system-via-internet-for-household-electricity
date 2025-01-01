@@ -1,7 +1,7 @@
 import { Body, Controller } from "@nestjs/common";
 import { AuthService } from "./service/Auth.service";
 import { ConfigService } from "@nestjs/config";
-import { AUTH_SERVICE_NAME, LogInReq, CommonRes, RegisterReq, ValidateTokenReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq, LogOutReq } from "./auth.pb";
+import { AUTH_SERVICE_NAME, LogInReq, CommonRes, RegisterReq, ValidateTokenReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq, LogOutReq, GetUserInfoReq, RenewAccessTokenReq } from "./auth.pb";
 import { GrpcMethod } from "@nestjs/microservices";
 import StandardizeRes from "src/config/response/response.config";
 import { ServiceRes } from "src/DTO/ServiceRes.dto";
@@ -52,4 +52,15 @@ export class AutController {
         return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
     }
 
+    @GrpcMethod(AUTH_SERVICE_NAME, 'getUserInfo')
+    public async getUserInfo(body: GetUserInfoReq): Promise<CommonRes> {
+        let data:ServiceRes = await this.authService.getUserInfo(body);
+        return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
+    }
+
+    @GrpcMethod(AUTH_SERVICE_NAME, 'renewAccessToken')
+    public async renewAccessToken(body: RenewAccessTokenReq): Promise<CommonRes> {
+        let data:ServiceRes = await this.authService.getNewAccessToken(body);
+        return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
+    }
 }

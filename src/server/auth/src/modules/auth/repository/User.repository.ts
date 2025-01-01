@@ -26,6 +26,10 @@ export class UserRepository {
         return this.userRepository.save(user);
     }
 
+    async findOneById(id: string): Promise<UserEntity | null> {
+        return this.userRepository.findOne({ where: { id: id }  });
+    }
+
     async findOneByUsername(usn: string = ''): Promise<UserEntity | null> {
         return await this.userRepository
             .createQueryBuilder('user')
@@ -36,7 +40,7 @@ export class UserRepository {
                 { isActive: true }
             )
             .where('user.username = :username', { username: usn })
-            .where('user.isDelete = :isDelete', { isDelete: false })
+            .andWhere('user.isDelete = :isDelete', { isDelete: false })
             .getOne();
     }
 

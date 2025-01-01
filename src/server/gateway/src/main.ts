@@ -22,6 +22,21 @@ async function bootstrap() {
     //     credentials: true,
     // });
 
+    // app.enableCors({
+    //     origin: [
+    //         'http://192.168.1.10',
+    //         'http://46.250.232.16:5173',
+    //     ],
+    //     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    //     credentials: false,
+    // });
+
+    app.enableCors({
+        origin: true, // Mở cho tất cả origin hoặc chỉ origin cụ thể
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        credentials: true, // Nếu sử dụng cookie để lưu trữ token
+    });
+
     app.use(cookieParser());
 
     app.useGlobalFilters(new AllExceptionsFilter());

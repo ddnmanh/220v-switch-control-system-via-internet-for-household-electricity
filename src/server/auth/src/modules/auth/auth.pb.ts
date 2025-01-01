@@ -63,6 +63,18 @@ export interface ValidateTokenReq {
   type: string;
 }
 
+/** Get user info */
+export interface GetUserInfoReq {
+  token: string;
+  type: string;
+}
+
+/** Renew access token */
+export interface RenewAccessTokenReq {
+  token: string;
+  type: string;
+}
+
 export const AUTH_PACKAGE_NAME = "auth";
 
 wrappers[".google.protobuf.Struct"] = { fromObject: Struct.wrap, toObject: Struct.unwrap } as any;
@@ -79,6 +91,10 @@ export interface AuthServiceClient {
   logOut(request: LogOutReq): Observable<CommonRes>;
 
   validateToken(request: ValidateTokenReq): Observable<CommonRes>;
+
+  getUserInfo(request: GetUserInfoReq): Observable<CommonRes>;
+
+  renewAccessToken(request: RenewAccessTokenReq): Observable<CommonRes>;
 }
 
 export interface AuthServiceController {
@@ -97,6 +113,10 @@ export interface AuthServiceController {
   logOut(request: LogOutReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
   validateToken(request: ValidateTokenReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+
+  getUserInfo(request: GetUserInfoReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+
+  renewAccessToken(request: RenewAccessTokenReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 }
 
 export function AuthServiceControllerMethods() {
@@ -108,6 +128,8 @@ export function AuthServiceControllerMethods() {
       "logIn",
       "logOut",
       "validateToken",
+      "getUserInfo",
+      "renewAccessToken",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

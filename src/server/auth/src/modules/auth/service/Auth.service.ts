@@ -16,7 +16,7 @@ import OTPEntity from 'src/entity/OTP.entity';
 import { GenerateUUIDService } from 'src/modules/common/generate-uuid/GenerateUUID.service';
 import { UserRegisterResDTO } from 'src/DTO/userRegister.dto';
 import { PasswordHistoryRepository } from '../repository/PasswordHistory.repository';
-import { LogOutReq } from '../auth.pb';
+import { GetUserInfoReq, LogOutReq, RenewAccessTokenReq } from '../auth.pb';
 
 @Injectable()
 export class AuthService {
@@ -246,6 +246,83 @@ export class AuthService {
             console.log(`AuthService:logOut : ${error.message}`);
             return new ServiceRes('Error when log-out', [{ property: 'error', message: error.message }], null);
         }
+    }
+
+    async getUserInfo(body: GetUserInfoReq): Promise<ServiceRes> {
+        let statusMessage:ErrServiceRes[] = [];
+
+        let userFromToken = await this.jwtService.decodeAccessToken(body.token);
+
+        if (userFromToken) {
+            try {
+                let user = await this.userRepository.findOneById(userFromToken.id);
+
+                if (!user) {
+                    statusMessage.push( {property: 'id', message: 'User is not found'} );
+                    return new ServiceRes('Get user information is failed', statusMessage, null);
+                }
+
+                // Destructure user to remove sensitive or unnecessary fields
+                let { userPassword, isDelete, createdAt, updatedAt, ...userInfoModified } = user as UserEntity;
+
+                return new ServiceRes('Get user information is successfully', statusMessage, userInfoModified);
+            } catch (error) {
+                console.log(`AuthService:getUserInfo : ${error.message}`);
+                return new ServiceRes('Error when get user information', [{ property: 'error', message: error.message }], null);
+            }
+
+        } else {
+            statusMessage.push( {property: 'token', message: 'Token is invalid'} );
+            return new ServiceRes('Get user information is failed', statusMessage, null);
+        }
+
+    }
+
+    async getNewAccessToken(body: RenewAccessTokenReq): Promise<ServiceRes> {
+        let statusMessage:ErrServiceRes[] = [];
+
+        let isValid = await this.jwtService.isValidRefreshToken(body.token);
+
+        if (isValid === false) {
+            statusMessage.push( {property: 'token', message: 'Token is invalid'} );
+            return new ServiceRes('Get new access token is failed', statusMessage, null);
+        }
+
+        let logInHistory = await this.logInHistoryRepository.findOneByToken(body.token);
+
+        if (!logInHistory) {
+            statusMessage.push( {property: 'token', message: 'Token is invalid'} );
+            return new ServiceRes('Get user information is failed', statusMessage, null);
+        }
+
+        let userFromToken = await this.jwtService.decodeRefreshToken(logInHistory.token);
+
+        if (userFromToken) {
+            // Destructure user to remove sensitive or unnecessary fields
+            let { userPassword, isDelete, createdAt, updatedAt, iat, exp, ...userInfoModified } = userFromToken as any;
+
+            console.log('userInfoModified', userInfoModified);
+
+
+            // Generate new access token
+            const access_token = await this.jwtService.generaAccessToken(userInfoModified);
+
+            return new ServiceRes(
+                'Get new access token is successfully',
+                statusMessage,
+                {
+                    accessToken: {
+                        token: access_token,
+                        expiresIn: this.globalConstants.get('access_token_seconds_live')
+                    }
+                }
+            );
+
+        } else {
+            statusMessage.push( {property: 'token', message: 'Token is invalid'} );
+            return new ServiceRes('Get user information is failed', statusMessage, null);
+        }
+
     }
 
     // Check if username is already taken
