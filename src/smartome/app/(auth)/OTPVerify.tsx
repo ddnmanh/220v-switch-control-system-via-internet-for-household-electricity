@@ -7,15 +7,66 @@ import InputCPN from '@/components/Input';
 import colorGlobal from '@/constants/colors';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import AuthenFetch from '@/fetch/Authen.fetch';
+import { ResponseDTO, ResponseMessageDTO } from '@/types/FetchDTO';
 
-export default function OTPVerify() {
+export default function OTPVerify({route}: any) {
+
+    const { idRegister, email } = route.params || {};
 
     const navigation = useNavigation();
 
     const [otpInput, setOtpInput] = React.useState({value: '', errorMessage: ''});
+    const [isVerify, setIsVerify] = React.useState(false);
 
     const handleCheckInput = () => {
 
+        let isValid = true;
+
+        if (otpInput.value.trim() === '') {
+            isValid = false;
+            setOtpInput(prev => ({...prev, errorMessage: 'Vui lòng nhập mã xác thực'}));
+        }
+
+        if (otpInput.value.trim().length < 6 || otpInput.value.trim().length > 6) {
+            isValid = false;
+            setOtpInput(prev => ({...prev, errorMessage: 'Mã xác thực không hợp lệ'}));
+        }
+
+        if (isValid) {
+            handleVerifyOTP();
+        }
+    }
+
+    const handleVerifyOTP = async () => {
+        setIsVerify(true);
+        try {
+            const response = await AuthenFetch.verifyOTP({
+                email: email,
+                otp: otpInput.value,
+            });
+
+            navigation.navigate( "(auth)", { screen: "logInScreen" } )
+
+        } catch (error:any) {
+            const response:ResponseDTO = error?.response?.data;
+
+            console.log(response);
+
+
+            // Kiểm tra mã lỗi
+            if (response.code === 400) {
+                response.message.forEach((mess:ResponseMessageDTO) => {
+                    if (mess.property === 'otp') {
+                        setOtpInput({
+                            ...otpInput,
+                            errorMessage: mess.message,
+                        });
+                    }
+                });
+            }
+        }
+        setIsVerify(false);
     }
 
     return (
@@ -25,7 +76,7 @@ export default function OTPVerify() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <InputCPN label="" placeholder="Mã xác thực 6 chữ số từ email" autoCapitalize="none" value={otpInput.value} errorMessage={otpInput.errorMessage} onChange={(text) => setOtpInput(prev => ({...prev, value: text}))}></InputCPN>
                 </View>
-                <ButtonCPN content='Xác Thực' type='primary' handlePress={() => handleCheckInput() } disable={false} />
+                <ButtonCPN content='Xác Thực' type='primary' handlePress={() => handleCheckInput() } disable={isVerify} isLoading={isVerify}/>
             </View>
             <View>
                 <View style={styles.linkBar}>

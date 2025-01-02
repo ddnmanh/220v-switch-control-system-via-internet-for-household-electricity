@@ -1,12 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { Link } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ButtonCPN from '@/components/Button';
 import InputCPN from '@/components/Input';
 import colorGlobal from '@/constants/colors';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import AuthenFetch from '@/fetch/Authen.fetch';
+import { ResponseDTO, ResponseMessageDTO } from '@/types/FetchDTO';
 
 export default function SignUp() {
 
@@ -17,11 +18,43 @@ export default function SignUp() {
     const [emailInput, setEmailInput] = React.useState({value: '', errorMessage: ''});
     const [usernameInput, setUsernameInput] = React.useState({value: '', errorMessage: ''});
     const [passwordInput, setPasswordInput] = React.useState({value: '', errorMessage: ''});
+    const [isSignUp, setIsSignUp] = React.useState(false);
 
-    const handleLogIn = () => {
-        console.log('Email:', emailInput.value);
-        console.log('Username:', usernameInput.value);
-        console.log('Password:', passwordInput.value);
+    const handleLogIn = async () => {
+        setIsSignUp(true);
+        try {
+            const response = await AuthenFetch.register({
+                firstname: firstnameInput.value,
+                lastname: lastnameInput.value,
+                username: usernameInput.value,
+                password: passwordInput.value,
+                email: emailInput.value,
+            });
+
+            navigation.navigate("(auth)", { screen: "otpVerifyScreen",  params: { idRegister: response.data.id, email: response.data.email } });
+
+        } catch (error:any) {
+            const response:ResponseDTO = error?.response?.data;
+
+            // Kiểm tra mã lỗi
+            if (response.code === 400) {
+                response.message.forEach((mess:ResponseMessageDTO) => {
+                    if (mess.property === 'email') {
+                        setEmailInput({
+                            ...emailInput,
+                            errorMessage: mess.message,
+                        });
+                    }
+                    if (mess.property === 'username') {
+                        setUsernameInput({
+                            ...usernameInput,
+                            errorMessage: mess.message,
+                        });
+                    }
+                });
+            }
+        }
+        setIsSignUp(false);
     }
 
     const handleCheckInput = () => {
@@ -50,6 +83,9 @@ export default function SignUp() {
         } else {
             setPasswordInput({...passwordInput, errorMessage: ''});
         }
+
+        console.log(isCheck);
+
 
         if (isCheck) {
             handleLogIn();
@@ -238,7 +274,7 @@ export default function SignUp() {
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 </View>
-                <ButtonCPN content='Đăng ký' type='primary' handlePress={() => handleCheckInput() } disable={false} />
+                <ButtonCPN content='Đăng ký' type='primary' handlePress={() => handleCheckInput() } disable={isSignUp} isLoading={isSignUp} />
             </View>
             <View>
                 <View style={styles.linkBar}>

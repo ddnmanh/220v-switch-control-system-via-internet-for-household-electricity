@@ -43,7 +43,7 @@ const InputCPN: React.FC<InputCPNProps> = ({label, type='text', placeholder, val
                 {
                     type === "password"
                     &&
-                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{marginRight: 10}}>
                         <IconCPN iconName={showPassword ? 'eyeSlash' :'eye'} size={20} color={colorGlobal.secondary}></IconCPN>
                     </TouchableOpacity>
                 }
@@ -76,12 +76,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         borderWidth: 1.35,
         borderRadius: variablesGlobal.borderRadius,
-        paddingHorizontal: variablesGlobal.inputPaddingX,
-        paddingVertical: variablesGlobal.inputPaddingY,
+        overflow: 'hidden',
     },
     inputCluster_input: {
         flex: 1,
         fontSize: variablesGlobal.inputFontSize,
+        paddingHorizontal: variablesGlobal.inputPaddingX,
+        height: 42,
     },
     errorMessage: {
         fontSize: 12,

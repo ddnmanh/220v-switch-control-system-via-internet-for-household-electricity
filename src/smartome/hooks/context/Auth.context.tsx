@@ -46,7 +46,7 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
         try {
             await SecureStore.setItemAsync(key, token);
         } catch (error) {
-            console.error('Error saving token:', error);
+            console.log('Error saving token:', error);
         }
     };
 
@@ -54,7 +54,7 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
         try {
             return await SecureStore.getItemAsync(key);
         } catch (error) {
-            console.error('Error getting token:', error);
+            console.log('Error getting token:', error);
             return null;
         }
     };
@@ -81,7 +81,7 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
             });
             setUserInfo(response.data);
         } catch (error) {
-            console.error('Error getting user info:', error);
+            console.log('Error getting user info:', error);
             navigateToLogin();
         }
     };
@@ -106,7 +106,7 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
                 setTimeLiveAccessToken(20000);
             }
         } catch (error) {
-            console.error('Error renewing access token:', error);
+            console.log('Error renewing access token:', error);
             console.log(error.response.data);
 
             navigateToLogin();

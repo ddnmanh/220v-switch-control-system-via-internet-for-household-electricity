@@ -107,7 +107,7 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
                         setIdRequire("");
                     }
                 } catch (error) {
-                    console.error("Error parsing message payload", error);
+                    console.log("Error parsing message payload", error);
                 }
             }
         };

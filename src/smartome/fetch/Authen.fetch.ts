@@ -10,9 +10,9 @@ enum TokenType {
 class AuthenFetch {
     private endpoints = {
         logIn: '/auth/log-in',
-        signUp: '/auth/sign-up',
         logOut: '/auth/log-out',
         register: '/auth/register',
+        verifyOTP: '/auth/register/verify-otp',
         validateToken: '/auth/validate-token',
         renewAccessToken: '/auth/renew-access-token',
         getUserInfo: '/auth/user-info'
@@ -22,11 +22,7 @@ class AuthenFetch {
         return axiosJSONData(this.endpoints.logIn, 'POST', data, TokenType.NONE);
     }
 
-    async signUp(data: Record<string, any>): Promise<any> {
-        return axiosJSONData(this.endpoints.signUp, 'POST', data, TokenType.ACCESS);
-    }
-
-        /**
+    /**
      * Get user information
      * @param {Record<string, any>} data: { refresh_token: string }
      * refresh_token is refresh token
@@ -36,8 +32,24 @@ class AuthenFetch {
         return axiosJSONData(this.endpoints.logOut, 'POST', data, undefined);
     }
 
+    /**
+     * Get user information
+     * @param {Record<string, any>} data: { firstname: string, lastname: string, email: string, password: string }
+     * username, password, email is required
+     * @returns {Promise<any>}
+     */
     async register(data: Record<string, any>): Promise<any> {
-        return axiosJSONData(this.endpoints.register, 'POST', data, TokenType.ACCESS);
+        return axiosJSONData(this.endpoints.register, 'POST', data, undefined);
+    }
+
+    /**
+     * Get user information
+     * @param {Record<string, any>} data: { email: string, otp: string }
+     *
+     * @returns {Promise<any>}
+     */
+    async verifyOTP(data: Record<string, any>): Promise<any> {
+        return axiosJSONData(this.endpoints.verifyOTP, 'POST', data, undefined);
     }
 
     async validateAccessToken(): Promise<any> {

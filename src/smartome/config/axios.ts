@@ -26,7 +26,7 @@ const getToken = async (key: string) => {
     try {
         return await SecureStore.getItemAsync(key);
     } catch (error) {
-        console.error(`Error fetching token (${key}):`, error);
+        console.log(`Error fetching token (${key}):`, error);
         return null;
     }
 };
@@ -63,7 +63,7 @@ export const axiosJSONData = async (
 
         return response.data;
     } catch (error) {
-        console.error(`Error in axiosJSONData (${path}):`, error);
+        console.log(`Error in axiosJSONData (${path}):`, error);
         throw error;
     }
 };
@@ -94,7 +94,7 @@ export const axiosFormData = async (
 
         return response.data;
     } catch (error) {
-        console.error(`Error in axiosFormData (${path}):`, error);
+        console.log(`Error in axiosFormData (${path}):`, error);
         throw error;
     }
 };
