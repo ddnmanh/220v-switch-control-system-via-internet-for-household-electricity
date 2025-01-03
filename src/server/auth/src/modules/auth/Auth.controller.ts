@@ -20,6 +20,9 @@ export class AutController {
     @GrpcMethod(AUTH_SERVICE_NAME, 'Register')
     public async register(@Body() payload: RegisterReq): Promise<CommonRes> {
 
+        console.log('register in auth controller');
+
+
         let data:ServiceRes = await this.authService.registerUser(payload);
 
         await this.authService.sendEmailOTP(data.data);

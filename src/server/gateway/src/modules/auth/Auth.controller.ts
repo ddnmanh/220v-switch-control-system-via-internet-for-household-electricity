@@ -32,9 +32,6 @@ export class AuthController implements OnModuleInit {
         console.log('register in gateway');
         try {
             const data: any = await firstValueFrom(this.svc.register({...body}));
-
-            console.log('data in gateway', data);
-
             return new StandardizeRes(data).resp();
         } catch (error: any) {
             return CatchingCommunicategRPC.catchRPCError(error);
@@ -63,11 +60,6 @@ export class AuthController implements OnModuleInit {
 
     @Post('log-in')
     private async login(@Body() body: LogInReq, @Res({ passthrough: true }) response: Response): Promise<any> {
-
-        console.log('login in gateway');
-        console.log('body in gateway', body);
-
-
         try {
             let data: any = await firstValueFrom(this.svc.logIn(body));
 

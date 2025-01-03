@@ -10,19 +10,19 @@ export default class UserRegiterEntity extends BaseEntity {
     @PrimaryGeneratedColumn() // Định nghĩa id là cột tự động tăng
     public id!: number;
 
-    @Column({ name: 'lastname', type: 'varchar', length: 30, nullable: true })
+    @Column({ name: 'lastname', type: 'varchar', length: 10, nullable: true })
     public lastname: string;
 
-    @Column({ name: 'firstname', type: 'varchar', length: 30, nullable: true })
+    @Column({ name: 'firstname', type: 'varchar', length: 20, nullable: true })
     public firstname: string;
 
-    @Column({ name: 'username', type: 'varchar', length: 50, nullable: false, unique: true })
+    @Column({ name: 'username', type: 'varchar', length: 25, nullable: false, unique: true })
     public username!: string;
 
-    @Column({ name: 'password', type: 'varchar', length: 250, nullable: false })
+    @Column({ name: 'password', type: 'varchar', length: 500, nullable: false })
     public password!: string;
 
-    @Column({ name: 'email', type: 'varchar', length: 100, nullable: false, unique: true })
+    @Column({ name: 'email', type: 'varchar', length: 254, nullable: false, unique: true })
     public email!: string;
 
     @Column({ name: 'is_expired', type: 'boolean', default: false })

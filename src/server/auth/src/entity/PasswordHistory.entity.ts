@@ -6,7 +6,7 @@ export default class PasswordHistoryEntity extends BaseEntity {
     @PrimaryGeneratedColumn({ name: 'id' })
     public id!: number;
 
-    @Column({ name: 'password', type: 'varchar', length: 100, nullable: false })
+    @Column({ name: 'password', type: 'varchar', length: 500, nullable: false })
     public password!: string;
 
     @Column({ name: 'is_active', type: 'boolean', default: true })

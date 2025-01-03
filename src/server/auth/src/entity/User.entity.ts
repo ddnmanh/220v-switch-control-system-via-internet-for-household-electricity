@@ -18,19 +18,19 @@ export default class UserEntity extends BaseEntity {
     @PrimaryColumn({ type: 'varchar', length: 6, unique: true, nullable: false }) // Định nghĩa khóa chính 6 ký tự
     public id!: string;
 
-    @Column({ name: 'lastname', type: 'varchar', length: 30, nullable: true })
+    @Column({ name: 'lastname', type: 'varchar', length: 20, nullable: true })
     public lastname: string;
 
-    @Column({ name: 'firstname', type: 'varchar', length: 30, nullable: true })
+    @Column({ name: 'firstname', type: 'varchar', length: 10, nullable: true })
     public firstname: string;
 
-    @Column({ name: 'username', type: 'varchar', length: 50, nullable: false, unique: true })
+    @Column({ name: 'username', type: 'varchar', length: 25, nullable: false, unique: true })
     public username!: string;
 
-    @Column({ name: 'email', type: 'varchar', length: 100, nullable: false, unique: true })
+    @Column({ name: 'email', type: 'varchar', length: 254, nullable: false, unique: true })
     public email!: string;
 
-    @Column({ name: 'avatar_path', type: 'varchar', length: 2000, nullable: true })
+    @Column({ name: 'avatar_path', type: 'varchar', length: 2500, nullable: true })
     public avatarPath!: string;
 
     @Column({ name: 'role', type: 'enum', enum: UserRole, default: UserRole.USER })

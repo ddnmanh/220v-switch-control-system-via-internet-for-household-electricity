@@ -131,7 +131,6 @@ export class AuthService {
         let statusMessage:ErrServiceRes[] = [];
         try {
             let userVerify = await this.userRegiterRepository.findUserWithOtpByEmail(body.email);
-
             if (!userVerify) {
                 statusMessage.push( {property: 'email', message: 'Cannot found user register by email!'} );
             } else {
