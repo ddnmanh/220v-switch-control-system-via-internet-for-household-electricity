@@ -25,8 +25,29 @@ export interface CommonRes {
   data: { [key: string]: any } | undefined;
 }
 
-/** Get user info */
+/** Get device info */
 export interface GetDeviceInfoReq {
+  deviceId: string;
+}
+
+/** Create device */
+export interface CreateDeviceReq {
+  name: string;
+  type: string;
+  desc: string;
+  apSsid: string;
+}
+
+/** Update device */
+export interface UpdateDeviceReq {
+  deviceId: string;
+  name: string;
+  desc: string;
+  apPassword: string;
+}
+
+/** Delete device */
+export interface DeleteDeviceReq {
   deviceId: string;
 }
 
@@ -36,15 +57,27 @@ wrappers[".google.protobuf.Struct"] = { fromObject: Struct.wrap, toObject: Struc
 
 export interface DeviceServiceClient {
   getDeviceInfo(request: GetDeviceInfoReq): Observable<CommonRes>;
+
+  createDevice(request: CreateDeviceReq): Observable<CommonRes>;
+
+  updateDevice(request: UpdateDeviceReq): Observable<CommonRes>;
+
+  deleteDevice(request: DeleteDeviceReq): Observable<CommonRes>;
 }
 
 export interface DeviceServiceController {
   getDeviceInfo(request: GetDeviceInfoReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+
+  createDevice(request: CreateDeviceReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+
+  updateDevice(request: UpdateDeviceReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+
+  deleteDevice(request: DeleteDeviceReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 }
 
 export function DeviceServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["getDeviceInfo"];
+    const grpcMethods: string[] = ["getDeviceInfo", "createDevice", "updateDevice", "deleteDevice"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("DeviceService", method)(constructor.prototype[method], method, descriptor);

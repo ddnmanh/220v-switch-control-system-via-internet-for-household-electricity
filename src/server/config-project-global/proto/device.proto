@@ -6,6 +6,9 @@ import "google/protobuf/struct.proto";
 
 service DeviceService { 
   rpc GetDeviceInfo (GetDeviceInfoReq) returns (CommonRes) {} 
+  rpc CreateDevice (CreateDeviceReq) returns (CommonRes) {} 
+  rpc UpdateDevice (UpdateDeviceReq) returns (CommonRes) {} 
+  rpc DeleteDevice (DeleteDeviceReq) returns (CommonRes) {} 
 
 }
 
@@ -22,7 +25,29 @@ message CommonRes {
   google.protobuf.Struct data = 4;
 } 
 
-// Get user info
+// Get device info
 message GetDeviceInfoReq {
   string device_id = 1; 
 } 
+
+// Create device
+message CreateDeviceReq {
+  string name = 1;
+  string type = 2;
+  string desc = 3;
+  string ap_ssid = 4;
+} 
+
+// Update device
+message UpdateDeviceReq {
+  string device_id = 1; 
+  string name = 2; 
+  string desc = 3; 
+  string ap_password = 5;
+} 
+
+// Delete device
+message DeleteDeviceReq {
+  string device_id = 1; 
+} 
+

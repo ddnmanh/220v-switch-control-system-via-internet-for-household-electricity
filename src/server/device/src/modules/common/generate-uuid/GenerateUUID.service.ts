@@ -4,7 +4,7 @@ const { nanoid, customAlphabet } = require('fix-esm').require('nanoid'); // http
 @Injectable()
 export class GenerateUUIDService {
     private readonly DEFAULT_ID_LENGTH = 21;
-    private readonly ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    private readonly ALPHABET = '123456789ABCDEFGHIJKLMNPQRSTUVWXYZ';
 
     generateId(): string {
         return nanoid(this.DEFAULT_ID_LENGTH);
