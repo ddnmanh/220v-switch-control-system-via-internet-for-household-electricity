@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package house;
+
+import "google/protobuf/struct.proto"; 
+
+service HouseService { 
+  rpc CreateHouse (CreateHouseReq) returns (CommonRes) {} 
+  rpc GetHouseInfo (GetHouseReq) returns (CommonRes) {} 
+  rpc UpdateHouse (UpdateHouseReq) returns (CommonRes) {} 
+  rpc DeleteHouse (DeleteHouseReq) returns (CommonRes) {} 
+
+  rpc CreateArea (CreateAreaReq) returns (CommonRes) {} 
+  rpc GetAreaInfo (GetAreaReq) returns (CommonRes) {} 
+  rpc UpdateArea (UpdateAreaReq) returns (CommonRes) {} 
+  rpc DeleteArea (DeleteAreaReq) returns (CommonRes) {} 
+
+  rpc CreateOwnDevice (CreateOwnDeviceReq) returns (CommonRes) {} 
+  rpc GetOwnDeviceInfo (GetOwnDeviceReq) returns (CommonRes) {} 
+  rpc UpdateOwnDevice (UpdateOwnDeviceReq) returns (CommonRes) {} 
+  rpc DeleteOwnDevice (DeleteOwnDeviceReq) returns (CommonRes) {} 
+}
+
+//  -------------------------- COMMON 
+message FieldError {
+  string property = 1;
+  string message = 2;
+}
+
+message CommonRes { 
+  int32 code = 1;
+  string status = 2;
+  repeated FieldError message = 3;
+  google.protobuf.Struct data = 4;
+} 
+
+// --------------------------- HOUSE
+// Create house
+message CreateHouseReq {
+  string id_user = 1;
+  string name = 2;
+  string desc = 3;
+  bool is_wallpaper_blur = 4;
+} 
+
+// Get House info
+message GetHouseReq {
+  string house_id = 1;
+  string id_user = 2;
+} 
+
+
+// Update House
+message UpdateHouseReq {
+  string house_id = 1; 
+  string id_user = 2;
+  string name = 3; 
+  string desc = 4; 
+  bool is_wallpaper_blur = 5;
+} 
+
+// Delete House
+message DeleteHouseReq {
+  string house_id = 1; 
+  string id_user = 2;
+} 
+
+// --------------------------- AREA
+// Create
+message CreateAreaReq {
+  string id_house = 1;
+  string id_user = 2;
+  string name = 3;
+  string desc = 4;
+} 
+
+// Get
+message GetAreaReq {
+  string area_id = 1;
+  string id_user = 2;
+} 
+
+// Update
+message UpdateAreaReq {
+  string area_id = 1;
+  string id_user = 2;
+  string name = 3; 
+  string desc = 4;
+} 
+
+// Delete 
+message DeleteAreaReq {
+  string area_id = 1; 
+  string id_user = 2;
+} 
+
+// --------------------------- OWN DEVICE ---------------------------
+// Create
+message CreateOwnDeviceReq {
+  string id_device = 1;
+  string id_house = 2;
+  string id_area = 3;
+  string id_user = 4; 
+} 
+
+// Get
+message GetOwnDeviceReq {
+  string id_own_device = 1;
+  string id_user = 2; 
+} 
+
+// Update
+message UpdateOwnDeviceReq {
+  string id_own_device = 1;
+  string id_area = 2;
+  string id_user = 3; 
+  string name = 4; 
+  string desc = 5;
+}
+
+// Delete
+message DeleteOwnDeviceReq {
+  string id_own_device = 1; 
+  string id_user = 3;
+} 
