@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package device;
+
+import "google/protobuf/struct.proto"; 
+
+service DeviceService { 
+  rpc GetDeviceInfo (GetDeviceInfoReq) returns (CommonRes) {} 
+
+}
+
+// Common 
+message FieldError {
+  string property = 1;
+  string message = 2;
+}
+
+message CommonRes { 
+  int32 code = 1;
+  string status = 2;
+  repeated FieldError message = 3;
+  google.protobuf.Struct data = 4;
+} 
+
+// Get user info
+message GetDeviceInfoReq {
+  string device_id = 1; 
+} 

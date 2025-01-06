@@ -1,7 +1,7 @@
 import { Body, Controller } from "@nestjs/common";
 import { AuthService } from "./service/Auth.service";
 import { ConfigService } from "@nestjs/config";
-import { AUTH_SERVICE_NAME, LogInReq, CommonRes, RegisterReq, ValidateTokenReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq, LogOutReq, GetUserInfoReq, RenewAccessTokenReq } from "./auth.pb";
+import { AUTH_SERVICE_NAME, LogInReq, CommonRes, RegisterReq, ValidateTokenReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq, LogOutReq, GetUserInfoReq, RenewAccessTokenReq } from "../../proto/auth.pb";
 import { GrpcMethod } from "@nestjs/microservices";
 import StandardizeRes from "src/config/response/response.config";
 import { ServiceRes } from "src/DTO/ServiceRes.dto";

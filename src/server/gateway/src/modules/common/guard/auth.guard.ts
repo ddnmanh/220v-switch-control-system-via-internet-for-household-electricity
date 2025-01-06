@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, Inject } from '@nestjs/common';
 import { AuthService } from '../../auth/service/Auth.service';
-import { CommonRes } from '../../auth/auth.pb';
+import { CommonRes } from '../../../proto/auth.pb';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

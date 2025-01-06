@@ -1,8 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { AuthController } from './Auth.controller';
-import { AUTH_SERVICE_NAME, AUTH_PACKAGE_NAME } from '../../proto/auth.pb';
-import { AuthService } from './service/Auth.service';
+import { DeviceController } from './Device.controller';
+import { DEVICE_PACKAGE_NAME, DEVICE_SERVICE_NAME } from '../../proto/device.pb';
+import { DeviceService } from './service/Device.service';
 import { join } from 'path';
 import * as fs from 'fs';
 import * as grpc from '@grpc/grpc-js';
@@ -14,12 +14,12 @@ import { CommonModule } from '../common/common.module';
         CommonModule,
         ClientsModule.register([
             {
-                name: AUTH_SERVICE_NAME,
+                name: DEVICE_SERVICE_NAME,
                 transport: Transport.GRPC,
                 options: {
-                    url: 'localhost:50051',
-                    package: AUTH_PACKAGE_NAME,
-                    protoPath: join(__dirname, '../../../node_modules/config-project-global/proto/auth.proto'),
+                    url: 'localhost:50052',
+                    package: DEVICE_PACKAGE_NAME,
+                    protoPath: join(__dirname, '../../../node_modules/config-project-global/proto/device.proto'),
                     credentials: grpc.credentials.createSsl(
                         fs.readFileSync(join(__dirname, '../../../node_modules/config-project-global/mTLS/RootCA.pem')),  // CA Root
                         fs.readFileSync(join(__dirname, '../../../mTLS/gateway.key')),  // Private key client
@@ -29,8 +29,8 @@ import { CommonModule } from '../common/common.module';
             },
         ]),
     ],
-    controllers: [AuthController],
-    providers: [AuthService],
-    exports: [AuthService],
+    controllers: [DeviceController],
+    providers: [DeviceService],
+    exports: [DeviceService],
 })
-export class AuthModule { }
+export class DeviceModule { }

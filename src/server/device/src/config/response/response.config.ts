@@ -1,4 +1,4 @@
-import { CommonRes } from "src/proto/auth.pb";
+import { CommonRes } from "src/proto/device.pb";
 
 export default class StandardizeRes {
     private codeValue: number = 200;

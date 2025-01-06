@@ -16,7 +16,7 @@ import OTPEntity from 'src/entity/OTP.entity';
 import { GenerateUUIDService } from 'src/modules/common/generate-uuid/GenerateUUID.service';
 import { UserRegisterResDTO } from 'src/DTO/userRegister.dto';
 import { PasswordHistoryRepository } from '../repository/PasswordHistory.repository';
-import { GetUserInfoReq, LogOutReq, RenewAccessTokenReq } from '../auth.pb';
+import { GetUserInfoReq, LogOutReq, RenewAccessTokenReq } from '../../../proto/auth.pb';
 
 @Injectable()
 export class AuthService {

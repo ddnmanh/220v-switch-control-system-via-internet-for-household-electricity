@@ -1,4 +1,4 @@
-import { CommonRes } from "src/modules/auth/auth.pb";
+import { CommonRes } from "src/proto/auth.pb";
 
 export default class StandardizeRes {
     private code: number;

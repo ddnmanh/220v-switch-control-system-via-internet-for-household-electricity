@@ -2,7 +2,7 @@
 import { Body, Controller, Get, Inject, OnModuleInit, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import { AuthServiceClient, RegisterReq, AUTH_SERVICE_NAME, LogInReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq, LogOutReq } from './auth.pb';
+import { AuthServiceClient, RegisterReq, AUTH_SERVICE_NAME, LogInReq, ResendOTPVerifyRegisterAccountReq, OTPVerifyRegisterAccountReq, LogOutReq } from '../../proto/auth.pb';
 import { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import StandardizeRes from '../../config/response/response.config';
