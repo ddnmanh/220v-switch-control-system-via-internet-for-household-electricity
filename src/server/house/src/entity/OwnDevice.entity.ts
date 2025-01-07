@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, OneToOne, PrimaryColumn, UpdateDateColumn, PrimaryGeneratedColumn, ManyToOne, OneToMany } from 'typeorm';
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToOne, PrimaryColumn, UpdateDateColumn, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import SettingEntity from './Setting.entity';
 import HouseEntity from './House.entity';
 import AreaEntity from './Area.entity';
@@ -26,10 +26,11 @@ export default class OwnDeviceEntity extends BaseEntity {
     @Column( { name: 'id_device', type: 'varchar', length: 6, nullable: false } )
     public idDevice!: string;
 
-
     @ManyToOne(() => HouseEntity, (record) => record.id)
+    @JoinColumn({ name: 'id_house' })
     public house!: HouseEntity;
 
     @ManyToOne(() => AreaEntity, (record) => record.id)
+    @JoinColumn({ name: 'id_area'})
     public area!: AreaEntity;
 }

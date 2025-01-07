@@ -57,6 +57,7 @@ message UpdateHouseReq {
   string name = 3; 
   string desc = 4; 
   bool is_wallpaper_blur = 5;
+  bool is_main_house = 6;
 } 
 
 // Delete House
@@ -105,21 +106,20 @@ message CreateOwnDeviceReq {
 
 // Get
 message GetOwnDeviceReq {
-  string id_own_device = 1;
+  string id_device = 1;
   string id_user = 2; 
 } 
 
 // Update
 message UpdateOwnDeviceReq {
-  string id_own_device = 1;
-  string id_area = 2;
-  string id_user = 3; 
-  string name = 4; 
-  string desc = 5;
+  string id_device = 1; 
+  string id_user = 2; 
+  string name = 3; 
+  string desc = 4;
 }
 
 // Delete
 message DeleteOwnDeviceReq {
-  string id_own_device = 1; 
+  string id_device = 1; 
   string id_user = 3;
 } 

@@ -15,11 +15,17 @@ export default class SettingEntity extends BaseEntity {
     @PrimaryColumn({ name: 'id_house', type: 'varchar', length: 6 })
     public idHouse!: string;
 
-    @Column({ name: 'ap_ssid', type: 'varchar', length: 30 })
-    public apSSID!: string;
+    @Column({ name: 'index_show', type: 'int', default: -1})
+    public indexShow: number;
 
-    @Column({ name: 'ap_password', type: 'varchar', length: 30 })
-    public apPassword!: string;
+    @Column({ name: 'wallpaper_path', type: 'varchar', length: 3000, nullable: false, default: '' })
+    public wallpaperPath!: string;
+
+    @Column({ name: 'wallpaper_blur', type: 'boolean', default: false })
+    public wallpaperBlur!: number;
+
+    @Column({ name: 'is_main_house', type: 'boolean', default: false })
+    public isMainHouse!: number;
 
     @CreateDateColumn({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
     public createdAt!: Date;
@@ -31,3 +37,4 @@ export default class SettingEntity extends BaseEntity {
     @JoinColumn({ name: 'id_house' })
     public house!: HouseEntity;
 }
+

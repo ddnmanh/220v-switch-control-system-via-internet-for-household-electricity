@@ -8,10 +8,10 @@ export default class HouseEntity extends BaseEntity {
     @PrimaryColumn({ type: 'varchar', length: 6, unique: true })
     public id!: string;
 
-    @Column({ name: 'name', type: 'varchar', length: 25, nullable: true })
+    @Column({ name: 'name', type: 'varchar', length: 25, nullable: true, default: 'Nhà Mới' })
     public name!: string;
 
-    @Column({ name: 'desc', type: 'varchar', length: 150, nullable: true })
+    @Column({ name: 'desc', type: 'varchar', length: 150, nullable: true, default: "" })
     public desc!: string;
 
     @Column({ name: 'is_delete', type: 'boolean', default: false })
@@ -23,7 +23,7 @@ export default class HouseEntity extends BaseEntity {
     @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', onUpdate: 'CURRENT_TIMESTAMP(6)', default: () => 'CURRENT_TIMESTAMP(6)' })
     public updatedAt!: Date;
 
-    @Column({ name: 'id_user', type: 'varchar', length: 6 })
+    @Column({ name: 'id_user', type: 'varchar', length: 6, nullable: false })
     public idUser!: string;
 
     @OneToOne(() => SettingEntity, (setting) => setting.house, { cascade: true })
