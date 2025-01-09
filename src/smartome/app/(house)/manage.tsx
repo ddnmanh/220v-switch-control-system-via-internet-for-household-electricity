@@ -42,7 +42,8 @@ const Manage = () => {
                     <View style={styles.buttonBar}>
                         <TouchableOpacity
                             style={[styles.buttonBar_button]}
-                            onPress={() => navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } ) }
+                            onPress={() => navigation.goBack() }
+                            // onPress={() => navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } ) }
                         >
                             <Text style={styles.buttonBar_buttonText}>Xong</Text>
                         </TouchableOpacity>

@@ -1,4 +1,4 @@
-// components/SwitchDevice.tsx
+// components/SwitchItemDevice.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { Button, FlatList, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableHighlight, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, Vibration, View } from "react-native";
 import { useMQTTContext } from "@/hooks/context/MQTT.context";
@@ -7,6 +7,7 @@ import { HouseContext } from '@/hooks/context/HouseData.context';
 import variablesGlobal from '@/constants/variables';
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
+import { useNavigation } from "@react-navigation/native";
 
 const variablesInComponent = {
     textPrimary: '#fff',
@@ -15,28 +16,33 @@ const variablesInComponent = {
     intensityDeviceItemBlur: 70,
 }
 
-interface SwitchDevice {
+export interface SwitchDeviceITF {
+    id_device: string;
+    id_area: string;
     name: string;
     online: boolean;
     state: boolean;
 }
 
-interface TopicDevice {
+export interface TopicDeviceITF {
     send: string;
     receive: string;
 }
 
-interface Message {
+export interface Message {
     destinationName: string;
     payloadString: string;
 }
 
-interface SwitchDeviceProps {
-    device: SwitchDevice;
-    topic: TopicDevice;
+interface SwitchItemDeviceProps {
+    device: SwitchDeviceITF;
+    topic: TopicDeviceITF;
 }
 
-const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device, topic }) => {
+const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) => {
+
+    const navigation = useNavigation();
+
     const {
         subscribeTopicMQTT,
         publishToTopicMQTT,
@@ -45,30 +51,11 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device, topic }) => {
         isMQTTConnected,
     } = useMQTTContext();
 
-    const [thisDevice, setThisDevice] = useState<SwitchDevice>(device);
+    const [thisDevice, setThisDevice] = useState<SwitchDeviceITF>(device);
     const [idRequire, setIdRequire] = useState<string>("");
     const { deviceItemSize } = React.useContext(DynamicValuesContext) || {
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
-
-    console.log('topic on switch device', topic);
-
-
-    const handleControllToEquipment = useCallback(
-        (type: string = "CONTROLL") => {
-            const strTimestamp = new Date().getTime().toString();
-            setIdRequire(strTimestamp);
-            publishToTopicMQTT(
-                topic.receive,
-                JSON.stringify({
-                    type: type,
-                    id: strTimestamp,
-                    value: !thisDevice.state,
-                })
-            );
-        },
-        [thisDevice, publishToTopicMQTT]
-    );
 
     useEffect(() => {
         if (isMQTTConnected && topic) subscribeTopicMQTT(topic.send);
@@ -76,7 +63,6 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device, topic }) => {
     }, [isMQTTConnected, subscribeTopicMQTT])
 
     useEffect(() => {
-
         const handleMessage = (message: Message) => {
             if (message.destinationName === topic.send) {
                 try {
@@ -121,7 +107,6 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device, topic }) => {
 
         if (isMQTTConnected) setOnMessageArrivedFromMQTT(handleMessage);
 
-
         return () => removeOnMessageArrivedFromMQTT(handleMessage);
     }, [
         topic,
@@ -131,12 +116,40 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device, topic }) => {
         idRequire,
     ]);
 
+    const handleControllToEquipment = (type: string = "CONTROLL") => {
+        const strTimestamp = new Date().getTime().toString();
+        setIdRequire(strTimestamp);
+        publishToTopicMQTT(
+            topic.receive,
+            JSON.stringify({
+                type: type,
+                id: strTimestamp,
+                value: !thisDevice.state,
+            })
+        );
+    };
+
+    const updateDeviceByOtherComponent = React.useCallback((dataDeviceFromOtherComponent) => {
+        setThisDevice(dataDeviceFromOtherComponent);
+    }, []);
+
 
     return (
         <BlurView intensity={70} tint='dark' style={[styles.device_item, styles.device_item_blur, { width: deviceItemSize.width, height: deviceItemSize.height }]}>
             <TouchableNativeFeedback
                 onPress={() => {
-                    console.log('device', device);
+                    navigation.navigate(
+                        "(devices)",
+                            {
+                                screen: "device",
+                                params: {
+                                    typeDevice: "SWITCH",
+                                    device: thisDevice,
+                                    topic: topic,
+                                    updateDataForRoot: updateDeviceByOtherComponent
+                                }
+                            }
+                    );
                 }}
                 onLongPress={() => {
                     console.log('long press');
@@ -229,4 +242,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default SwitchDevice;
+export default SwitchItemDevice;

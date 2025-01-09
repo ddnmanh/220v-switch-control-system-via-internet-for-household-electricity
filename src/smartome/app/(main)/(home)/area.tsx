@@ -7,7 +7,7 @@ import HeaderCPN from '@/components/Header';
 import variablesGlobal from '@/constants/variables';
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
-import SwitchDevice from '@/components/devices/Switch';
+import SwitchDevice from '@/components/devices/SwitchItem';
 import imagesGlobal from '@/constants/images';
 
 

@@ -23,7 +23,7 @@ const MainContext: React.FC<MainContextProps> = ({ children }) => {
                         <GPSContextProvider>
                             <MQTTContextProvider>
                                 <HouseContextProvider>
-                                    <StatusBar backgroundColor="rgba(0, 0, 0, 0)" translucent={true} />
+                                    <StatusBar backgroundColor="rgba(0, 0, 0, 0)" translucent={true} hidden={true} />
                                     {children}
                                 </HouseContextProvider>
                             </MQTTContextProvider>

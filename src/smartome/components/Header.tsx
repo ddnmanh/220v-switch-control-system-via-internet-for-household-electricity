@@ -110,7 +110,8 @@ const HeaderCPN = ({ ...props }) => {
                     &&
                     <TouchableOpacity
                         style={styles.backButton}
-                        onPress={() => navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } ) }
+                        // onPress={() => navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } ) }
+                        onPress={() => navigation.goBack() }
                     >
                         <IconCPN iconName='angleLeftRegular' size={18} color='#fff'></IconCPN>
                         <Text style={styles.backButton_text}>Nhà</Text>

@@ -31,10 +31,10 @@ const Setting = () => {
                 <View style={styles.header_container}>
                     <TouchableOpacity
                         style={styles.backButton}
-                        onPress={() => navigation.navigate("(house)", { screen: "housemange" })}
+                        onPress={() => navigation.goBack() }
                     >
                         <IconCPN iconName='angleLeftRegular' size={18} color='#FB923C'></IconCPN>
-                        <Text style={styles.backButton_text}>Quản Lý</Text>
+                        {/* <Text style={styles.backButton_text}>Quản Lý</Text> */}
                     </TouchableOpacity>
 
                     <Animated.View
@@ -49,9 +49,9 @@ const Setting = () => {
                     <View style={styles.buttonBar}>
                         <TouchableOpacity
                             style={[styles.buttonBar_button]}
-                            onPress={() => navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } ) }
+                            onPress={() => navigation.navigate("(house)", { screen: "housemange" }) }
                         >
-                            <Text style={styles.buttonBar_buttonText}>Xong</Text>
+                            <Text style={styles.buttonBar_buttonText}>Quản Lý</Text>
                         </TouchableOpacity>
 
                     </View>
