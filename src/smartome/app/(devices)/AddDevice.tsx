@@ -11,6 +11,8 @@ import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '@/hooks/context/Auth.context';
 import { BlurView } from 'expo-blur';
 import { WifiContext } from '@/hooks/context/Wifi.context';
+import OwnDeviceFetch from '@/fetch/OwnDevice.fetch';
+import { HouseContext } from '@/hooks/context/HouseData.context';
 
 
 const AddDevice = ({route}: any) => {
@@ -19,11 +21,14 @@ const AddDevice = ({route}: any) => {
     console.log("Add device screen id house " + idHouse);
     console.log("Add device screen id area " + idArea);
 
+    const {setHousesData} = useContext(HouseContext) || {};
+
     const navigation = useNavigation();
     const { userInfo } = React.useContext(AuthContext) || {};
     const { wifiInfomation } = useContext(WifiContext) || {};
 
-    const [deviceSSID, setDeviceSSID] = React.useState('SWITCH_WIFI_');
+    const [deviceID, setDeviceID] = React.useState('8ZY73W');
+    const [deviceSSID, setDeviceSSID] = React.useState('');
     const [devicePass, setDevicePass] = React.useState('12345678');
     const [houseSSID, setHouseSSID] = React.useState('labech_dnm');
     const [passwordHouseSSID, setPasswordHouseSSID] = React.useState('techlab@dnmanh');
@@ -36,7 +41,11 @@ const AddDevice = ({route}: any) => {
 
 
     React.useEffect(() => {
+        handleCheckWifi();
+        setGmt(getGMT());
+    }, [wifiInfomation, userInfo]);
 
+    const handleCheckWifi = async () => {
         // Connected to wifi and can access internet
         if (wifiInfomation && wifiInfomation.isInternetReachable) {
 
@@ -47,26 +56,30 @@ const AddDevice = ({route}: any) => {
             }
         }
 
+        // Connected to wifi but can't access internet
         if (wifiInfomation && !wifiInfomation.isInternetReachable) {
             setIsCoverInputDevice(true);
             setIsDisableButton(false);
+
+
+            // Get device ID from wifi ssid
+            setDeviceID(() => {
+                let ssid = wifiInfomation.details?.ssid || '';
+                return ssid.split('_')[0];
+            })
         }
 
         // Not connected to wifi
         if (!wifiInfomation) {
             setIsDisableButton(true);
         }
+    }
 
-        const getGMT = () => {
-            const offsetMinutes = new Date().getTimezoneOffset(); // Lấy offset tính bằng phút
-            const offsetHours = -offsetMinutes / 60; // Chuyển thành giờ, đổi dấu để tính chênh lệch đúng
-            return offsetHours;
-        };
-
-        setGmt(getGMT());
-
-    }, [wifiInfomation, userInfo]);
-
+    const getGMT = () => {
+        const offsetMinutes = new Date().getTimezoneOffset(); // Lấy offset tính bằng phút
+        const offsetHours = -offsetMinutes / 60; // Chuyển thành giờ, đổi dấu để tính chênh lệch đúng
+        return offsetHours;
+    };
 
     const connectToDeviceWifi = async (ssid: string, password: string) => {
         console.log('Connecting to ESP-WIFI...');
@@ -85,24 +98,25 @@ const AddDevice = ({route}: any) => {
             await WifiManager.disconnect();
         } catch (error) {
             console.log('Error disconnecting from WiFi:', error);
-
         }
     };
 
     const handleFetchToDevice = async () => {
-        try {
 
-            const response = await fetch(`http://192.168.4.1/setWiFi?ownerId=${userInfo.id}&gmt=${gmt}&ssid=${houseSSID}&password=${passwordHouseSSID}`);
+        try {
+            const response = await fetch(`http://192.168.4.1/setWiFi?ownerId=${idHouse}&gmt=${gmt}&ssid=${houseSSID}&password=${passwordHouseSSID}`);
 
             if (response.status === 200) {
                 console.log('Setup successful, reconnecting to previous WiFi...');
                 await disconnectFromWifi();
-                setIsSettingUp(false);
 
-                handleGoToPrevScreen();
+
+                setTimeout(async () => {
+                    handleGoToSetupOwnDeviceScreen();
+                }, 5000);
+
             } else {
                 console.log('Setup failed with status:', response.status);
-                setIsSettingUp(false);
             }
 
         } catch (error) {
@@ -111,6 +125,7 @@ const AddDevice = ({route}: any) => {
     };
 
     const handleSetup = async () => {
+        setIsSettingUp(true);
         if (!isCoverInputDevice) {
             try {
                 await connectToDeviceWifi(deviceSSID, devicePass);
@@ -120,7 +135,7 @@ const AddDevice = ({route}: any) => {
 
                     setTimeout(async () => {
                         handleFetchToDevice();
-                    }, 5000);
+                    }, 3000);
 
                 } catch (error) {
                     console.log('Error during setup:', error);
@@ -135,12 +150,8 @@ const AddDevice = ({route}: any) => {
         }
     }
 
-    const handleGoToPrevScreen = () => {
-        if (idArea === null || idArea === undefined) {
-            navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } );
-        } else {
-            navigation.navigate( "(main)", { screen: "(home)", params: { screen: "area", params: { idArea: idArea } } });
-        }
+    const handleGoToSetupOwnDeviceScreen = () => {
+        navigation.navigate( "(devices)", { screen: "setupOwnDevice", params: { idHouse: idHouse, idArea: idArea, idDevice: deviceID }} )
     }
 
     return (
@@ -150,6 +161,7 @@ const AddDevice = ({route}: any) => {
                 <View
                     style={{
                         width: '100%',
+                        marginBottom: 20,
                         padding: 10,
                         backgroundColor: "#fff",
                         borderRadius: 10,
@@ -207,7 +219,7 @@ const AddDevice = ({route}: any) => {
                 </View>
 
                 <View>
-                    <ButtonCPN content='KẾT NỐI' type='primary' handlePress={() => handleSetup()} disable={isDisableButton} isLoading={isSettingUp}/>
+                    <ButtonCPN content='KẾT NỐI' type='primary' handlePress={() => handleSetup()} disable={isDisableButton || isSettingUp} isLoading={isSettingUp}/>
                     <View style={styles.viewLink_linkBar}>
                         <Link href="sign-up" style={styles.viewLink_linkBar_link}>Hướng dẫn, </Link>
                         <Link href="forgot-password" style={styles.viewLink_linkBar_link}>Tìm hiểu thêm.</Link>
@@ -221,7 +233,7 @@ const AddDevice = ({route}: any) => {
                     <Text style={styles.ortherMethodView_commitText}>
                         Chúng tôi đảm bảo an toàn cho các thông tin của bạn cung cấp theo chính sách pháp luật quốc gia của bạn!
                     </Text>
-                    <Link href='http://smartome.dnmanh.io.vn:65535' style={styles.ortherMethodView_trademark}>smartom.dnmanh.io.vn</Link>
+                    {/* <Link href='http://smartome.dnmanh.io.vn:65535' style={styles.ortherMethodView_trademark}>smartom.dnmanh.io.vn</Link> */}
                 </View>
             </View>
         </SafeAreaView>
@@ -243,7 +255,7 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         alignItems: 'stretch',
         justifyContent: 'flex-start',
-        rowGap: 18,
+        rowGap: 5,
     },
     viewInput_title: {
         textAlign: 'center',

@@ -1,9 +1,10 @@
-// import iconApp from '../assets/images/icon.png';
-// import iconAdaptiveApp from '../assets/images/background-app-warm.jpg';
-import backgroundApp from '../assets/images/background-app-warm.jpg';
 
-const imagesGlobal: Record<string, string> = {
-    backgroundApp
+import { ImageSourcePropType } from 'react-native';
+// import WallpaperDefault from '../assets/images/default-wallpaper.png';
+import WallpaperDefault from '../assets/images/background-app-warm.jpg';
+
+const imagesGlobal: Record<string, ImageSourcePropType> = {
+    WallpaperDefault
 }
 
 export default imagesGlobal;

@@ -19,8 +19,11 @@ interface SwitchDevice {
     name: string;
     online: boolean;
     state: boolean;
-    topicSend: string;
-    topicReceive: string;
+}
+
+interface TopicDevice {
+    send: string;
+    receive: string;
 }
 
 interface Message {
@@ -30,9 +33,10 @@ interface Message {
 
 interface SwitchDeviceProps {
     device: SwitchDevice;
+    topic: TopicDevice;
 }
 
-const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
+const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device, topic }) => {
     const {
         subscribeTopicMQTT,
         publishToTopicMQTT,
@@ -47,12 +51,15 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
 
+    console.log('topic on switch device', topic);
+
+
     const handleControllToEquipment = useCallback(
         (type: string = "CONTROLL") => {
             const strTimestamp = new Date().getTime().toString();
             setIdRequire(strTimestamp);
             publishToTopicMQTT(
-                thisDevice.topicSend,
+                topic.receive,
                 JSON.stringify({
                     type: type,
                     id: strTimestamp,
@@ -64,14 +71,14 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
     );
 
     useEffect(() => {
-        if (isMQTTConnected) subscribeTopicMQTT(thisDevice.topicReceive);
-        if (isMQTTConnected) handleControllToEquipment("STATUS");
+        if (isMQTTConnected && topic) subscribeTopicMQTT(topic.send);
+        if (isMQTTConnected && topic) handleControllToEquipment("STATUS");
     }, [isMQTTConnected, subscribeTopicMQTT])
 
     useEffect(() => {
 
         const handleMessage = (message: Message) => {
-            if (message.destinationName === thisDevice.topicReceive) {
+            if (message.destinationName === topic.send) {
                 try {
                     console.log(
                         `Message received on Device Card ${message.destinationName}: ${message.payloadString}`
@@ -117,7 +124,7 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
 
         return () => removeOnMessageArrivedFromMQTT(handleMessage);
     }, [
-        thisDevice.topicReceive,
+        topic,
         subscribeTopicMQTT,
         setOnMessageArrivedFromMQTT,
         removeOnMessageArrivedFromMQTT,
@@ -194,7 +201,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', columnGap: 5,
     },
     content_top_icon: {
-        width: '42%', aspectRatio: 1/1, padding: 5, alignItems: 'center', justifyContent: 'center',
+        width: '42%', aspectRatio: (1/1), padding: 5, alignItems: 'center', justifyContent: 'center',
     },
     content_top_right: {
         flex: 1, justifyContent: 'center', alignItems: 'stretch', flexDirection: 'column', rowGap: 2

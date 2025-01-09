@@ -8,6 +8,7 @@ import React from 'react';
 import { Animated, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Divider } from 'react-native-paper';
 import {HouseContext} from '@/hooks/context/HouseData.context';
+import imagesGlobal from '@/constants/images';
 
 const Setting = () => {
 
@@ -109,7 +110,11 @@ const Setting = () => {
                             <Divider style={{ height: 1, backgroundColor: '#e4e4e7' }}></Divider>
                             <View style={{paddingVertical: 10, paddingBottom: 0}}>
                                 <Image
-                                    source={ {uri: houseDataChosen?.image_bg} }
+                                    source={
+                                        houseDataChosen?.setting?.wallpaper_path
+                                            ? { uri: houseDataChosen?.setting?.wallpaper_path }
+                                            : imagesGlobal.WallpaperDefault
+                                    }
                                     resizeMode="contain"
                                     style={{ height: 250, borderRadius: 10 }}
                                 />

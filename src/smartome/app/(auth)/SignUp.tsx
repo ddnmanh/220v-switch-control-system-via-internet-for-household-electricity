@@ -7,7 +7,7 @@ import colorGlobal from '@/constants/colors';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import AuthenFetch from '@/fetch/Authen.fetch';
-import { ResponseDTO, ResponseMessageDTO } from '@/types/FetchDTO';
+import { ResponseDTO, ResponseMessageDTO } from '@/interfaces/Fetch.interface';
 
 export default function SignUp() {
 
@@ -34,6 +34,8 @@ export default function SignUp() {
             navigation.navigate("(auth)", { screen: "otpVerifyScreen",  params: { idRegister: response.data.id, email: response.data.email } });
 
         } catch (error:any) {
+            setIsSignUp(false);
+
             const response:ResponseDTO = error?.response?.data;
 
             // Kiểm tra mã lỗi
@@ -270,7 +272,7 @@ export default function SignUp() {
                     <InputCPN label="Tên đăng nhập" placeholder="tuanngoc, lethanh, tramanh,..." autoCapitalize="none" value={usernameInput.value} errorMessage={usernameInput.errorMessage} onChange={(text) => setUsernameInput(prev => ({...prev, value: text}))}></InputCPN>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <InputCPN label="Mật khẩu" type='password' placeholder="Nên sử dụng ký tự in hoa và đặc biệt" autoCapitalize="none" value={passwordInput.value} errorMessage={passwordInput.errorMessage} onChange={(text) => setPasswordInput(prev => ({...prev, value: text}))}></InputCPN>
+                    <InputCPN label="Mật khẩu" type='password' placeholder="8 đến 30 ký tự in hoa và đặc biệt" autoCapitalize="none" value={passwordInput.value} errorMessage={passwordInput.errorMessage} onChange={(text) => setPasswordInput(prev => ({...prev, value: text}))}></InputCPN>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 </View>

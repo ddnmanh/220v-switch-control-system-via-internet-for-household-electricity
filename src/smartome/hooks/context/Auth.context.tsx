@@ -13,7 +13,7 @@ interface UserInfo {
 }
 
 // Định nghĩa interface cho Context
-interface AuthContextProps {
+export interface AuthContextProps {
     userInfo: UserInfo | null;
     saveToken: (key: string, token: string) => Promise<void>;
     setTimeLiveAccessToken: (time: number) => void;
@@ -61,6 +61,8 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
 
     // Navigation helper
     const navigateToLogin = () => {
+        console.log('Navigating to login screen...');
+
         navigation.navigate("(auth)", { screen: "logInScreen" });
     };
 
@@ -102,8 +104,8 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
             await saveToken(ACCESS_TOKEN_KEY, response?.data?.access_token?.token ? response.data.access_token.token : '');
 
             if (timeLiveAccessToken !== response.data.access_token.expires_in*1000) {
-                // setTimeLiveAccessToken(response.data.access_token.expires_in*1000);
-                setTimeLiveAccessToken(20000);
+                setTimeLiveAccessToken(response.data.access_token.expires_in*1000);
+                // setTimeLiveAccessToken(20000);
             }
         } catch (error) {
             console.log('Error renewing access token:', error);

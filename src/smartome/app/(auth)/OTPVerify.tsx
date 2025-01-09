@@ -8,7 +8,7 @@ import colorGlobal from '@/constants/colors';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import AuthenFetch from '@/fetch/Authen.fetch';
-import { ResponseDTO, ResponseMessageDTO } from '@/types/FetchDTO';
+import { ResponseDTO, ResponseMessageDTO } from '@/interfaces/Fetch.interface';
 
 export default function OTPVerify({route}: any) {
 

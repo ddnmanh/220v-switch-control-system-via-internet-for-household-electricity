@@ -8,9 +8,9 @@ import variablesGlobal from '@/constants/variables';
 import { DynamicValuesContext } from '@/hooks/context/DynamicValues.context';
 import { HouseContext } from '@/hooks/context/HouseData.context';
 import { ImageBackground } from 'react-native';
+import imagesGlobal from '@/constants/images';
 
 import MainHomeLayout from './(home)/_layout';
-
 
 const Tab = createBottomTabNavigator();
 
@@ -56,7 +56,11 @@ export default function MainLayout() {
                 tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.4)',
                 tabBarBackground: () => (
                     <ImageBackground
-                        source={{ uri: houseDataChosen?.image_bg }}
+                        source={
+                            houseDataChosen?.setting?.wallpaper_path
+                            ? { uri: houseDataChosen?.setting?.wallpaper_path }
+                            : imagesGlobal.WallpaperDefault
+                        }
                         resizeMode='cover'
                         blurRadius={30}
                         style={{

@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import useMyAnimation from '@/hooks/animated/Animation.animated';
 import { DynamicValuesContext } from '@/hooks/context/DynamicValues.context';
 import { useRouter } from 'expo-router';
+import imagesGlobal from '@/constants/images';
 
 const HeaderCPN = ({ ...props }) => {
 
@@ -87,7 +88,11 @@ const HeaderCPN = ({ ...props }) => {
                 ]}
             >
                 <ImageBackground
-                    source={{ uri: houseDataChosen?.image_bg }}
+                    source={
+                        houseDataChosen?.setting?.wallpaper_path
+                            ? { uri: houseDataChosen?.setting?.wallpaper_path }
+                            : imagesGlobal.WallpaperDefault
+                    }
                     resizeMode='cover'
                     blurRadius={100}
                     style={styles.header_backgroundImg}

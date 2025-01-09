@@ -92,6 +92,8 @@ export const MQTTContextProvider: React.FC<MQTTContextProviderProps> = ({ childr
 
     const publishToTopicMQTT = (topic: string, message: string) => {
         if (clientRef.current && isMQTTConnected) {
+            console.log('TOPIC', topic);
+
             const msg = new Paho.Message(message);
             msg.destinationName = topic;
             clientRef.current.send(msg);

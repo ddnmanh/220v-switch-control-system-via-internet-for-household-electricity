@@ -8,6 +8,7 @@ import variablesGlobal from '@/constants/variables';
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
 import SwitchDevice from '@/components/devices/Switch';
+import imagesGlobal from '@/constants/images';
 
 
 const variablesInComponent = {
@@ -42,7 +43,11 @@ const Area = ({route}: any) => {
     return (
         <SafeAreaView style={{width: dimensionsSize?.width, height: dimensionsSize?.height}}>
             <ImageBackground
-                source={{ uri: houseDataChosen?.image_bg }}
+                source={
+                    houseDataChosen?.setting?.wallpaper_path
+                        ? { uri: houseDataChosen?.setting?.wallpaper_path }
+                        : imagesGlobal.WallpaperDefault
+                }
                 resizeMode='cover'
                 blurRadius={0.7}
                 style={styles.backgroundImage}

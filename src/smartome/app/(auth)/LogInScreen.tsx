@@ -8,7 +8,7 @@ import colorGlobal from '@/constants/colors';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import AuthenFetch from '@/fetch/Authen.fetch';
-import { ResponseDTO, ResponseMessageDTO } from '@/types/FetchDTO';
+import { ResponseDTO, ResponseMessageDTO } from '@/interfaces/Fetch.interface';
 import axios from 'axios';
 import { AuthContext } from '@/hooks/context/Auth.context';
 
@@ -34,12 +34,14 @@ const LogInScreen = () => {
             saveToken && saveToken(process.env.EXPO_PUBLIC_TOKEN_ACCESS_NAME || 'access_token', response.data.access_token.token);
             saveToken && saveToken(process.env.EXPO_PUBLIC_TOKEN_REFRESH_NAME || 'refresh_token', response.data.refresh_token.token);
 
-            // setTimeLiveAccessToken && setTimeLiveAccessToken(response.data.access_token.expires_in*1000);
-            setTimeLiveAccessToken && setTimeLiveAccessToken(20000);
+            setTimeLiveAccessToken && setTimeLiveAccessToken(response.data.access_token.expires_in*1000);
+            // setTimeLiveAccessToken && setTimeLiveAccessToken(20000);
 
             navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } )
 
         } catch (error:any) {
+            setIsLogIn(false);
+
             const response:ResponseDTO = error?.response?.data;
 
             // Kiểm tra mã lỗi

@@ -11,6 +11,7 @@ import { HouseContext } from '@/hooks/context/HouseData.context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import PaaCard from '@/components/PadCard';
 import SwitchDevice from '@/components/devices/Switch';
+import imagesGlobal from '@/constants/images';
 
 
 const variablesInComponent = {
@@ -67,10 +68,15 @@ const Index = () => {
         navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: houseDataChosen.id, idArea: null } });
     }
 
+
     return (
         <SafeAreaView style={{ width: dimensionsSize?.width, height: dimensionsSize?.height, }}>
             <ImageBackground
-                source={{ uri: houseDataChosen?.image_bg }}
+                source={
+                    houseDataChosen?.setting?.wallpaper_path
+                        ? { uri: houseDataChosen?.setting?.wallpaper_path }
+                        : imagesGlobal.WallpaperDefault
+                }
                 resizeMode='cover'
                 blurRadius={0.7}
                 style={styles.backgroundImage}
@@ -107,13 +113,17 @@ const Index = () => {
                     </View>
 
                     {
+                        houseDataChosen?.areas?.length
+                        &&
                         houseDataChosen?.areas?.map((area:any, index:number) => (
                             <View style={styles.clusterAreaOfHouse} key={index}>
                                 <Text style={styles.house_areaName}>{area.name}</Text>
                                 <View style={styles.device_container}>
                                     {
-                                        area.devices.map((device:any, index:number) => {
-                                            return <SwitchDevice key={houseDataChosen.id+"-"+area.id+"-"+device.id} device={device} />
+                                        area?.own_devices?.map((device:any, index:number) => {
+                                            let topicSend = houseDataChosen.id +"/"+device.id_device+"/send";
+                                            let topicReceive = houseDataChosen.id +"/"+device.id_device+"/receive";
+                                            return <SwitchDevice key={houseDataChosen.id+"-"+area.id+"-"+device.id} device={device} topic={{send: topicSend, receive: topicReceive}}/>
                                         })
                                     }
                                 </View>
