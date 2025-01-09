@@ -40,7 +40,7 @@ export class HouseController implements OnModuleInit {
         }
     }
 
-    @Get('/:house_id')
+    @Get('/:house_id?')
     @UseGuards(VerifyTokenInBearerGuard)
     public async getHouse(@Request() req:any, @Param('house_id') houseId: string): Promise<any> {
 

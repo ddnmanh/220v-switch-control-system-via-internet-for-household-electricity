@@ -30,7 +30,7 @@ export default class OwnDeviceEntity extends BaseEntity {
     @JoinColumn({ name: 'id_house' })
     public house!: HouseEntity;
 
-    @ManyToOne(() => AreaEntity, (record) => record.id)
+    @ManyToOne(() => AreaEntity, (record) => record.id, { nullable: true })
     @JoinColumn({ name: 'id_area'})
-    public area!: AreaEntity;
+    public area!: AreaEntity | null;
 }

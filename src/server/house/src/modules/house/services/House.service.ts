@@ -22,6 +22,9 @@ export class HouseService {
     async createHouse(body: CreateHouseReq): Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
 
+        console.log('create house service: ', body);
+
+
         try {
 
             let newHouse = new HouseEntity();
@@ -45,19 +48,24 @@ export class HouseService {
 
         console.log('HouseService:getHouse : ', body);
 
+        // if (!body.houseId) {
+        //     statusMessage.push({ property: 'houseId', message: 'houseId is required' });
+        //     return new ServiceRes('Error when get house', statusMessage, null);
+        // }
 
-        if (!body.houseId) {
-            statusMessage.push({ property: 'houseId', message: 'houseId is required' });
-            return new ServiceRes('Error when get house', statusMessage, null);
-        }
-
-        if (body.houseId.length != 6) {
+        if (body.houseId && body.houseId?.length != 6) {
             statusMessage.push({ property: 'houseId', message: 'houseId is invalid' });
             return new ServiceRes('Error when get house', statusMessage, null);
         }
 
         try {
-            let houseResult = await this.houseRepository.getHouseWithRelations(body.houseId, body.idUser);
+            let houseResult = null;
+
+            if (!body.houseId) {
+                houseResult = await this.houseRepository.getAllHouseByIdUser(body.idUser);
+            } else if (body.houseId.length == 6) {
+                houseResult = await this.houseRepository.getHouseWithRelations(body.houseId, body.idUser);
+            }
 
             return new ServiceRes('Get house is successfully', statusMessage, houseResult);
         } catch (error) {

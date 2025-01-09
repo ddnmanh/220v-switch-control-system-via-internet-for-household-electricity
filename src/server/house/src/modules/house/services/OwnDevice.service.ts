@@ -93,8 +93,13 @@ export class OwnDeviceService {
             newOwnDevice.house.id = body.idHouse;
             newOwnDevice.area = new AreaEntity();
             newOwnDevice.area.id = body.idArea;
+            newOwnDevice.name = body.name ? body.name : 'Công tắc mới';
+            newOwnDevice.desc = body.desc ? body.desc : '';
 
             const savedDevice = await this.ownDeviceRepository.createOwnDevice(newOwnDevice);
+
+            console.log('OwnDeviceService:createOwnDevice : ', savedDevice);
+
 
             return new ServiceRes('Own device created successfully', statusMessage, savedDevice);
         } catch (error) {

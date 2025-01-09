@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { UserRepository } from '../repository/User.repository';
 import { EncryptService } from '../../common/encrypt/Encrypt.service';
 import { ConfigService } from '@nestjs/config';
@@ -17,9 +17,12 @@ import { GenerateUUIDService } from 'src/modules/common/generate-uuid/GenerateUU
 import { UserRegisterResDTO } from 'src/DTO/userRegister.dto';
 import { PasswordHistoryRepository } from '../repository/PasswordHistory.repository';
 import { GetUserInfoReq, LogOutReq, RenewAccessTokenReq } from '../../../proto/auth.pb';
+import { HOUSE_SERVICE_NAME, HouseServiceClient } from 'src/proto/house.pb';
+import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
 
     private readonly userRepository: UserRepository;
     private readonly otpRepository: OTPRepository;
@@ -30,6 +33,10 @@ export class AuthService {
     private readonly globalConstants: ConfigService;
     private readonly userRegiterRepository: UserRegisterRepository;
     private readonly passwordHistoryRepository: PasswordHistoryRepository;
+
+    private houseMicroservice: HouseServiceClient;
+    @Inject(HOUSE_SERVICE_NAME)
+    private readonly houseClientMicroservice: ClientGrpc;
 
     constructor(
         aR: UserRepository, otpR: OTPRepository,
@@ -46,6 +53,11 @@ export class AuthService {
         this.emailService = emS;
         this.globalConstants = gC;
         this.passwordHistoryRepository = pHR;
+    }
+
+    public onModuleInit(): void {
+        console.log('AuthService is initialized');
+        this.houseMicroservice = this.houseClientMicroservice.getService<HouseServiceClient>(HOUSE_SERVICE_NAME);
     }
 
     async registerUser(body: RegisterUserDto): Promise<ServiceRes> {
@@ -163,6 +175,13 @@ export class AuthService {
                 userRes.username = user.username;
                 userRes.email = user.email;
                 userRes.role = user.role;
+
+                try {
+                    // Tạo nhà sẳn cho người dùng khi tạo người dùng thành công
+                    await firstValueFrom(this.houseMicroservice.createHouse({idUser: userRes.id, name: 'Nhà Của Tôi', desc: "Nhà mặc định được hệ thống khởi tạo", isWallpaperBlur: false}));
+                } catch (error) {
+                    console.log(`AuthService:otpVerifyRegisterAccount : ${error.message}`);
+                }
 
                 return new ServiceRes('Verify account register is successfully', statusMessage, userRes);
             } else {

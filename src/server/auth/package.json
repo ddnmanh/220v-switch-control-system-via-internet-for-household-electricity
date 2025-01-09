@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "config-project-global:install": "npm i ../config-project-global",
     "proto:auth": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd -I=./node_modules/config-project-global/proto --ts_proto_out=src/proto/ node_modules/config-project-global/proto/auth.proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
-    "proto:all": "npm run proto:auth",
+    "proto:house": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd -I=./node_modules/config-project-global/proto --ts_proto_out=src/proto/ node_modules/config-project-global/proto/house.proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
+    "proto:all": "npm run proto:auth && npm run proto:house",
     "mtls:generate-private-key-and-csr": "node ./scripts/generate-private-key-and-CSR.js",
     "mtls:generate-certificate": "node ./scripts/generate-certificate.js",
     "mtls:all": "npm run config-project-global:install && npm run mtls:generate-private-key-and-csr && npm run mtls:generate-certificate"

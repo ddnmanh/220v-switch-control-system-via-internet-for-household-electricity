@@ -102,6 +102,8 @@ message CreateOwnDeviceReq {
   string id_house = 2;
   string id_area = 3;
   string id_user = 4; 
+  string name = 5;
+  string desc = 6;
 } 
 
 // Get

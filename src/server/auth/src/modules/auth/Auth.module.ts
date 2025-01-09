@@ -15,10 +15,31 @@ import OTPEntity from 'src/entity/OTP.entity';
 import { UserRegisterRepository } from './repository/UserRegister.repository';
 import { OTPRepository } from './repository/OTP.repository';
 import { PasswordHistoryRepository } from './repository/PasswordHistory.repository';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { HOUSE_PACKAGE_NAME, HOUSE_SERVICE_NAME } from 'src/proto/house.pb';
+import { join } from 'path';
+import * as fs from 'fs';
+import * as grpc from '@grpc/grpc-js';
 
 @Module({
     imports: [
         CommonModule,
+        ClientsModule.register([
+            {
+                name: HOUSE_SERVICE_NAME,
+                transport: Transport.GRPC,
+                options: {
+                    url: 'localhost:50053',
+                    package: HOUSE_PACKAGE_NAME,
+                    protoPath: join(__dirname, '../../../node_modules/config-project-global/proto/house.proto'),
+                    credentials: grpc.credentials.createSsl(
+                        fs.readFileSync(join(__dirname, '../../../node_modules/config-project-global/mTLS/RootCA.pem')),  // CA Root
+                        fs.readFileSync(join(__dirname, '../../../mTLS/authService.key')),  // Private key client
+                        fs.readFileSync(join(__dirname, '../../../mTLS/authService.crt')),  // Chứng chỉ client
+                    ),
+                },
+            },
+        ]),
         TypeOrmModule.forFeature([
             UserEntity, PasswordHistoryEntity,
             LogInHistoryEntity, UserRegiterEntity,

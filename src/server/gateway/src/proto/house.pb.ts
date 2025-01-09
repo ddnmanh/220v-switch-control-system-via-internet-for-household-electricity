@@ -98,6 +98,8 @@ export interface CreateOwnDeviceReq {
   idHouse: string;
   idArea: string;
   idUser: string;
+  name: string;
+  desc: string;
 }
 
 /** Get */
