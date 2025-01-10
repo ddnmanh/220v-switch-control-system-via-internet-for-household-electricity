@@ -25,4 +25,24 @@ export default new class OwnDeviceFetch {
         return await axiosJSONData(this.endpoints.create, 'POST', data, TokenType.ACCESS);
     }
 
+    /**
+     * Get user information
+     * @param {Record<string, any>} data: { id_device, name, desc }
+     *
+     * @returns {Promise<any>}
+     */
+    async update(data: Record<string, any>): Promise<any> {
+        return await axiosJSONData(this.endpoints.update, 'PUT', data, TokenType.ACCESS);
+    }
+
+    /**
+     * Get user information
+     * @param {Record<string, any>} data: { id_device }
+     *
+     * @returns {Promise<any>}
+     */
+    async delete(data: Record<string, any>): Promise<any> {
+        return await axiosJSONData(this.endpoints.delete, 'DELETE', data, TokenType.ACCESS);
+    }
+
 }

@@ -12,7 +12,7 @@ import SelectOptionCPN from '@/components/SelectOption';
 import TextAreaCPN from '@/components/TextArea';
 
 
-const SetupOwnDevice = ({route}: any) => {
+const SetupNewOwnDevice = ({route}: any) => {
 
     const { idArea, idDevice } = route.params;
 
@@ -71,10 +71,10 @@ const SetupOwnDevice = ({route}: any) => {
                     <SelectOptionCPN
                         label=""
                         options={
-                            houseDataChosen.areas.map((area: any) => {
+                            houseDataChosen?.areas.map((area: any) => {
                                 return {
-                                    label: area.name,
-                                    value: area.id
+                                    label: area?.name,
+                                    value: area?.id
                                 }
                             })
                         }
@@ -179,4 +179,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default SetupOwnDevice;
+export default SetupNewOwnDevice;

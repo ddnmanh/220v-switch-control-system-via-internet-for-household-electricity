@@ -12,7 +12,7 @@ export default function AuthLayout() {
         <Stack.Navigator
             screenOptions={{
                 headerShown: false,
-                ...TransitionPresets.FadeFromRightAndroid, // Hiệu ứng chuyển màn hình
+                ...TransitionPresets.ScaleFromCenterAndroid, // Hiệu ứng chuyển màn hình
             }}
         >
             <Stack.Screen name="logInScreen" component={LogIn} options={{ title: 'Đăng Nhập', headerShown: false }} />

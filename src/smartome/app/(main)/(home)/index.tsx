@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import HeaderCPN from '@/components/Header';
 import variablesGlobal from '@/constants/variables';
@@ -26,7 +26,7 @@ const Index = () => {
 
     const navigation = useNavigation();
 
-    const { housesData, houseDataChosen, handleChoosenHouseByID, handleChooseAreaByID } = React.useContext(HouseContext) || {};
+    const { houseDataChosen, handleChooseAreaByID } = React.useContext(HouseContext) || {};
 
     const { dimensionsSize, deviceItemSize } = React.useContext(DynamicValuesContext) || {
         dimensionsSize: { width: 0, height: 0 } as DimensionsSizeITF,
@@ -35,11 +35,6 @@ const Index = () => {
 
     const backgroundOnHeaderAnimation = useMyAnimation({ opacity: 0, translateY: 0, scale: 1, rotate: 0});
     const houseNameOnHeaderAnimation = useMyAnimation({ opacity: 0, translateY: 0, scale: 1, rotate: 0});
-
-
-    // useEffect(() => {
-    //     navigation.navigate( "(auth)", { screen: "logInScreen" } );
-    // }, [])
 
     const [scrollY, setScrollY] = React.useState(0);
 
@@ -55,11 +50,9 @@ const Index = () => {
 
     useFocusEffect(
         React.useCallback(() => {
-          // Logic của bạn muốn thực thi khi mỗi lần truy cập vào màn hình này
           handleChooseAreaByID && handleChooseAreaByID(0);
 
           return () => {
-            // Logic cleanup nếu cần thiết khi rời khỏi màn hình
           };
         }, [])
     );
@@ -67,8 +60,6 @@ const Index = () => {
     const handleGotoAddDevice = () => {
         navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: houseDataChosen.id, idArea: null } });
     }
-
-    console.log('HOME SCREEN');
 
 
 
@@ -124,6 +115,8 @@ const Index = () => {
                                 <View style={styles.device_container}>
                                     {
                                         area?.own_devices?.map((device:any, index:number) => {
+                                            console.log('RENDER SWITCH ITEM ON HOME with stats: ', device.state, device.online);
+
                                             let topicSend = houseDataChosen.id +"/"+device.id_device+"/send";
                                             let topicReceive = houseDataChosen.id +"/"+device.id_device+"/receive";
                                             return <SwitchItemDevice key={houseDataChosen.id+"-"+area.id+"-"+device.id} device={device} topic={{send: topicSend, receive: topicReceive}}/>

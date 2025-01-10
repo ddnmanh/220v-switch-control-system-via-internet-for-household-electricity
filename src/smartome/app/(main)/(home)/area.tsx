@@ -1,14 +1,12 @@
 
 import React from 'react';
-import { Button, FlatList, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, Vibration, View } from 'react-native';
+import { ImageBackground, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DynamicValuesContext, DimensionsSizeITF, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
-import { HouseContext } from '@/hooks/context/HouseData.context';
+import { HouseContext, HouseContextProps } from '@/hooks/context/HouseData.context';
 import HeaderCPN from '@/components/Header';
 import variablesGlobal from '@/constants/variables';
-import { BlurView } from 'expo-blur';
-import IconCPN from '@/components/Icon';
-import SwitchDevice from '@/components/devices/SwitchItem';
 import imagesGlobal from '@/constants/images';
+import SwitchItemDevice from '@/components/devices/SwitchItem';
 
 
 const variablesInComponent = {
@@ -20,25 +18,14 @@ const variablesInComponent = {
 
 const Area = ({route}: any) => {
 
-    const { idArea } = route.params || {};
-
-    console.log("Area screen id area " + idArea);
-
-
     const { dimensionsSize, deviceItemSize } = React.useContext(DynamicValuesContext) || {
         dimensionsSize: { width: 0, height: 0 } as DimensionsSizeITF,
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
 
-    const { houseDataChosen, areaDataChosen } = React.useContext(HouseContext) || {
-        houseDataChosen: {},
-        areaDataChosen: {},
-    };
+    const { houseDataChosen, areaDataChosen } = React.useContext(HouseContext) as HouseContextProps;
 
     const [scrollY, setScrollY] = React.useState(0);
-
-    console.log(areaDataChosen);
-
 
     return (
         <SafeAreaView style={{width: dimensionsSize?.width, height: dimensionsSize?.height}}>
@@ -73,8 +60,10 @@ const Area = ({route}: any) => {
                     <View style={styles.clusterAreaOfHouse}>
                         <View style={styles.device_container}>
                             {
-                                areaDataChosen?.devices?.map((device:any, index:number) => {
-                                    return <SwitchDevice key={houseDataChosen.id+"-"+areaDataChosen.id+"-"+device.id} device={device} />
+                                areaDataChosen?.own_devices?.map((device:any, index:number) => {
+                                    let topicSend = houseDataChosen.id +"/"+device.id_device+"/send";
+                                    let topicReceive = houseDataChosen.id +"/"+device.id_device+"/receive";
+                                    return <SwitchItemDevice key={houseDataChosen.id+"-"+areaDataChosen.id+"-"+device.id} device={device} topic={{send: topicSend, receive: topicReceive}}/>
                                 })
                             }
                         </View>

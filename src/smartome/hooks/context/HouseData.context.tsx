@@ -12,6 +12,7 @@ export interface HouseContextProps {
     handleChoosenHouseByID: (id_house: number) => void;
     handleChooseAreaByID: (id_area: number) => void;
     reloadHouseContext: () => void;
+    handleUpdateDataSwitchDevice: (id_device: string, state: boolean, is_online: boolean, name: string) => void;
 }
 
 export const HouseContext = createContext<HouseContextProps | undefined>(undefined);
@@ -68,6 +69,32 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
         setAreaDataChosen(chosenArea || {});
     };
 
+    const handleUpdateDataSwitchDevice = (id_device: string, state: boolean, is_online: boolean, name: string) => {
+        const newAreas = houseDataChosen.areas.map((area: any) => {
+            const newDevices = area.own_devices.map((device: any) => {
+                if (device.id_device === id_device) {
+                    return { ...device, state, online: is_online, name };
+                }
+                return device;
+            });
+            return { ...area, own_devices: newDevices };
+        });
+
+        setHouseDataChosen({ ...houseDataChosen, areas: [...newAreas] });
+
+        // Cập nhật lại state cho areaDataChosen
+        if (areaDataChosen.id) {
+            const newArea = { ...areaDataChosen };
+            newArea.own_devices = newArea.own_devices.map((device: any) => {
+                if (device.id_device === id_device) {
+                    return { ...device, state, online: is_online, name };
+                }
+                return device;
+            });
+            setAreaDataChosen(newArea);
+        }
+    }
+
     return (
         <HouseContext.Provider
             value={{
@@ -78,6 +105,7 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                 handleChoosenHouseByID,
                 handleChooseAreaByID,
                 reloadHouseContext,
+                handleUpdateDataSwitchDevice
             }}
         >
             {children}

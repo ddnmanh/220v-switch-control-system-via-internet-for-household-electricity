@@ -11,7 +11,6 @@ import { useNavigation } from '@react-navigation/native';
 import { AuthContext } from '@/hooks/context/Auth.context';
 import { BlurView } from 'expo-blur';
 import { WifiContext } from '@/hooks/context/Wifi.context';
-import OwnDeviceFetch from '@/fetch/OwnDevice.fetch';
 import { HouseContext } from '@/hooks/context/HouseData.context';
 
 
@@ -151,7 +150,7 @@ const AddDevice = ({route}: any) => {
     }
 
     const handleGoToSetupOwnDeviceScreen = () => {
-        navigation.navigate( "(devices)", { screen: "setupOwnDevice", params: { idHouse: idHouse, idArea: idArea, idDevice: deviceID }} )
+        navigation.navigate( "(devices)", { screen: "setupNewOwnDeviceScreen", params: { idHouse: idHouse, idArea: idArea, idDevice: deviceID }} )
     }
 
     return (

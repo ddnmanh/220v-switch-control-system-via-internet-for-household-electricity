@@ -21,8 +21,7 @@
         "foregroundImage": "./assets/images/app/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.dnmanh.smartome",
-      "googleServicesFile": "./google-services.json"
+      "package": "com.dnmanh.smartome"
     },
     "web": {
       "bundler": "metro",

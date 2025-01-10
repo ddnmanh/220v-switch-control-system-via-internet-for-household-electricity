@@ -20,6 +20,7 @@ export interface SwitchDeviceITF {
     id_device: string;
     id_area: string;
     name: string;
+    desc: string;
     online: boolean;
     state: boolean;
 }
@@ -56,6 +57,10 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) =>
     const { deviceItemSize } = React.useContext(DynamicValuesContext) || {
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
+
+    useEffect(() => {
+        setThisDevice(device);
+    }, [device]);
 
     useEffect(() => {
         if (isMQTTConnected && topic) subscribeTopicMQTT(topic.send);
@@ -124,14 +129,10 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) =>
             JSON.stringify({
                 type: type,
                 id: strTimestamp,
-                value: !thisDevice.state,
+                value: !thisDevice?.state,
             })
         );
     };
-
-    const updateDeviceByOtherComponent = React.useCallback((dataDeviceFromOtherComponent) => {
-        setThisDevice(dataDeviceFromOtherComponent);
-    }, []);
 
 
     return (
@@ -141,12 +142,11 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) =>
                     navigation.navigate(
                         "(devices)",
                             {
-                                screen: "device",
+                                screen: "deviceScreen",
                                 params: {
                                     typeDevice: "SWITCH",
                                     device: thisDevice,
-                                    topic: topic,
-                                    updateDataForRoot: updateDeviceByOtherComponent
+                                    topic: topic
                                 }
                             }
                     );
@@ -162,16 +162,16 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) =>
                             style={styles.content_top_icon}
                             onPress={() => isMQTTConnected ? handleControllToEquipment("CONTROLL") : {}}
                         >
-                            <IconCPN iconName={thisDevice.state ? 'lightSwitchOnSolid' : 'lightSwitchOffSolid'} size={'100%'} color={thisDevice.state ? '#0ea5e9' : '#a3a3a3'}></IconCPN>
+                            <IconCPN iconName={thisDevice?.state ? 'lightSwitchOnSolid' : 'lightSwitchOffSolid'} size={'100%'} color={thisDevice?.state ? '#0ea5e9' : '#a3a3a3'}></IconCPN>
                         </TouchableOpacity>
                         <View style={styles.content_top_right}>
                             <Text style={styles.content_top_nameDevice}>Công tắt</Text>
                             <Text style={[styles.content_top_statusOnline, !thisDevice.online && styles.content_top_statusOnline__offline]}>{thisDevice.online ? 'Online' : 'Offline'}</Text>
-                            <Text style={styles.content_top_statusDevice}>{thisDevice.state ? 'Đang đóng' : 'Đang hở'}</Text>
+                            <Text style={styles.content_top_statusDevice}>{thisDevice?.state ? 'Bật nguồn' : 'Tắt nguồn'}</Text>
                         </View>
                     </View>
                     <View style={styles.device_item_content_bottom}>
-                        <Text style={styles.device_item_name}>{thisDevice.name}</Text>
+                        <Text style={styles.device_item_name}>{thisDevice?.name}</Text>
                     </View>
                 </View>
             </TouchableNativeFeedback>

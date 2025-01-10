@@ -52,6 +52,9 @@ import gearRegular from "../assets/icons/app/gear-regular.png";
 import doorOpenRegular from "../assets/icons/app/door-open-regular.png";
 import lampRegular from "../assets/icons/app/lamp-regular.png";
 import angleLeftRegular from "../assets/icons/app/angle-left-regular.png";
+import powerOffRegular from "../assets/icons/app/power-off-regular.png";
+import angleRightRegular from "../assets/icons/app/angle-right-regular.png";
+import circleSolid from "../assets/icons/app/circle-solid.png";
 import openweathermap01n from "../assets/icons/openweathermap/01n.png";
 import openweathermap02n from "../assets/icons/openweathermap/02n.png";
 import openweathermap03n from "../assets/icons/openweathermap/03n.png";
@@ -126,6 +129,9 @@ const iconsGlobal: Record<string, string> = {
     doorOpenRegular,
     lampRegular,
     angleLeftRegular,
+    powerOffRegular,
+    angleRightRegular,
+    circleSolid,
     openweathermap01n,
     openweathermap02n,
     openweathermap03n,
