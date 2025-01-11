@@ -104,13 +104,13 @@ export interface CreateOwnDeviceReq {
 
 /** Get */
 export interface GetOwnDeviceReq {
-  idDevice: string;
+  idOwnDevice: string;
   idUser: string;
 }
 
 /** Update */
 export interface UpdateOwnDeviceReq {
-  idDevice: string;
+  idOwnDevice: string;
   idUser: string;
   name: string;
   desc: string;
@@ -118,7 +118,7 @@ export interface UpdateOwnDeviceReq {
 
 /** Delete */
 export interface DeleteOwnDeviceReq {
-  idDevice: string;
+  idOwnDevice: string;
   idUser: string;
 }
 

@@ -22,14 +22,10 @@ export class HouseService {
     async createHouse(body: CreateHouseReq): Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
 
-        console.log('create house service: ', body);
-
-
         try {
-
             let newHouse = new HouseEntity();
             newHouse.idUser = body.idUser;
-            newHouse.name = body.name;
+            newHouse.name = body.name ? body.name : 'Nhà Của Tôi';
             newHouse.desc = body.desc;
             newHouse.setting = new SettingEntity();
             newHouse.setting.wallpaperBlur = body.isWallpaperBlur ? 1 : 0;
@@ -46,25 +42,17 @@ export class HouseService {
     async getHouse(body: GetHouseReq): Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
 
-        console.log('HouseService:getHouse : ', body);
-
-        // if (!body.houseId) {
-        //     statusMessage.push({ property: 'houseId', message: 'houseId is required' });
-        //     return new ServiceRes('Error when get house', statusMessage, null);
-        // }
-
-        if (body.houseId && body.houseId?.length != 6) {
-            statusMessage.push({ property: 'houseId', message: 'houseId is invalid' });
-            return new ServiceRes('Error when get house', statusMessage, null);
-        }
+        // Không kiểm tra body.houseId vì có thể không có houseId
+        // houseId == null => lấy tất cả house của user
+        // houseId != null => lấy house theo id
 
         try {
             let houseResult = null;
 
             if (!body.houseId) {
-                houseResult = await this.houseRepository.getAllHouseByIdUser(body.idUser);
+                houseResult = await this.houseRepository.getAllHouseWithRelationsByIdUser(body.idUser);
             } else if (body.houseId.length == 6) {
-                houseResult = await this.houseRepository.getHouseWithRelations(body.houseId, body.idUser);
+                houseResult = await this.houseRepository.getHouseWithRelationsByIdUser(body.houseId, body.idUser);
             }
 
             return new ServiceRes('Get house is successfully', statusMessage, houseResult);
@@ -127,7 +115,6 @@ export class HouseService {
         }
 
         try {
-
             let deleteHouse = await this.houseRepository.getHouseByIdByIdUser(body.idUser, body.houseId);
 
             if (!deleteHouse) {

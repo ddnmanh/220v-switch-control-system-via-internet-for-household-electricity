@@ -108,13 +108,13 @@ message CreateOwnDeviceReq {
 
 // Get
 message GetOwnDeviceReq {
-  string id_device = 1;
+  string id_own_device = 1;
   string id_user = 2; 
 } 
 
 // Update
 message UpdateOwnDeviceReq {
-  string id_device = 1; 
+  string id_own_device = 1; 
   string id_user = 2; 
   string name = 3; 
   string desc = 4;
@@ -122,6 +122,6 @@ message UpdateOwnDeviceReq {
 
 // Delete
 message DeleteOwnDeviceReq {
-  string id_device = 1; 
+  string id_own_device = 1; 
   string id_user = 3;
 } 

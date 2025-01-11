@@ -27,9 +27,6 @@ export class AreaService {
     async createArea(body: CreateAreaReq): Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
 
-        console.log('AreaService:createArea : ', body);
-
-
         try {
             let houseDb = await this.houseRepository.getHouseByIdByIdUser(body.idUser, body.idHouse);
 
@@ -40,7 +37,7 @@ export class AreaService {
 
             let newArea = new AreaEntity();
             newArea.house = houseDb;
-            newArea.name = body.name;
+            newArea.name = body.name ? body.name : 'Khu Vực Của Tôi';
             newArea.desc = body.desc;
 
             let areaResult = await this.areaRepository.createArea(newArea);
@@ -125,9 +122,6 @@ export class AreaService {
     async deleteArea(body: DeleteAreaReq): Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
 
-        console.log('AreaService:deleteArea : ', body);
-
-
         if (!body.areaId) {
             statusMessage.push({ property: 'areaId', message: 'areaId is required' });
             return new ServiceRes('Error when delete area', statusMessage, null);
@@ -145,20 +139,14 @@ export class AreaService {
                 return new ServiceRes('Area is not belong to user', statusMessage, null);
             }
 
-            let deleteArea = await this.areaRepository.getAreaById(body.areaId);
+            let areaNeedDel = await this.areaRepository.getAreaById(body.areaId);
 
-            if (!deleteArea) {
-                statusMessage.push({ property: 'areaId', message: 'areaId is not found' });
-                return new ServiceRes('Error when delete area', statusMessage, null);
-            }
+            let deleteAreaResult = await this.areaRepository.softDeleteAreaWithRelations(areaNeedDel.id);
 
-            let areaResult = await this.areaRepository.softDeleteAreaWithRelations(body.areaId);
-
-            return new ServiceRes('Delete area is successfully', statusMessage, areaResult);
+            return new ServiceRes('Delete area is successfully', statusMessage, deleteAreaResult);
         } catch (error) {
             console.log(`AreaService:deleteArea : ${error.message}`);
             return new ServiceRes('Error when delete area', [{ property: 'error', message: error.message }], null);
         }
     }
-
 }

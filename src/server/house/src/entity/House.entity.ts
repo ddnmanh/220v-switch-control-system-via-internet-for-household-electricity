@@ -33,5 +33,5 @@ export default class HouseEntity extends BaseEntity {
     public areas!: AreaEntity[];
 
     @OneToMany(() => OwnDeviceEntity, (device) => device.house)
-    public devices!: OwnDeviceEntity[];
+    public ownDevices!: OwnDeviceEntity[];
 }

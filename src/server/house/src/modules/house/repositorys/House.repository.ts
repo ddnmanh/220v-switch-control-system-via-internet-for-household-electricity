@@ -29,47 +29,22 @@ export class HouseRepository {
         });
     }
 
-    /**
-     * Lấy house cùng với areas và devices theo house.id và house.id_user
-     * @param houseId ID của house
-     * @param userId ID của user
-     */
-    public async getHouseWithRelations(houseId: string, userId: string): Promise<HouseEntity | null> {
-        // return await this.houseRepository.createQueryBuilder('house')
-        //     .leftJoinAndSelect('house.areas', 'area', 'area.isDelete = false') // Kết nối với bảng AreaEntity có điều kiện
-        //     .leftJoinAndSelect('area.ownDevices', 'device', 'device.isDelete = false') // Kết nối với bảng OwnDeviceEntity có điều kiện
-        //     .leftJoinAndSelect('house.setting', 'setting') // Kết nối với bảng SettingEntity
-        //     .where('house.id = :houseId', { houseId })
-        //     .andWhere('house.idUser = :userId', { userId })
-        //     .andWhere('house.isDelete = false') // Điều kiện cho bảng House
-        //     .getOne();
 
+    public async getHouseWithRelationsByIdUser(houseId: string, idUser: string): Promise<HouseEntity | null> {
         return await this.houseRepository.createQueryBuilder('house')
-            // Kết nối với bảng AreaEntity
             .leftJoinAndSelect('house.areas', 'area', 'area.isDelete = false')
-
-            // Kết nối với bảng OwnDeviceEntity thông qua areas
             .leftJoinAndSelect('area.ownDevices', 'areaDevice', 'areaDevice.isDelete = false')
-
-            // Kết nối với bảng OwnDeviceEntity không có area (id_area = null)
-            .leftJoinAndSelect('house.devices', 'houseDevice', 'houseDevice.idArea IS NULL AND houseDevice.isDelete = false')
-
-            // Kết nối với bảng SettingEntity
+            .leftJoinAndSelect('house.ownDevices', 'ownDevices', 'ownDevices.id_area IS NULL AND ownDevices.isDelete = false')
             .leftJoinAndSelect('house.setting', 'setting')
-
-            // Điều kiện lọc house
             .where('house.id = :houseId', { houseId })
-            .andWhere('house.idUser = :userId', { userId })
+            .andWhere('house.idUser = :idUser', { idUser })
             .andWhere('house.isDelete = false')
-
             .getOne();
     }
-
 
     async updateHouse(body: HouseEntity): Promise<HouseEntity> {
         return await this.houseRepository.save(body);
     }
-
 
     /**
      * Xoá house và các areas thuộc house bằng cách cập nhật isDelete = true
@@ -99,6 +74,14 @@ export class HouseRepository {
                 .where('id_house = :houseId', { houseId })
                 .execute();
 
+            // Cập nhật isDelete = true cho ownDevices thuộc house
+            await queryRunner.manager
+                .createQueryBuilder()
+                .update('own_devices')
+                .set({ isDelete: true })
+                .where('id_house = :houseId', { houseId })
+                .execute();
+
             // Commit transaction
             await queryRunner.commitTransaction();
         } catch (error) {
@@ -122,13 +105,14 @@ export class HouseRepository {
         return !!house;
     }
 
-    async getAllHouseByIdUser(userId: string): Promise<HouseEntity[]> {
+    async getAllHouseWithRelationsByIdUser(userId: string): Promise<HouseEntity[]> {
         return await this.houseRepository.createQueryBuilder('house')
-            .leftJoinAndSelect('house.areas', 'area', 'area.isDelete = false') // Kết nối với bảng AreaEntity có điều kiện
-            .leftJoinAndSelect('area.ownDevices', 'device', 'device.isDelete = false') // Kết nối với bảng OwnDeviceEntity có điều kiện
-            .leftJoinAndSelect('house.setting', 'setting') // Kết nối với bảng SettingEntity
+            .leftJoinAndSelect('house.areas', 'area', 'area.isDelete = false')
+            .leftJoinAndSelect('area.ownDevices', 'device', 'device.isDelete = false')
+            .leftJoinAndSelect('house.ownDevices', 'ownDevices', 'ownDevices.id_area IS NULL AND ownDevices.isDelete = false')
+            .leftJoinAndSelect('house.setting', 'setting')
             .andWhere('house.idUser = :userId', { userId })
-            .andWhere('house.isDelete = false') // Điều kiện cho bảng House
+            .andWhere('house.isDelete = false')
             .getMany();
     }
 }

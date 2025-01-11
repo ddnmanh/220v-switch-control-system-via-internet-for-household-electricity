@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HouseRepository } from '../repositorys/House.repository';
-import { CreateOwnDeviceReq, DeleteOwnDeviceReq, UpdateOwnDeviceReq } from 'src/proto/house.pb';
+import { CreateOwnDeviceReq, DeleteOwnDeviceReq, GetOwnDeviceReq, UpdateOwnDeviceReq } from 'src/proto/house.pb';
 import { ErrServiceRes, ServiceRes } from 'src/DTO/serviceRes.dto';
 import HouseEntity from 'src/entity/House.entity';
 import SettingEntity from 'src/entity/Setting.entity';
@@ -45,22 +45,22 @@ export class OwnDeviceService {
             return new ServiceRes('Error when create own device', statusMessage, null);
         }
 
-        if (!body.idArea) {
-            statusMessage.push({ property: 'idArea', message: 'idArea is required' });
-            return new ServiceRes('Error when create own device', statusMessage, null);
-        }
+        // if (!body.idArea) {
+        //     statusMessage.push({ property: 'idArea', message: 'idArea is required' });
+        //     return new ServiceRes('Error when create own device', statusMessage, null);
+        // }
 
-        if (body.idHouse.length != 6) {
+        if (body?.idHouse?.length != 6) {
             statusMessage.push({ property: 'idHouse', message: 'idHouse is invalid' });
             return new ServiceRes('Error when create own device', statusMessage, null);
         }
 
-        if (body.idArea.length != 6) {
-            statusMessage.push({ property: 'idArea', message: 'idArea is invalid' });
-            return new ServiceRes('Error when create own device', statusMessage, null);
-        }
+        // if (body?.idArea?.length != 6) {
+        //     statusMessage.push({ property: 'idArea', message: 'idArea is invalid' });
+        //     return new ServiceRes('Error when create own device', statusMessage, null);
+        // }
 
-        if (body.idDevice.length != 6) {
+        if (body?.idDevice?.length != 6) {
             statusMessage.push({ property: 'idDevice', message: 'idDevice is invalid' });
             return new ServiceRes('Error when create own device', statusMessage, null);
         }
@@ -74,14 +74,16 @@ export class OwnDeviceService {
                return new ServiceRes('House is not belong to user', statusMessage, null);
             }
 
-            // Kiểm tra xem area có thuộc về user không
-            if (!await this.areaRepository.isAreaBelongToUser(body.idArea, body.idUser)) {
-                statusMessage.push({ property: 'area', message: 'Area is not belong to user' })
-               return new ServiceRes('Area is not belong to user', statusMessage, null);
+            if (body.idArea) {
+                // Kiểm tra xem area có thuộc về user không
+                if (!await this.areaRepository.isAreaBelongToUser(body.idArea, body.idUser)) {
+                    statusMessage.push({ property: 'area', message: 'Area is not belong to user' })
+                   return new ServiceRes('Area is not belong to user', statusMessage, null);
+                }
             }
 
-            // Kiểm tra xem own device đã tồn tại chưa
-            if (await this.ownDeviceRepository.isOwnDeviceExist(body.idDevice)) {
+            // Kiểm tra xem device đã đang được sở hửu và sử dụng bởi một người dùng hay chưa
+            if (await this.ownDeviceRepository.isDeviceUsing(body.idDevice)) {
                 statusMessage.push({ property: 'ownDevice', message: 'Own device is already exist' })
                return new ServiceRes('Own device is already exist', statusMessage, null);
             }
@@ -98,9 +100,6 @@ export class OwnDeviceService {
 
             const savedDevice = await this.ownDeviceRepository.createOwnDevice(newOwnDevice);
 
-            console.log('OwnDeviceService:createOwnDevice : ', savedDevice);
-
-
             return new ServiceRes('Own device created successfully', statusMessage, savedDevice);
         } catch (error) {
             console.log(`OwnDeviceService:createOwnDevice : ${error.message}`);
@@ -108,38 +107,63 @@ export class OwnDeviceService {
         }
     }
 
+    async getOwnDevice(body: GetOwnDeviceReq): Promise<ServiceRes> {
+        let statusMessage:ErrServiceRes[] = [];
+
+        if (!body.idOwnDevice) {
+            statusMessage.push({ property: 'idOwnDevice', message: 'idOwnDevice is required' });
+            return new ServiceRes('Error when get own device', statusMessage, null);
+        }
+
+        if (body?.idOwnDevice?.length != 6) {
+            statusMessage.push({ property: 'idOwnDevice', message: 'idOwnDevice is invalid' });
+            return new ServiceRes('Error when get own device', statusMessage, null);
+        }
+
+        try {
+            let ownDevice = await this.ownDeviceRepository.getOwnDeviceByIdOwnDevice(body.idOwnDevice, body.idUser);
+
+            if (!ownDevice) {
+                statusMessage.push({ property: 'idOwnDevice', message: 'Own device is not found!' });
+                return new ServiceRes('Error when get own device', statusMessage, null);
+            }
+
+            delete ownDevice.createdAt;
+            delete ownDevice.updatedAt;
+
+            return new ServiceRes('Get own device successfully', statusMessage, ownDevice);
+
+        } catch (error) {
+            console.log(`OwnDeviceService:getOwnDevice : ${error.message}`);
+            return new ServiceRes('Error when get own device', [{ property: 'error', message: error.message }], null);
+        }
+    }
+
     async updateOwnDevice(body: UpdateOwnDeviceReq): Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
 
-        console.log('OwnDeviceService:updateOwnDevice : ', body);
-
-        if (!body.idDevice) {
-            statusMessage.push({ property: 'idDevice', message: 'idDevice is required' });
+        if (!body.idOwnDevice) {
+            statusMessage.push({ property: 'idOwnDevice', message: 'idOwnDevice is required' });
             return new ServiceRes('Error when update own device', statusMessage, null);
         }
 
-        if (body.idDevice.length != 6) {
-            statusMessage.push({ property: 'idDevice', message: 'idDevice is invalid' });
+        if (body?.idOwnDevice?.length != 6) {
+            statusMessage.push({ property: 'idOwnDevice', message: 'idOwnDevice is invalid' });
             return new ServiceRes('Error when update own device', statusMessage, null);
         }
 
         try {
-            // Kiểm tra xem own device đã tồn tại chưa
-            if (!await this.ownDeviceRepository.isOwnDeviceExist(body.idDevice)) {
-                statusMessage.push({ property: 'ownDevice', message: 'Own device is not exist' })
-               return new ServiceRes('Own device is not exist', statusMessage, null);
-            }
-
-            // Kiểm tra xem device có thuộc về user không
-            if (!await this.ownDeviceRepository.isOwnDeviceBelongToUser(body.idDevice, body.idUser)) {
+            // Kiểm tra xem device có thuộc về và đang được sử dụng bởi user không
+            if (!await this.ownDeviceRepository.isOwnDeviceBelongToUser(body.idOwnDevice, body.idUser)) {
                 statusMessage.push({ property: 'ownDevice', message: 'Own device is not belong to user' })
                return new ServiceRes('Own device is not belong to user', statusMessage, null);
             }
 
-            let updateOwnDevice = await this.ownDeviceRepository.getOwnDeviceByIdDevice(body.idDevice);
+            // Lấy thông tin của own device
+            let updateOwnDevice = await this.ownDeviceRepository.getOwnDeviceByIdOwnDevice(body.idOwnDevice, body.idUser);
 
             if (!updateOwnDevice) {
-                statusMessage.push({ property: 'idDevice', message: 'idDevice is not found' });
+                statusMessage.push({ property: 'idOwnDevice', message: 'Own device is not found' });
                 return new ServiceRes('Error when update own device', statusMessage, null);
             }
 
@@ -159,27 +183,24 @@ export class OwnDeviceService {
     async deleteOwnDevice(body: DeleteOwnDeviceReq): Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
 
-        console.log('OwnDeviceService:deleteOwnDevice : ', body);
+        if (!body.idOwnDevice) {
+            statusMessage.push({ property: 'idOwnDevice', message: 'idOwnDevice is required' });
+            return new ServiceRes('Error when delete own device', statusMessage, null);
+        }
 
-        if (!body.idDevice) {
-            statusMessage.push({ property: 'idDevice', message: 'idDevice is required' });
+        if (body?.idOwnDevice?.length != 6) {
+            statusMessage.push({ property: 'idOwnDevice', message: 'idOwnDevice is invalid' });
             return new ServiceRes('Error when delete own device', statusMessage, null);
         }
 
         try {
-            // Kiểm tra xem own device đã tồn tại chưa
-            if (!await this.ownDeviceRepository.isOwnDeviceExist(body.idDevice)) {
-                statusMessage.push({ property: 'ownDevice', message: 'Own device is not exist' })
-               return new ServiceRes('Own device is not exist', statusMessage, null);
-            }
-
-            // Kiểm tra xem own device có thuộc về user không
-            if (!await this.ownDeviceRepository.isOwnDeviceBelongToUser(body.idDevice, body.idUser)) {
+            // Kiểm tra xem device có thuộc về và đang được sử dụng bởi user không
+            if (!await this.ownDeviceRepository.isOwnDeviceBelongToUser(body.idOwnDevice, body.idUser)) {
                 statusMessage.push({ property: 'ownDevice', message: 'Own device is not belong to user' })
                return new ServiceRes('Own device is not belong to user', statusMessage, null);
             }
 
-            await this.ownDeviceRepository.deleteOwnDevice(body.idDevice);
+            await this.ownDeviceRepository.deleteOwnDevice(body.idOwnDevice);
 
             return new ServiceRes('Own device deleted successfully', statusMessage, null);
         } catch (error) {

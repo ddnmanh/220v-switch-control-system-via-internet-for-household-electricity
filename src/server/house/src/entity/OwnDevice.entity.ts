@@ -5,8 +5,8 @@ import AreaEntity from './Area.entity';
 
 @Entity('own_devices')
 export default class OwnDeviceEntity extends BaseEntity {
-    @PrimaryGeneratedColumn() // Định nghĩa id là cột tự động tăng
-    public id!: number;
+    @PrimaryColumn({ type: 'varchar', length: 6, unique: true })
+    public id!: string;
 
     @Column({ name: 'name', type: 'varchar', length: 25, nullable: true })
     public name!: string;

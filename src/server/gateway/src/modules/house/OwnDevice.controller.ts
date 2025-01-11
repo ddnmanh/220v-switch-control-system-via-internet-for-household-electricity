@@ -58,14 +58,8 @@ export class OwnDeviceController implements OnModuleInit {
     @UseGuards(VerifyTokenInBearerGuard)
     private async deleteOwnDevice(@Body() body: DeleteOwnDeviceReq, @Req() req:any): Promise<any> {
 
-        console.log('deleteOwnDevice : ', body);
-
-
         let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
         body.idUser = userOnToken.id;
-
-        console.log('deleteOwnDevice : ', body);
-
 
         try {
             const data: any = await firstValueFrom(this.svc.deleteOwnDevice(body));
@@ -75,48 +69,17 @@ export class OwnDeviceController implements OnModuleInit {
         }
     }
 
-    // @Get('/:area_id')
-    // @UseGuards(VerifyTokenInBearerGuard)
-    // public async getArea(@Request() req:any, @Param('area_id') areaId: string): Promise<any> {
+    @Get('/:id_own_device')
+    @UseGuards(VerifyTokenInBearerGuard)
+    public async getArea(@Request() req:any, @Param('id_own_device') idOwnDevice: string): Promise<any> {
 
-    //     let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
+        let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
 
-    //     try {
-    //         const data: any = await firstValueFrom(this.svc.getAreaInfo({ idUser: userOnToken.id, areaId: areaId }));
-    //         return new StandardizeRes(data).resp();
-    //     } catch (error: any) {
-    //         return CatchingCommunicategRPC.catchRPCError(error);
-    //     }
-    // }
-
-    // @Put('/')
-    // @UseGuards(VerifyTokenInBearerGuard)
-    // public async updateArea(@Body() body: UpdateAreaReq, @Request() req:any): Promise<any> {
-
-    //     let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
-    //     body.idUser = userOnToken.id;
-
-    //     try {
-    //         const data: any = await firstValueFrom(this.svc.updateArea(body));
-    //         return new StandardizeRes(data).resp();
-    //     } catch (error: any) {
-    //         return CatchingCommunicategRPC.catchRPCError(error);
-    //     }
-    // }
-
-    // @Delete('/')
-    // @UseGuards(VerifyTokenInBearerGuard)
-    // public async deleteArea(@Body() body:DeleteAreaReq, @Request() req:any): Promise<any> {
-
-    //     let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
-    //     body.idUser = userOnToken.id;
-
-    //     try {
-    //         const data: any = await firstValueFrom(this.svc.deleteArea(body));
-    //         return new StandardizeRes(data).resp();
-    //     } catch (error: any) {
-    //         return CatchingCommunicategRPC.catchRPCError(error);
-    //     }
-    // }
-
+        try {
+            const data: any = await firstValueFrom(this.svc.getOwnDeviceInfo({ idUser: userOnToken.id, idOwnDevice: idOwnDevice }));
+            return new StandardizeRes(data).resp();
+        } catch (error: any) {
+            return CatchingCommunicategRPC.catchRPCError(error);
+        }
+    }
 }

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GenerateUUIDService } from 'src/modules/common/generate-uuid/GenerateUUID.service';
 import AreaEntity from 'src/entity/Area.entity';
+import OwnDeviceEntity from 'src/entity/OwnDevice.entity';
 
 @Injectable()
 export class AreaRepository {
@@ -10,6 +11,10 @@ export class AreaRepository {
     constructor(
         @InjectRepository(AreaEntity)
         private readonly areaRepository: Repository<AreaEntity>,
+
+        @InjectRepository(OwnDeviceEntity)
+        private readonly ownDeviceRepository: Repository<OwnDeviceEntity>,
+
         private readonly generateUUIDService: GenerateUUIDService, // Inject GenerateUUIDService
     ) {}
 
@@ -31,6 +36,7 @@ export class AreaRepository {
             .leftJoinAndSelect('area.ownDevices', 'ownDevice') // Liên kết với ownDevices
             .where('area.id = :areaId', { areaId }) // Điều kiện cho area ID
             .andWhere('area.isDelete = false') // Kiểm tra area không bị xóa
+            .andWhere('ownDevice.isDelete = false')
             .getOne();
     }
 
@@ -40,13 +46,15 @@ export class AreaRepository {
             .leftJoin('area.house', 'house')
             .where('area.id = :areaId', { areaId })
             .andWhere('house.idUser = :userId', { userId })
+            .andWhere('area.isDelete = false')
+            .andWhere('house.isDelete = false')
             .getOne();
 
         return !!area;
     }
 
     async getAreaById(areaId: string): Promise<AreaEntity | null> {
-        return await this.areaRepository.findOne({ where: { id: areaId } });
+        return await this.areaRepository.findOne({ where: { id: areaId, isDelete: false } });
     }
 
     async updateArea(area: AreaEntity): Promise<AreaEntity> {
@@ -86,6 +94,23 @@ export class AreaRepository {
             // Đóng query runner
             await queryRunner.release();
         }
+    }
+
+    public async countOwnDeviceInArea(areaId: string, idUser: string): Promise<number> {
+        return await this.ownDeviceRepository
+            .createQueryBuilder('ownDevice')
+            .leftJoinAndSelect('ownDevice.area', 'area') // Liên kết với ownDevices
+            .leftJoinAndSelect('area.house', 'house')
+            .where('area.id = :areaId', { areaId }) // Điều kiện cho area ID
+            .andWhere('house.idUser = :idUser', { idUser })
+            .andWhere('house.isDelete = false')
+            .andWhere('area.isDelete = false')
+            .andWhere('ownDevice.isDelete = false')
+            .getCount();
+    }
+
+    async deleteArea(areaId: string): Promise<void> {
+        await this.areaRepository.update({ id: areaId }, { isDelete: true });
     }
 
 }

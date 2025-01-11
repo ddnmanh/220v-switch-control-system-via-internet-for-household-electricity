@@ -2,7 +2,7 @@ import { Body, Controller } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { HouseService } from "./services/House.service";
 import { GrpcMethod } from "@nestjs/microservices";
-import { CommonRes, CreateAreaReq, CreateHouseReq, CreateOwnDeviceReq, DeleteOwnDeviceReq, GetAreaReq, GetHouseReq, HOUSE_SERVICE_NAME, UpdateAreaReq, UpdateHouseReq, UpdateOwnDeviceReq } from "src/proto/house.pb";
+import { CommonRes, CreateAreaReq, CreateHouseReq, CreateOwnDeviceReq, DeleteOwnDeviceReq, GetAreaReq, GetHouseReq, GetOwnDeviceReq, HOUSE_SERVICE_NAME, UpdateAreaReq, UpdateHouseReq, UpdateOwnDeviceReq } from "src/proto/house.pb";
 import { ServiceRes } from "src/DTO/serviceRes.dto";
 import StandardizeRes from "src/config/response/response.config";
 import { AreaService } from "./services/Area.service";
@@ -77,6 +77,14 @@ export class DeviceController {
     @GrpcMethod(HOUSE_SERVICE_NAME, 'createOwnDevice')
     public async createOwnDevice(@Body() body: CreateOwnDeviceReq): Promise<CommonRes> {
         let data:ServiceRes = await this.ownDeviceService.createOwnDevice(body);
+        return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
+    }
+
+    @GrpcMethod(HOUSE_SERVICE_NAME, 'getOwnDeviceInfo')
+    public async getOwnDeviceInfo(@Body() body: GetOwnDeviceReq): Promise<CommonRes> {
+        let data:ServiceRes = await this.ownDeviceService.getOwnDevice(body);
+        console.log(data);
+
         return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
     }
 
