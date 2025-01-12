@@ -71,7 +71,7 @@ export class OwnDeviceController implements OnModuleInit {
 
     @Get('/:id_own_device')
     @UseGuards(VerifyTokenInBearerGuard)
-    public async getArea(@Request() req:any, @Param('id_own_device') idOwnDevice: string): Promise<any> {
+    public async getRoom(@Request() req:any, @Param('id_own_device') idOwnDevice: string): Promise<any> {
 
         let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
 

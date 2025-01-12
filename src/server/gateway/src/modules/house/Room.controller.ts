@@ -6,10 +6,10 @@ import { ConfigService } from '@nestjs/config';
 import StandardizeRes from '../../config/response/response.config';
 import { CatchingCommunicategRPC } from 'src/config/catching/catchingCommunicategRPC.catching';
 import { VerifyTokenInBearerGuard } from '../common/guard/verify-token-in-bearer.guard';
-import { CreateAreaReq, DeleteAreaReq, HOUSE_SERVICE_NAME, HouseServiceClient, UpdateAreaReq } from 'src/proto/house.pb';
+import { CreateRoomReq, DeleteRoomReq, HOUSE_SERVICE_NAME, HouseServiceClient, UpdateRoomReq } from 'src/proto/house.pb';
 
-@Controller('api/area')
-export class AreaController implements OnModuleInit {
+@Controller('api/room')
+export class RoomController implements OnModuleInit {
     private svc: HouseServiceClient;
     private readonly configService: ConfigService;
 
@@ -26,27 +26,27 @@ export class AreaController implements OnModuleInit {
 
     @Post('/')
     @UseGuards(VerifyTokenInBearerGuard)
-    private async createArea(@Body() body: CreateAreaReq, @Req() req:any): Promise<any> {
+    private async createRoom(@Body() body: CreateRoomReq, @Req() req:any): Promise<any> {
 
         let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
         body.idUser = userOnToken.id;
 
         try {
-            const data: any = await firstValueFrom(this.svc.createArea(body));
+            const data: any = await firstValueFrom(this.svc.createRoom(body));
             return new StandardizeRes(data).resp();
         } catch (error: any) {
             return CatchingCommunicategRPC.catchRPCError(error);
         }
     }
 
-    @Get('/:area_id')
+    @Get('/:room_id')
     @UseGuards(VerifyTokenInBearerGuard)
-    public async getArea(@Request() req:any, @Param('area_id') areaId: string): Promise<any> {
+    private async getRoom(@Request() req:any, @Param('room_id') roomId: string): Promise<any> {
 
         let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
 
         try {
-            const data: any = await firstValueFrom(this.svc.getAreaInfo({ idUser: userOnToken.id, areaId: areaId }));
+            const data: any = await firstValueFrom(this.svc.getRoomInfo({ idUser: userOnToken.id, roomId: roomId }));
             return new StandardizeRes(data).resp();
         } catch (error: any) {
             return CatchingCommunicategRPC.catchRPCError(error);
@@ -55,13 +55,13 @@ export class AreaController implements OnModuleInit {
 
     @Put('/')
     @UseGuards(VerifyTokenInBearerGuard)
-    public async updateArea(@Body() body: UpdateAreaReq, @Request() req:any): Promise<any> {
+    private async updateRoom(@Body() body: UpdateRoomReq, @Request() req:any): Promise<any> {
 
         let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
         body.idUser = userOnToken.id;
 
         try {
-            const data: any = await firstValueFrom(this.svc.updateArea(body));
+            const data: any = await firstValueFrom(this.svc.updateRoom(body));
             return new StandardizeRes(data).resp();
         } catch (error: any) {
             return CatchingCommunicategRPC.catchRPCError(error);
@@ -70,13 +70,13 @@ export class AreaController implements OnModuleInit {
 
     @Delete('/')
     @UseGuards(VerifyTokenInBearerGuard)
-    public async deleteArea(@Body() body:DeleteAreaReq, @Request() req:any): Promise<any> {
+    private async deleteRoom(@Body() body:DeleteRoomReq, @Request() req:any): Promise<any> {
 
         let userOnToken = req[this.configService.get('var_name_user_after_decode_token')];
         body.idUser = userOnToken.id;
 
         try {
-            const data: any = await firstValueFrom(this.svc.deleteArea(body));
+            const data: any = await firstValueFrom(this.svc.deleteRoom(body));
             return new StandardizeRes(data).resp();
         } catch (error: any) {
             return CatchingCommunicategRPC.catchRPCError(error);

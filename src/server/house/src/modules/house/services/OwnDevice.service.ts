@@ -5,28 +5,28 @@ import { CreateOwnDeviceReq, DeleteOwnDeviceReq, GetOwnDeviceReq, UpdateOwnDevic
 import { ErrServiceRes, ServiceRes } from 'src/DTO/serviceRes.dto';
 import HouseEntity from 'src/entity/House.entity';
 import SettingEntity from 'src/entity/Setting.entity';
-import AreaEntity from 'src/entity/Area.entity';
+import RoomEntity from 'src/entity/Room.entity';
 import { OwnDeviceRepository } from '../repositorys/OwnDevice.repository';
 import OwnDeviceEntity from 'src/entity/OwnDevice.entity';
-import { AreaRepository } from '../repositorys/Area.repository';
+import { RoomRepository } from '../repositorys/Room.repository';
 
 @Injectable()
 export class OwnDeviceService {
 
     private readonly globalConstants: ConfigService;
     private readonly houseRepository: HouseRepository;
-    private readonly areaRepository: AreaRepository;
+    private readonly roomRepository: RoomRepository;
     private readonly ownDeviceRepository: OwnDeviceRepository;
 
     constructor(
         gC: ConfigService,
         hR: HouseRepository,
-        aR: AreaRepository,
+        aR: RoomRepository,
         oDR: OwnDeviceRepository
     ) {
         this.globalConstants = gC;
         this.houseRepository = hR;
-        this.areaRepository = aR;
+        this.roomRepository = aR;
         this.ownDeviceRepository = oDR;
     }
 
@@ -45,8 +45,8 @@ export class OwnDeviceService {
             return new ServiceRes('Error when create own device', statusMessage, null);
         }
 
-        // if (!body.idArea) {
-        //     statusMessage.push({ property: 'idArea', message: 'idArea is required' });
+        // if (!body.idRoom) {
+        //     statusMessage.push({ property: 'idRoom', message: 'idRoom is required' });
         //     return new ServiceRes('Error when create own device', statusMessage, null);
         // }
 
@@ -55,8 +55,8 @@ export class OwnDeviceService {
             return new ServiceRes('Error when create own device', statusMessage, null);
         }
 
-        // if (body?.idArea?.length != 6) {
-        //     statusMessage.push({ property: 'idArea', message: 'idArea is invalid' });
+        // if (body?.idRoom?.length != 6) {
+        //     statusMessage.push({ property: 'idRoom', message: 'idRoom is invalid' });
         //     return new ServiceRes('Error when create own device', statusMessage, null);
         // }
 
@@ -74,11 +74,18 @@ export class OwnDeviceService {
                return new ServiceRes('House is not belong to user', statusMessage, null);
             }
 
-            if (body.idArea) {
-                // Kiểm tra xem area có thuộc về user không
-                if (!await this.areaRepository.isAreaBelongToUser(body.idArea, body.idUser)) {
-                    statusMessage.push({ property: 'area', message: 'Area is not belong to user' })
-                   return new ServiceRes('Area is not belong to user', statusMessage, null);
+            if (body.idRoom) {
+
+                // Kiểm tra xem room có thuộc về house không
+                if (!await this.roomRepository.isRoomBelongToHouse(body.idRoom, body.idHouse)) {
+                    statusMessage.push({ property: 'room', message: 'Room is not belong to house' })
+                   return new ServiceRes('Room is not belong to house', statusMessage, null);
+                }
+
+                // Kiểm tra xem room có thuộc về user không
+                if (!await this.roomRepository.isRoomBelongToUser(body.idRoom, body.idUser)) {
+                    statusMessage.push({ property: 'room', message: 'Room is not belong to user' })
+                   return new ServiceRes('Room is not belong to user', statusMessage, null);
                 }
             }
 
@@ -93,8 +100,8 @@ export class OwnDeviceService {
             newOwnDevice.idDevice = body.idDevice;
             newOwnDevice.house = new HouseEntity();
             newOwnDevice.house.id = body.idHouse;
-            newOwnDevice.area = new AreaEntity();
-            newOwnDevice.area.id = body.idArea;
+            newOwnDevice.room = new RoomEntity();
+            newOwnDevice.room.id = body.idRoom;
             newOwnDevice.name = body.name ? body.name : 'Công tắc mới';
             newOwnDevice.desc = body.desc ? body.desc : '';
 

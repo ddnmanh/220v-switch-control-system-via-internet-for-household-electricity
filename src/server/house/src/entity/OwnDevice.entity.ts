@@ -1,7 +1,7 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToOne, PrimaryColumn, UpdateDateColumn, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import SettingEntity from './Setting.entity';
 import HouseEntity from './House.entity';
-import AreaEntity from './Area.entity';
+import RoomEntity from './Room.entity';
 
 @Entity('own_devices')
 export default class OwnDeviceEntity extends BaseEntity {
@@ -30,7 +30,7 @@ export default class OwnDeviceEntity extends BaseEntity {
     @JoinColumn({ name: 'id_house' })
     public house!: HouseEntity;
 
-    @ManyToOne(() => AreaEntity, (record) => record.id, { nullable: true })
-    @JoinColumn({ name: 'id_area'})
-    public area!: AreaEntity | null;
+    @ManyToOne(() => RoomEntity, (record) => record.id, { nullable: true })
+    @JoinColumn({ name: 'id_room'})
+    public room!: RoomEntity | null;
 }

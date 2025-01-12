@@ -10,10 +10,10 @@ service HouseService {
   rpc UpdateHouse (UpdateHouseReq) returns (CommonRes) {} 
   rpc DeleteHouse (DeleteHouseReq) returns (CommonRes) {} 
 
-  rpc CreateArea (CreateAreaReq) returns (CommonRes) {} 
-  rpc GetAreaInfo (GetAreaReq) returns (CommonRes) {} 
-  rpc UpdateArea (UpdateAreaReq) returns (CommonRes) {} 
-  rpc DeleteArea (DeleteAreaReq) returns (CommonRes) {} 
+  rpc CreateRoom (CreateRoomReq) returns (CommonRes) {} 
+  rpc GetRoomInfo (GetRoomReq) returns (CommonRes) {} 
+  rpc UpdateRoom (UpdateRoomReq) returns (CommonRes) {} 
+  rpc DeleteRoom (DeleteRoomReq) returns (CommonRes) {} 
 
   rpc CreateOwnDevice (CreateOwnDeviceReq) returns (CommonRes) {} 
   rpc GetOwnDeviceInfo (GetOwnDeviceReq) returns (CommonRes) {} 
@@ -66,9 +66,9 @@ message DeleteHouseReq {
   string id_user = 2;
 } 
 
-// --------------------------- AREA
+// --------------------------- ROOM
 // Create
-message CreateAreaReq {
+message CreateRoomReq {
   string id_house = 1;
   string id_user = 2;
   string name = 3;
@@ -76,22 +76,22 @@ message CreateAreaReq {
 } 
 
 // Get
-message GetAreaReq {
-  string area_id = 1;
+message GetRoomReq {
+  string room_id = 1;
   string id_user = 2;
 } 
 
 // Update
-message UpdateAreaReq {
-  string area_id = 1;
+message UpdateRoomReq {
+  string room_id = 1;
   string id_user = 2;
   string name = 3; 
   string desc = 4;
 } 
 
 // Delete 
-message DeleteAreaReq {
-  string area_id = 1; 
+message DeleteRoomReq {
+  string room_id = 1; 
   string id_user = 2;
 } 
 
@@ -100,7 +100,7 @@ message DeleteAreaReq {
 message CreateOwnDeviceReq {
   string id_device = 1;
   string id_house = 2;
-  string id_area = 3;
+  string id_room = 3;
   string id_user = 4; 
   string name = 5;
   string desc = 6;

@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import HouseEntity from 'src/entity/House.entity';
 import SettingEntity from 'src/entity/Setting.entity';
-import AreaEntity from 'src/entity/Area.entity';
+import RoomEntity from 'src/entity/Room.entity';
 import OwnDeviceEntity from 'src/entity/OwnDevice.entity';
 
 @Module({
@@ -23,7 +23,7 @@ import OwnDeviceEntity from 'src/entity/OwnDevice.entity';
                 entities: [
                     HouseEntity,
                     SettingEntity,
-                    AreaEntity,
+                    RoomEntity,
                     OwnDeviceEntity,
                 ],
                 synchronize: true,

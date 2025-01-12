@@ -1,7 +1,7 @@
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToOne, PrimaryColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import SettingEntity from './Setting.entity';
-import AreaEntity from './Area.entity';
 import OwnDeviceEntity from './OwnDevice.entity';
+import RoomEntity from './Room.entity';
 
 @Entity('houses')
 export default class HouseEntity extends BaseEntity {
@@ -29,8 +29,8 @@ export default class HouseEntity extends BaseEntity {
     @OneToOne(() => SettingEntity, (setting) => setting.house, { cascade: true })
     public setting!: SettingEntity;
 
-    @OneToMany(() => AreaEntity, (area) => area.house)
-    public areas!: AreaEntity[];
+    @OneToMany(() => RoomEntity, (room) => room.house)
+    public rooms!: RoomEntity[];
 
     @OneToMany(() => OwnDeviceEntity, (device) => device.house)
     public ownDevices!: OwnDeviceEntity[];

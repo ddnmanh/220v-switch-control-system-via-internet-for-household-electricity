@@ -2,23 +2,23 @@ import { Body, Controller } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { HouseService } from "./services/House.service";
 import { GrpcMethod } from "@nestjs/microservices";
-import { CommonRes, CreateAreaReq, CreateHouseReq, CreateOwnDeviceReq, DeleteOwnDeviceReq, GetAreaReq, GetHouseReq, GetOwnDeviceReq, HOUSE_SERVICE_NAME, UpdateAreaReq, UpdateHouseReq, UpdateOwnDeviceReq } from "src/proto/house.pb";
+import { CommonRes, CreateRoomReq, CreateHouseReq, CreateOwnDeviceReq, DeleteOwnDeviceReq, GetRoomReq, GetHouseReq, GetOwnDeviceReq, HOUSE_SERVICE_NAME, UpdateRoomReq, UpdateHouseReq, UpdateOwnDeviceReq } from "src/proto/house.pb";
 import { ServiceRes } from "src/DTO/serviceRes.dto";
 import StandardizeRes from "src/config/response/response.config";
-import { AreaService } from "./services/Area.service";
+import { RoomService } from "./services/Room.service";
 import { OwnDeviceService } from "./services/OwnDevice.service";
 
 @Controller()
 export class DeviceController {
 
     private readonly houseService: HouseService;
-    private readonly areaService: AreaService;
+    private readonly roomService: RoomService;
     private readonly ownDeviceService: OwnDeviceService;
     private readonly configService: ConfigService;
 
-    constructor(aS: HouseService, aRS: AreaService, oDS: OwnDeviceService, cS: ConfigService) {
+    constructor(aS: HouseService, aRS: RoomService, oDS: OwnDeviceService, cS: ConfigService) {
         this.houseService = aS;
-        this.areaService = aRS;
+        this.roomService = aRS;
         this.ownDeviceService = oDS;
         this.configService = cS;
     }
@@ -49,27 +49,27 @@ export class DeviceController {
     }
 
     // AREA
-    @GrpcMethod(HOUSE_SERVICE_NAME, 'createArea')
-    public async createArea(@Body() body: CreateAreaReq): Promise<CommonRes> {
-        let data:ServiceRes = await this.areaService.createArea(body);
+    @GrpcMethod(HOUSE_SERVICE_NAME, 'createRoom')
+    public async createRoom(@Body() body: CreateRoomReq): Promise<CommonRes> {
+        let data:ServiceRes = await this.roomService.createRoom(body);
         return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
     }
 
-    @GrpcMethod(HOUSE_SERVICE_NAME, 'getAreaInfo')
-    public async getArea(@Body() body: GetAreaReq): Promise<CommonRes> {
-        let data:ServiceRes = await this.areaService.getArea(body);
+    @GrpcMethod(HOUSE_SERVICE_NAME, 'getRoomInfo')
+    public async getRoom(@Body() body: GetRoomReq): Promise<CommonRes> {
+        let data:ServiceRes = await this.roomService.getRoom(body);
         return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
     }
 
-    @GrpcMethod(HOUSE_SERVICE_NAME, 'updateArea')
-    public async updateArea(@Body() body: UpdateAreaReq): Promise<CommonRes> {
-        let data:ServiceRes = await this.areaService.updateArea(body);
+    @GrpcMethod(HOUSE_SERVICE_NAME, 'updateRoom')
+    public async updateRoom(@Body() body: UpdateRoomReq): Promise<CommonRes> {
+        let data:ServiceRes = await this.roomService.updateRoom(body);
         return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
     }
 
-    @GrpcMethod(HOUSE_SERVICE_NAME, 'deleteArea')
-    public async deleteArea(@Body() body: UpdateAreaReq): Promise<CommonRes> {
-        let data:ServiceRes = await this.areaService.deleteArea(body);
+    @GrpcMethod(HOUSE_SERVICE_NAME, 'deleteRoom')
+    public async deleteRoom(@Body() body: UpdateRoomReq): Promise<CommonRes> {
+        let data:ServiceRes = await this.roomService.deleteRoom(body);
         return new StandardizeRes().code(data.message.length > 0 ? 400 : 200).body(data).formatResponse();
     }
 

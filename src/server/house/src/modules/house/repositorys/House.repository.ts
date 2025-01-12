@@ -32,9 +32,9 @@ export class HouseRepository {
 
     public async getHouseWithRelationsByIdUser(houseId: string, idUser: string): Promise<HouseEntity | null> {
         return await this.houseRepository.createQueryBuilder('house')
-            .leftJoinAndSelect('house.areas', 'area', 'area.isDelete = false')
-            .leftJoinAndSelect('area.ownDevices', 'areaDevice', 'areaDevice.isDelete = false')
-            .leftJoinAndSelect('house.ownDevices', 'ownDevices', 'ownDevices.id_area IS NULL AND ownDevices.isDelete = false')
+            .leftJoinAndSelect('house.rooms', 'room', 'room.isDelete = false')
+            .leftJoinAndSelect('room.ownDevices', 'roomDevice', 'roomDevice.isDelete = false')
+            .leftJoinAndSelect('house.ownDevices', 'ownDevices', 'ownDevices.id_room IS NULL AND ownDevices.isDelete = false')
             .leftJoinAndSelect('house.setting', 'setting')
             .where('house.id = :houseId', { houseId })
             .andWhere('house.idUser = :idUser', { idUser })
@@ -47,7 +47,7 @@ export class HouseRepository {
     }
 
     /**
-     * Xoá house và các areas thuộc house bằng cách cập nhật isDelete = true
+     * Xoá house và các rooms thuộc house bằng cách cập nhật isDelete = true
      * @param houseId ID của house cần xoá
      * @param userId ID của user sở hữu house
      */
@@ -66,10 +66,10 @@ export class HouseRepository {
                 .andWhere('idUser = :userId', { userId })
                 .execute();
 
-            // Cập nhật isDelete = true cho areas thuộc house
+            // Cập nhật isDelete = true cho rooms thuộc house
             await queryRunner.manager
                 .createQueryBuilder()
-                .update('areas')
+                .update('rooms')
                 .set({ isDelete: true })
                 .where('id_house = :houseId', { houseId })
                 .execute();
@@ -87,7 +87,7 @@ export class HouseRepository {
         } catch (error) {
             // Rollback transaction nếu có lỗi
             await queryRunner.rollbackTransaction();
-            throw new Error(`Failed to delete house and its areas: ${error.message}`);
+            throw new Error(`Failed to delete house and its rooms: ${error.message}`);
         } finally {
             // Kết thúc query runner
             await queryRunner.release();
@@ -107,9 +107,9 @@ export class HouseRepository {
 
     async getAllHouseWithRelationsByIdUser(userId: string): Promise<HouseEntity[]> {
         return await this.houseRepository.createQueryBuilder('house')
-            .leftJoinAndSelect('house.areas', 'area', 'area.isDelete = false')
-            .leftJoinAndSelect('area.ownDevices', 'device', 'device.isDelete = false')
-            .leftJoinAndSelect('house.ownDevices', 'ownDevices', 'ownDevices.id_area IS NULL AND ownDevices.isDelete = false')
+            .leftJoinAndSelect('house.rooms', 'room', 'room.isDelete = false')
+            .leftJoinAndSelect('room.ownDevices', 'device', 'device.isDelete = false')
+            .leftJoinAndSelect('house.ownDevices', 'ownDevices', 'ownDevices.id_room IS NULL AND ownDevices.isDelete = false')
             .leftJoinAndSelect('house.setting', 'setting')
             .andWhere('house.idUser = :userId', { userId })
             .andWhere('house.isDelete = false')

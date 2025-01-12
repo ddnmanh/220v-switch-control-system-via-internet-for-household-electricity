@@ -3,8 +3,8 @@ import SettingEntity from './Setting.entity';
 import HouseEntity from './House.entity';
 import OwnDeviceEntity from './OwnDevice.entity';
 
-@Entity('areas')
-export default class AreaEntity extends BaseEntity {
+@Entity('rooms')
+export default class RoomEntity extends BaseEntity {
     @PrimaryColumn({ type: 'varchar', length: 6, unique: true })
     public id!: string;
 
@@ -23,10 +23,10 @@ export default class AreaEntity extends BaseEntity {
     @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', onUpdate: 'CURRENT_TIMESTAMP(6)', default: () => 'CURRENT_TIMESTAMP(6)' })
     public updatedAt!: Date;
 
-    @ManyToOne(() => HouseEntity, (house) => house.areas)
+    @ManyToOne(() => HouseEntity, (house) => house.rooms)
     @JoinColumn({ name: 'id_house' })
     public house!: HouseEntity;
 
-    @OneToMany(() => OwnDeviceEntity, (device) => device.area)
+    @OneToMany(() => OwnDeviceEntity, (device) => device.room)
     public ownDevices!: OwnDeviceEntity[];
 }

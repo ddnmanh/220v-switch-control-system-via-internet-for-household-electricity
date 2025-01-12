@@ -7,7 +7,7 @@ import * as grpc from '@grpc/grpc-js';
 import { CommonModule } from '../common/common.module';
 import { HouseService } from './House.service';
 import { HouseController } from './House.controller';
-import { AreaController } from './Area.controller';
+import { RoomController } from './Room.controller';
 import { OwnDeviceController } from './OwnDevice.controller';
 
 @Global()
@@ -31,7 +31,7 @@ import { OwnDeviceController } from './OwnDevice.controller';
             },
         ]),
     ],
-    controllers: [HouseController, AreaController, OwnDeviceController],
+    controllers: [HouseController, RoomController, OwnDeviceController],
     providers: [HouseService,],
     exports: [HouseService],
 })

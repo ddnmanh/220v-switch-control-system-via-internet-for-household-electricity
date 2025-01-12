@@ -59,10 +59,10 @@ export interface DeleteHouseReq {
 }
 
 /**
- * --------------------------- AREA
+ * --------------------------- ROOM
  * Create
  */
-export interface CreateAreaReq {
+export interface CreateRoomReq {
   idHouse: string;
   idUser: string;
   name: string;
@@ -70,22 +70,22 @@ export interface CreateAreaReq {
 }
 
 /** Get */
-export interface GetAreaReq {
-  areaId: string;
+export interface GetRoomReq {
+  roomId: string;
   idUser: string;
 }
 
 /** Update */
-export interface UpdateAreaReq {
-  areaId: string;
+export interface UpdateRoomReq {
+  roomId: string;
   idUser: string;
   name: string;
   desc: string;
 }
 
 /** Delete */
-export interface DeleteAreaReq {
-  areaId: string;
+export interface DeleteRoomReq {
+  roomId: string;
   idUser: string;
 }
 
@@ -96,7 +96,7 @@ export interface DeleteAreaReq {
 export interface CreateOwnDeviceReq {
   idDevice: string;
   idHouse: string;
-  idArea: string;
+  idRoom: string;
   idUser: string;
   name: string;
   desc: string;
@@ -135,13 +135,13 @@ export interface HouseServiceClient {
 
   deleteHouse(request: DeleteHouseReq): Observable<CommonRes>;
 
-  createArea(request: CreateAreaReq): Observable<CommonRes>;
+  createRoom(request: CreateRoomReq): Observable<CommonRes>;
 
-  getAreaInfo(request: GetAreaReq): Observable<CommonRes>;
+  getRoomInfo(request: GetRoomReq): Observable<CommonRes>;
 
-  updateArea(request: UpdateAreaReq): Observable<CommonRes>;
+  updateRoom(request: UpdateRoomReq): Observable<CommonRes>;
 
-  deleteArea(request: DeleteAreaReq): Observable<CommonRes>;
+  deleteRoom(request: DeleteRoomReq): Observable<CommonRes>;
 
   createOwnDevice(request: CreateOwnDeviceReq): Observable<CommonRes>;
 
@@ -161,13 +161,13 @@ export interface HouseServiceController {
 
   deleteHouse(request: DeleteHouseReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
-  createArea(request: CreateAreaReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+  createRoom(request: CreateRoomReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
-  getAreaInfo(request: GetAreaReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+  getRoomInfo(request: GetRoomReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
-  updateArea(request: UpdateAreaReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+  updateRoom(request: UpdateRoomReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
-  deleteArea(request: DeleteAreaReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
+  deleteRoom(request: DeleteRoomReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
   createOwnDevice(request: CreateOwnDeviceReq): Promise<CommonRes> | Observable<CommonRes> | CommonRes;
 
@@ -185,10 +185,10 @@ export function HouseServiceControllerMethods() {
       "getHouseInfo",
       "updateHouse",
       "deleteHouse",
-      "createArea",
-      "getAreaInfo",
-      "updateArea",
-      "deleteArea",
+      "createRoom",
+      "getRoomInfo",
+      "updateRoom",
+      "deleteRoom",
       "createOwnDevice",
       "getOwnDeviceInfo",
       "updateOwnDevice",
