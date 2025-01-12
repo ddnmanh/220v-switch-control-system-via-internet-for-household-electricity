@@ -10,7 +10,7 @@ export interface HouseContextProps {
     areaDataChosen: any;
     setHousesData: React.Dispatch<React.SetStateAction<any>>;
     handleChoosenHouseByID: (id_house: number) => void;
-    handleChooseAreaByID: (id_area: number) => void;
+    handleChooseAreaByID: (id_area: number | null) => void;
     reloadHouseContext: () => void;
     handleUpdateDataSwitchDevice: (id_device: string, state: boolean, is_online: boolean, name: string) => void;
 }
@@ -62,20 +62,20 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
         }
     };
 
-    const handleChooseAreaByID = (id_area: number) => {
+    const handleChooseAreaByID = (id_area: number | null) => {
         const chosenArea = id_area
             ? houseDataChosen.areas?.find((area: any) => area.id === id_area)
             : {};
         setAreaDataChosen(chosenArea || {});
     };
 
-    const handleUpdateDataSwitchDevice = (id_device: string, state: boolean, is_online: boolean, name: string) => {
+    const handleUpdateDataSwitchDevice = (id_own_device: string, state: boolean, is_online: boolean, name: string) => {
         const newAreas = houseDataChosen.areas.map((area: any) => {
-            const newDevices = area.own_devices.map((device: any) => {
-                if (device.id_device === id_device) {
-                    return { ...device, state, online: is_online, name };
+            const newDevices = area.own_devices.map((ownDevice: any) => {
+                if (ownDevice.id === id_own_device) {
+                    return { ...ownDevice, state, online: is_online, name };
                 }
-                return device;
+                return ownDevice;
             });
             return { ...area, own_devices: newDevices };
         });
@@ -85,14 +85,23 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
         // Cập nhật lại state cho areaDataChosen
         if (areaDataChosen.id) {
             const newArea = { ...areaDataChosen };
-            newArea.own_devices = newArea.own_devices.map((device: any) => {
-                if (device.id_device === id_device) {
-                    return { ...device, state, online: is_online, name };
+            newArea.own_devices = newArea.own_devices.map((ownDevice: any) => {
+                if (ownDevice.id === id_own_device) {
+                    return { ...ownDevice, state, online: is_online, name };
                 }
-                return device;
+                return ownDevice;
             });
             setAreaDataChosen(newArea);
         }
+    }
+
+    const handleUpdateHouseDataChoosing = (newHouseData: any) => {
+        let newHouse = housesData.map((house: any) => {
+            if (house.id === newHouseData.id) {
+                return { ...newHouseData, areas: house.areas, own_devices: house.own_devices };
+            }
+        });
+        setHousesData(newHouse);
     }
 
     return (

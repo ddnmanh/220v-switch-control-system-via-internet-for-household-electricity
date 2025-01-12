@@ -10,6 +10,7 @@ import IconCPN from '@/components/Icon';
 import { SwitchDeviceITF } from '@/components/devices/SwitchItem';
 import Modal from "react-native-modal";
 import { Divider } from 'react-native-paper';
+import fontsGlobal from '@/constants/fonts';
 
 
 const SettingDevice = ({route}: any) => {
@@ -23,7 +24,7 @@ const SettingDevice = ({route}: any) => {
     const [thisDevice, setThisDevice] = React.useState<SwitchDeviceITF>(device);
 
     React.useEffect(() => {
-        if (thisDevice) handleUpdateDataSwitchDevice(thisDevice.id_device, thisDevice?.state, thisDevice.online, thisDevice?.name);
+        if (thisDevice) handleUpdateDataSwitchDevice(thisDevice.id, thisDevice?.state, thisDevice.online, thisDevice?.name);
     }, [thisDevice]);
 
 
@@ -39,7 +40,7 @@ const SettingDevice = ({route}: any) => {
 
     const handleDeleteDevice = async () => {
         try {
-            const response = await OwnDeviceFetch.delete({id_device: thisDevice.id_device});
+            const response = await OwnDeviceFetch.delete({id_own_device: thisDevice.id});
             if (response.code === 200) {
                 setThisDevice({} as SwitchDeviceITF);
                 setOpenModalVerifyDeleteDevice(false);
@@ -56,21 +57,30 @@ const SettingDevice = ({route}: any) => {
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
             <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0}}>
 
-                <View style={[styles.header]}>
-                    <View style={[styles.header_container, { alignItems: 'center', justifyContent: 'center' }]}>
+                <View style={[styles.header, {backgroundColor: 'transparent', borderBottomColor: 'transparent'}]}>
+                    <View style={[styles.header_container, { alignItems: 'center', justifyContent: 'space-between' }]}>
                         <TouchableOpacity
-                            style={[styles.backButton]}
+                            style={[styles.headerButton]}
                             onPress={() => handleBackButton()}
-
                         >
                             <IconCPN iconName='angleLeftRegular' size={18} color='#FB923C'></IconCPN>
+                            {/* Không có nội dung vẫn giữ Text để không bị vỡ layout */}
+                            <Text style={[styles.headerButton_text]}></Text>
                         </TouchableOpacity>
 
-                        <View style={[ styles.clusterText]}>
-                            <Text style={[styles.clusterText_text, {color: "#000"}]}>Cài đặt</Text>
+                        <View style={[ styles.headerClusterTittle]}>
+                            <Text style={[styles.headerClusterTittle_text, {color: "#000"}]}>Cài đặt thiết bị</Text>
                         </View>
 
-                        <View style={styles.buttonBar}></View>
+                        {/* Không có nội dung vẫn giữ Text để không bị vỡ layout */}
+                        <View style={[styles.buttonBarRight]}>
+                            <TouchableOpacity
+                                style={[styles.headerButton]}
+                                onPress={() => {}}
+                            >
+                                <Text style={styles.headerButton_text}></Text>
+                            </TouchableOpacity>
+                        </View>
 
                     </View>
                 </View>
@@ -174,7 +184,6 @@ const SettingDevice = ({route}: any) => {
                         </View>
                     </Modal>
 
-
                 </View>
             </View>
         </View>
@@ -182,33 +191,29 @@ const SettingDevice = ({route}: any) => {
 };
 
 const styles = StyleSheet.create({
+    // Header
     header: {
-        height: 87, flexDirection: 'row', alignItems: 'flex-end', zIndex: 99999, position: 'relative', backgroundColor: 'transparent',
+        height: 87, flexDirection: 'row', alignItems: 'flex-end', zIndex: 99999, position: 'relative',
+        borderBottomWidth: 1, borderBottomColor: '#e4e4e7', backgroundColor: '#fff'
     },
     header_container: {
-        paddingBottom: 10, paddingHorizontal: variablesGlobal.marginScreenAppHorizontal,
+        marginBottom: 10, paddingHorizontal: variablesGlobal.marginScreenAppHorizontal,
         flex: 1, flexDirection: 'row', alignItems: 'stretch', justifyContent: 'space-between', position: 'relative',
     },
-    backButton: {
+    headerButton: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', columnGap: 3, zIndex: 10,
     },
-    backButton_text: {
-        fontSize: 16, fontFamily: 'SanFranciscoText-SemiBold', color: '#FB923C'
+    headerButton_text: {
+        fontSize: 16, fontFamily: fontsGlobal.mainSemiBold, color: '#FB923C'
     },
-    clusterText: {
-        flex: 1, position: 'absolute', top: 2, left: 0, right: 0, bottom: 0, // same as paddingBottom of header_container
+    headerClusterTittle: {
+        flex: 1, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, // same as paddingBottom of header_container
     },
-    clusterText_text: {
-        textAlign: 'center', fontSize: 16, fontFamily: 'SanFranciscoText-SemiBold', color: 'white',
+    headerClusterTittle_text: {
+        textAlign: 'center', fontSize: 16, fontFamily: fontsGlobal.mainSemiBold, color: '#000'
     },
-    buttonBar: {
-        flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', columnGap: 20, zIndex: 10,
-    },
-    buttonBar_button: {
-        padding: 2, borderRadius: 100,
-    },
-    buttonBar_buttonText: {
-        fontSize: 16, fontFamily: 'SanFranciscoText-SemiBold', color: '#FB923C'
+    buttonBarRight: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', columnGap: 20, zIndex: 10,
     },
 
     // Modal

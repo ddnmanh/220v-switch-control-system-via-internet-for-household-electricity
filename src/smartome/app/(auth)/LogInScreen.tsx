@@ -1,7 +1,5 @@
-import { Text, View, StyleSheet, Touchable } from 'react-native'
+import { Text, View, StyleSheet } from 'react-native'
 import React from 'react'
-import { Link } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import ButtonCPN from '@/components/Button';
 import InputCPN from '@/components/Input';
 import colorGlobal from '@/constants/colors';
@@ -9,7 +7,6 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import AuthenFetch from '@/fetch/Authen.fetch';
 import { ResponseDTO, ResponseMessageDTO } from '@/interfaces/Fetch.interface';
-import axios from 'axios';
 import { AuthContext } from '@/hooks/context/Auth.context';
 
 
@@ -258,7 +255,7 @@ const LogInScreen = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['right', 'left', 'bottom', 'top']}>
+        <View style={styles.container}>
             <View style={styles.viewInput}>
                 <Text style={styles.viewInput_title}>Đăng nhập</Text>
                 <View style={{ marginTop: 25 }}></View>
@@ -298,7 +295,7 @@ const LogInScreen = () => {
                     {/* <Link href='http://smartome.dnmanh.io.vn:65535' style={styles.ortherMethodView_trademark}>weather.dnmanh.io.vn</Link> */}
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     )
 }
 
@@ -312,6 +309,7 @@ const styles = StyleSheet.create({
         backgroundColor: colorGlobal.backColor,
     },
     viewInput: {
+        marginTop: 50,
         flexDirection: 'column',
         alignItems: 'stretch',
         justifyContent: 'flex-start',

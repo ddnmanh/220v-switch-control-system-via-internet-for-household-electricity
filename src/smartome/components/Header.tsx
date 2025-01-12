@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet, ImageBackground, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, StyleSheet, ImageBackground } from 'react-native';
 import { ShadowView } from '@dotmind/rn-shadow-generator';
 import { Divider } from 'react-native-paper';
 import IconCPN from '../components/Icon';
@@ -10,7 +10,6 @@ import { HouseContext } from '@/hooks/context/HouseData.context';
 import { useNavigation } from '@react-navigation/native';
 import useMyAnimation from '@/hooks/animated/Animation.animated';
 import { DynamicValuesContext } from '@/hooks/context/DynamicValues.context';
-import { useRouter } from 'expo-router';
 import imagesGlobal from '@/constants/images';
 
 const HeaderCPN = ({ ...props }) => {
@@ -56,10 +55,10 @@ const HeaderCPN = ({ ...props }) => {
         }
     }, [props.scrollY]);
 
-    const handleGotoArea = (roomID: number) => {
+    const handleGotoRoom = (roomID: number) => {
         handleChooseAreaByID && handleChooseAreaByID(roomID);
         gatewayToggleDropDown('more');
-        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "area", params: { idArea: roomID } } });
+        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "roomScreen", params: { idArea: roomID } } });
     }
 
     const handleChangeChooseHouse = (id_house: number) => {
@@ -79,8 +78,14 @@ const HeaderCPN = ({ ...props }) => {
         navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: houseDataChosen.id, idArea: areaDataChosen.id } });
     }
 
+    const handleGotoRoomSettingScreen = () => {
+        gatewayToggleDropDown('more');
+        navigation.navigate("(room)", { screen: "roomSettingScreen", params: { idHouse: houseDataChosen.id, idArea: areaDataChosen.id } });
+    }
+
+
     return (
-        <SafeAreaView style={[styles.header, { height: variablesGlobal.heightHeader }]}>
+        <View style={[styles.header, { height: variablesGlobal.heightHeader }]}>
             <Animated.View
                 style={[
                     { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, },
@@ -236,6 +241,28 @@ const HeaderCPN = ({ ...props }) => {
                                             </View>
                                         </TouchableOpacity>
 
+                                        {
+                                            ( Object.keys(areaDataChosen).length > 0 )
+                                            &&
+                                            <>
+                                                <Divider style={{ height: 1, backgroundColor: colorGlobal.border }}></Divider>
+                                                <TouchableOpacity
+                                                    style={styles.dropDown_item}
+                                                    onPress={() => {
+                                                        handleGotoRoomSettingScreen();
+                                                    }}
+                                                >
+                                                    <View style={styles.dropDown_item_icon}></View>
+                                                    <Text style={styles.dropDown_item_text}>Cài phòng</Text>
+                                                    <View style={styles.dropDown_item_icon}>
+                                                        <IconCPN iconName='gearSolid' size={15} color='#aaa'></IconCPN>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            </>
+                                        }
+
+
+
                                         <Divider style={{ height: 8, backgroundColor: 'transparent' }}></Divider>
 
                                         {
@@ -274,7 +301,7 @@ const HeaderCPN = ({ ...props }) => {
                                                     <React.Fragment key={index}>
                                                         <TouchableOpacity
                                                             key={index} style={styles.dropDown_item}
-                                                            onPress={() => handleGotoArea(room.id)}
+                                                            onPress={() => handleGotoRoom(room.id)}
                                                         >
                                                             <View style={styles.dropDown_item_icon}>
                                                                 {
@@ -300,7 +327,7 @@ const HeaderCPN = ({ ...props }) => {
                 </View>
             </View>
 
-        </SafeAreaView>
+        </View>
     );
 }
 

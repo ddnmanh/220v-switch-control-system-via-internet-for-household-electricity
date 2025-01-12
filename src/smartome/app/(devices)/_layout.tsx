@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
-import AddDevice from './AddDevice';
-import Device from './Device';
-import SettingDevice from './SettingDevice';
-import LogDevice from './LogDevice';
-import SetupNewOwnDevice from './SetupNewOwnDevice';
+import AddDevice from './addDevice';
+import Device from './device';
+import SettingDevice from './setting';
+import LogDevice from './logDevice';
+import SetupNewOwnDevice from './setupNewOwnDevice';
 
 const Stack = createStackNavigator();
 

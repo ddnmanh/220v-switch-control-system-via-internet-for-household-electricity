@@ -4,7 +4,6 @@ import React, { useContext } from 'react';
 import { Link } from 'expo-router';
 import ButtonCPN from '@/components/Button';
 import InputCPN from '@/components/Input';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import colorGlobal from '@/constants/colors';
 import WifiManager from 'react-native-wifi-reborn';
 import { useNavigation } from '@react-navigation/native';
@@ -17,8 +16,6 @@ import { HouseContext } from '@/hooks/context/HouseData.context';
 const AddDevice = ({route}: any) => {
 
     const { idHouse, idArea } = route.params || {};
-    console.log("Add device screen id house " + idHouse);
-    console.log("Add device screen id area " + idArea);
 
     const {setHousesData} = useContext(HouseContext) || {};
 
@@ -103,6 +100,10 @@ const AddDevice = ({route}: any) => {
     const handleFetchToDevice = async () => {
 
         try {
+
+            console.error(`http://192.168.4.1/setWiFi?ownerId=${idHouse}&gmt=${gmt}&ssid=${houseSSID}&password=${passwordHouseSSID}`);
+
+
             const response = await fetch(`http://192.168.4.1/setWiFi?ownerId=${idHouse}&gmt=${gmt}&ssid=${houseSSID}&password=${passwordHouseSSID}`);
 
             if (response.status === 200) {
@@ -154,7 +155,7 @@ const AddDevice = ({route}: any) => {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={['right', 'left', 'bottom', 'top']}>
+        <View style={styles.container}>
             <View style={styles.viewInput}>
                 <Text style={styles.viewInput_title}>Thêm Thiết Bị</Text>
                 <View
@@ -232,17 +233,16 @@ const AddDevice = ({route}: any) => {
                     <Text style={styles.ortherMethodView_commitText}>
                         Chúng tôi đảm bảo an toàn cho các thông tin của bạn cung cấp theo chính sách pháp luật quốc gia của bạn!
                     </Text>
-                    {/* <Link href='http://smartome.dnmanh.io.vn:65535' style={styles.ortherMethodView_trademark}>smartom.dnmanh.io.vn</Link> */}
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         height: '100%',
-        paddingTop: 80,
+        paddingTop: 130,
         paddingHorizontal: 20,
         backgroundColor: colorGlobal.backColor,
         flexDirection: 'column',

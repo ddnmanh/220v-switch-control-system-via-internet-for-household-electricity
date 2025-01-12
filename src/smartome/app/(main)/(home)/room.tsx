@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ImageBackground, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DynamicValuesContext, DimensionsSizeITF, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
 import { HouseContext, HouseContextProps } from '@/hooks/context/HouseData.context';
 import HeaderCPN from '@/components/Header';
@@ -16,19 +16,25 @@ const variablesInComponent = {
     intensityDeviceItemBlur: 70,
 }
 
-const Area = ({route}: any) => {
+const Room = ({route}: any) => {
 
     const { dimensionsSize, deviceItemSize } = React.useContext(DynamicValuesContext) || {
         dimensionsSize: { width: 0, height: 0 } as DimensionsSizeITF,
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
 
-    const { houseDataChosen, areaDataChosen } = React.useContext(HouseContext) as HouseContextProps;
+    const { houseDataChosen, areaDataChosen, handleChooseAreaByID } = React.useContext(HouseContext) as HouseContextProps;
 
     const [scrollY, setScrollY] = React.useState(0);
 
+    React.useEffect(() => {
+        return () => {
+            handleChooseAreaByID(null);
+        }
+    }, []);
+
     return (
-        <SafeAreaView style={{width: dimensionsSize?.width, height: dimensionsSize?.height}}>
+        <View style={{width: dimensionsSize?.width, height: dimensionsSize?.height}}>
             <ImageBackground
                 source={
                     houseDataChosen?.setting?.wallpaper_path
@@ -52,7 +58,7 @@ const Area = ({route}: any) => {
                         setScrollY(event.nativeEvent.contentOffset.y);
                     }}
                     scrollEventThrottle={1} // Tần suất gọi sự kiện onScroll
-                    style={styles.scroll}
+                    style={[styles.scroll]}
                     stickyHeaderIndices={[]}
                 >
                     <Text style={styles.house_name}>{areaDataChosen?.name}</Text>
@@ -72,11 +78,11 @@ const Area = ({route}: any) => {
                 </ScrollView>
 
             </ImageBackground>
-        </SafeAreaView>
+        </View>
     );
 };
 
-export default Area;
+export default Room;
 
 const styles = StyleSheet.create({
     backgroundImage: {

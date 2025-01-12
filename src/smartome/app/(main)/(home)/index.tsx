@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import HeaderCPN from '@/components/Header';
 import variablesGlobal from '@/constants/variables';
 import { DynamicValuesContext, DimensionsSizeITF, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
@@ -8,7 +8,7 @@ import useMyAnimation from '@/hooks/animated/Animation.animated';
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
 import { HouseContext } from '@/hooks/context/HouseData.context';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import PaaCard from '@/components/PadCard';
 import SwitchItemDevice from '@/components/devices/SwitchItem';
 import imagesGlobal from '@/constants/images';
@@ -48,15 +48,6 @@ const Index = () => {
         }
     }, [scrollY]);
 
-    useFocusEffect(
-        React.useCallback(() => {
-          handleChooseAreaByID && handleChooseAreaByID(0);
-
-          return () => {
-          };
-        }, [])
-    );
-
     const handleGotoAddDevice = () => {
         navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: houseDataChosen.id, idArea: null } });
     }
@@ -64,7 +55,7 @@ const Index = () => {
 
 
     return (
-        <SafeAreaView style={{ width: dimensionsSize?.width, height: dimensionsSize?.height, }}>
+        <View style={{ width: dimensionsSize?.width, height: dimensionsSize?.height, }}>
             <ImageBackground
                 source={
                     houseDataChosen?.setting?.wallpaper_path
@@ -107,24 +98,29 @@ const Index = () => {
                     </View>
 
                     {
-                        houseDataChosen?.areas?.length
+                        (houseDataChosen?.areas?.length > 0)
                         &&
-                        houseDataChosen?.areas?.map((area:any, index:number) => (
-                            <View style={styles.clusterAreaOfHouse} key={index}>
-                                <Text style={styles.house_areaName}>{area.name}</Text>
-                                <View style={styles.device_container}>
-                                    {
-                                        area?.own_devices?.map((device:any, index:number) => {
-                                            console.log('RENDER SWITCH ITEM ON HOME with stats: ', device.state, device.online);
+                        houseDataChosen?.areas?.map((area:any, index:number) => {
+                            if (area?.own_devices?.length === 0) {
+                                return null;
+                            }
+                            return (
+                                <View style={styles.clusterAreaOfHouse} key={index}>
+                                    <Text style={styles.house_areaName}>{area?.name}</Text>
+                                    <View style={styles.device_container}>
+                                        {
+                                            area?.own_devices?.map((device:any, index:number) => {
+                                                console.log('RENDER SWITCH ITEM ON HOME with stats: ', device.state, device.online);
 
-                                            let topicSend = houseDataChosen.id +"/"+device.id_device+"/send";
-                                            let topicReceive = houseDataChosen.id +"/"+device.id_device+"/receive";
-                                            return <SwitchItemDevice key={houseDataChosen.id+"-"+area.id+"-"+device.id} device={device} topic={{send: topicSend, receive: topicReceive}}/>
-                                        })
-                                    }
+                                                let topicSend = houseDataChosen.id +"/"+device.id_device+"/send";
+                                                let topicReceive = houseDataChosen.id +"/"+device.id_device+"/receive";
+                                                return <SwitchItemDevice key={houseDataChosen.id+"-"+area.id+"-"+device.id} device={device} topic={{send: topicSend, receive: topicReceive}}/>
+                                            })
+                                        }
+                                    </View>
                                 </View>
-                            </View>
-                        ))
+                            );
+                        })
                     }
 
                     <PaaCard width={'100%'} height={100}></PaaCard>
@@ -132,7 +128,7 @@ const Index = () => {
                 </ScrollView>
             </ImageBackground>
 
-        </SafeAreaView>
+        </View>
     );
 
 };

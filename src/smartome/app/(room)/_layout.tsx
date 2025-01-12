@@ -1,11 +1,11 @@
+
 import React from 'react';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack'; // Import StackNavigator
-import Index from './index';
-import Room from './room';
+import RoomSettingScreen from './setting';
 
 const Stack = createStackNavigator(); // Tạo Stack Navigator
 
-export default function HomeLayout() {
+export default function RoomLayout() {
     return (
         <Stack.Navigator
             screenOptions={{
@@ -13,8 +13,7 @@ export default function HomeLayout() {
                 ...TransitionPresets.FadeFromRightAndroid, // Hiệu ứng chuyển màn hình
             }}
         >
-            <Stack.Screen name="indexScreen" component={Index} options={{ title: 'Nhà Của Tôi', headerShown: false }} />
-            <Stack.Screen name="roomScreen" component={Room} options={{ title: 'Phòng Của Tôi', headerShown: false}} />
+            <Stack.Screen name="roomSettingScreen" component={RoomSettingScreen} options={{ title: 'Nhà Của Tôi', headerShown: false }} />
         </Stack.Navigator>
     );
 }

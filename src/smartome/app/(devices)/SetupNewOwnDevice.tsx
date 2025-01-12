@@ -3,7 +3,6 @@ import { Text, View, StyleSheet } from 'react-native';
 import React, { useContext } from 'react';
 import ButtonCPN from '@/components/Button';
 import InputCPN from '@/components/Input';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import colorGlobal from '@/constants/colors';
 import { useNavigation } from '@react-navigation/native';
 import OwnDeviceFetch from '@/fetch/OwnDevice.fetch';
@@ -26,7 +25,6 @@ const SetupNewOwnDevice = ({route}: any) => {
     const [nameDevice, setNameDevice] = React.useState('');
     const [descDevice, setDescDevice] = React.useState('');
 
-    const [isDisableButton, setDisableButton] = React.useState(true);
     const [isSettingUp, setSettingUp] = React.useState(false);
 
     const handleSetupDevice = async () => {
@@ -40,7 +38,7 @@ const SetupNewOwnDevice = ({route}: any) => {
                     reloadHouseContext();
 
                     setTimeout(() => {
-                        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "area", params: { idArea: idArea } } });
+                        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "roomScreen", params: { idArea: idArea } } });
                     }, 2000);
 
                 }
@@ -61,7 +59,7 @@ const SetupNewOwnDevice = ({route}: any) => {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={['right', 'left', 'bottom', 'top']}>
+        <View style={styles.container}>
             <View style={styles.viewInput}>
                 <Text style={styles.viewInput_title}>Cấu Hình Công Tắc Mới</Text>
 
@@ -93,10 +91,6 @@ const SetupNewOwnDevice = ({route}: any) => {
 
                 <View>
                     <ButtonCPN content='Cấu hình' type='primary' handlePress={() => handleSetupDevice()} disable={!selectIdArea || isSettingUp} isLoading={isSettingUp}/>
-                    {/* <View style={styles.viewLink_linkBar}>
-                        <Link href="sign-up" style={styles.viewLink_linkBar_link}>Hướng dẫn, </Link>
-                        <Link href="forgot-password" style={styles.viewLink_linkBar_link}>Tìm hiểu thêm.</Link>
-                    </View> */}
                 </View>
             </View>
             <View style={styles.ortherMethodView}>
@@ -104,17 +98,16 @@ const SetupNewOwnDevice = ({route}: any) => {
                     <Text style={styles.ortherMethodView_commitText}>
                         Chúng tôi đảm bảo an toàn cho các thông tin của bạn cung cấp theo chính sách pháp luật quốc gia của bạn!
                     </Text>
-                    {/* <Link href='http://smartome.dnmanh.io.vn:65535' style={styles.ortherMethodView_trademark}>smartom.dnmanh.io.vn</Link> */}
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         height: '100%',
-        paddingTop: 80,
+        paddingTop: 120,
         paddingHorizontal: 20,
         backgroundColor: colorGlobal.backColor,
         flexDirection: 'column',

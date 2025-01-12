@@ -1,10 +1,8 @@
 // components/SwitchItemDevice.tsx
-import React, { useState, useEffect, useCallback } from "react";
-import { Button, FlatList, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableHighlight, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, Vibration, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, Text, TouchableNativeFeedback, TouchableOpacity, Vibration, View } from "react-native";
 import { useMQTTContext } from "@/hooks/context/MQTT.context";
-import { DynamicValuesContext, DimensionsSizeITF, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
-import { HouseContext } from '@/hooks/context/HouseData.context';
-import variablesGlobal from '@/constants/variables';
+import { DynamicValuesContext, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
 import { useNavigation } from "@react-navigation/native";
@@ -17,6 +15,7 @@ const variablesInComponent = {
 }
 
 export interface SwitchDeviceITF {
+    id: string;
     id_device: string;
     id_area: string;
     name: string;

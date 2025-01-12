@@ -1,6 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import ButtonCPN from '@/components/Button';
 import InputCPN from '@/components/Input';
 import colorGlobal from '@/constants/colors';
@@ -8,6 +7,7 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import AuthenFetch from '@/fetch/Authen.fetch';
 import { ResponseDTO, ResponseMessageDTO } from '@/interfaces/Fetch.interface';
+import { Divider } from 'react-native-paper';
 
 export default function SignUp() {
 
@@ -254,9 +254,10 @@ export default function SignUp() {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['right', 'left', 'bottom', 'top']}>
+        <View style={styles.container}>
             <View style={styles.viewInput}>
                 <Text style={styles.viewInput_title}>Đăng Ký</Text>
+                <Divider style={{height: 20, backgroundColor: 'transparent'}}></Divider>
                 <View style={[styles.viewInput, { flexDirection: 'row', justifyContent: 'space-between' }]}>
                     <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
                         <InputCPN label="Họ và đệm" placeholder="Nhập họ và đệm" value={lastnameInput.value} errorMessage={lastnameInput.errorMessage} onChange={(text) => setLastnameInput(prev => ({...prev, value: text}))}></InputCPN>
@@ -301,7 +302,7 @@ export default function SignUp() {
                     Chúng tôi đảm bảo an toàn cho các thông tin của bạn cung cấp theo chính sách pháp luật quốc gia của bạn!
                 </Text>
             </View>
-        </SafeAreaView>
+        </View>
     )
 }
 

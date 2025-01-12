@@ -1,7 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { Link } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import ButtonCPN from '@/components/Button';
 import InputCPN from '@/components/Input';
 import colorGlobal from '@/constants/colors';
@@ -9,6 +7,7 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import AuthenFetch from '@/fetch/Authen.fetch';
 import { ResponseDTO, ResponseMessageDTO } from '@/interfaces/Fetch.interface';
+import { Divider } from 'react-native-paper';
 
 export default function OTPVerify({route}: any) {
 
@@ -70,9 +69,10 @@ export default function OTPVerify({route}: any) {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={['right', 'left', 'bottom', 'top']}>
+        <View style={styles.container}>
             <View style={styles.viewInput}>
                 <Text style={styles.viewInput_title}>Xác Thực OTP</Text>
+                <Divider style={{height: 20, backgroundColor: 'transparent'}}></Divider>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <InputCPN label="" placeholder="Mã xác thực 6 chữ số từ email" autoCapitalize="none" value={otpInput.value} errorMessage={otpInput.errorMessage} onChange={(text) => setOtpInput(prev => ({...prev, value: text}))}></InputCPN>
                 </View>
@@ -86,7 +86,7 @@ export default function OTPVerify({route}: any) {
                     </TouchableWithoutFeedback>
                 </View>
             </View>
-        </SafeAreaView>
+        </View>
     )
 }
 
@@ -98,15 +98,16 @@ const styles = StyleSheet.create({
         backgroundColor: colorGlobal.backColor,
     },
     viewInput: {
+        marginTop: 40,
         flexDirection: 'column',
         alignItems: 'stretch',
         justifyContent: 'flex-start',
-        rowGap: 18,
+        rowGap: 5,
         columnGap: 18,
     },
     viewInput_title: {
         textAlign: 'center',
-        fontSize: 30,
+        fontSize: 25,
         fontWeight: 'semibold',
     },
     linkBar: {
