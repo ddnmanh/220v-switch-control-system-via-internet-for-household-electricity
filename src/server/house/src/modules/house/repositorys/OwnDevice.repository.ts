@@ -16,6 +16,8 @@ export class OwnDeviceRepository {
 
     async createOwnDevice(newOwnDevice: OwnDeviceEntity): Promise<OwnDeviceEntity> {
         newOwnDevice.id = this.generateUUIDService.generateIdWithLength(6);
+        newOwnDevice.mqttTopicSend = newOwnDevice.house.id +"/"+ newOwnDevice.idDevice +"/receive";
+        newOwnDevice.mqttTopicReceive = newOwnDevice.house.id +"/"+ newOwnDevice.idDevice +"/send";
         return await this.ownDeviceRepository.save(newOwnDevice);
     }
 

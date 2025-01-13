@@ -8,6 +8,12 @@ export default class OwnDeviceEntity extends BaseEntity {
     @PrimaryColumn({ type: 'varchar', length: 6, unique: true })
     public id!: string;
 
+    @Column({ name: 'mqtt_topic_send', type: 'varchar', length: 22, nullable: false })
+    public mqttTopicSend!: string;
+
+    @Column({ name: 'mqtt_topic_receive', type: 'varchar', length: 19, nullable: false })
+    public mqttTopicReceive!: string;
+
     @Column({ name: 'name', type: 'varchar', length: 25, nullable: true })
     public name!: string;
 
