@@ -6,7 +6,7 @@
 #include <EEPROM.h>
 #include <ESP8266WebServer.h>
 
-String client_id = "SWITCH_001";  // Thay khi nạp code cho mỗi thiết bị
+String client_id = "7C3Q9S";  // Thay khi nạp code cho mỗi thiết bị
 
 #define EEPROM_SIZE 256
 
@@ -33,8 +33,8 @@ bool isSTAMode = false; // true: device mode, false: access point mode
 
 
 // MQTT topic
-const char *send_topic = "sw1/send";        // Gửi trạng thái nút
-const char *receive_topic = "sw1/receive";  // Nhận lệnh từ server
+String send_topic = "";
+String receive_topic = "";  // Nhận lệnh từ server
  
 
 //----Khai báo nút bấm--------------------
@@ -44,7 +44,7 @@ unsigned long debounceDelay = 50;      // Độ trễ debounce
 unsigned long pressHoldTime = 1000;    // Thời gian giữ nút
 
 //----Khai báo Relay---------------------
-#define RELAY_PIN D4
+#define RELAY_PIN D5
 bool relayState = false;
 #define LED_PIN D2 
 
@@ -58,6 +58,9 @@ unsigned long lastWiFiReconnect = 0;                    // Lưu thời điểm l
 const unsigned long wiFiReconnectInterval = 1000 * 60;  // Milliseconds
 short timesWiFiConnect = 0;                             // Số lần thử kết nối WiFi
 bool wifiConnected = false;
+
+
+void handleToggleStateElectric(bool state);
 
 bool isEEPROMEmpty();
 
@@ -96,6 +99,8 @@ void publishJson(const char *topic, const char *id, const char *type, bool value
 
 void setup() {
     Serial.begin(9600);
+    pinMode(RELAY_PIN, OUTPUT); 
+    digitalWrite(RELAY_PIN, LOW);
     pinMode(LED_PIN, OUTPUT);
     EEPROM.begin(EEPROM_SIZE);   
 
@@ -109,7 +114,11 @@ void setup() {
 
     // Đọc dữ liệu từ EEPROM
     loadEEPROM(); 
- 
+
+
+    // Tạo lại chuỗi topic
+    send_topic = ownerId + "/" + client_id + "/send";
+    receive_topic = ownerId + "/" + client_id + "/receive";  
 
     connectToWiFi();
 
@@ -125,7 +134,6 @@ void setup() {
         connectToMQTTBroker();
     } 
 }
-
 
 
 void loop() { 
@@ -156,9 +164,16 @@ void loop() {
     if (usrStatusButton == PRESS) {
         Serial.println("Button pressed");
         relayState = !relayState;
-        digitalWrite(LED_PIN, relayState ? HIGH : LOW);
-        publishJson(send_topic, "", "NOTI", relayState);
+        // digitalWrite(LED_PIN, relayState ? HIGH : LOW);
+        // digitalWrite(RELAY_PIN, relayState ? HIGH : LOW);
+        handleToggleStateElectric(relayState);
+        publishJson(send_topic.c_str(), "", "NOTI", relayState);
     }
+}
+
+void handleToggleStateElectric(bool state) {
+    digitalWrite(LED_PIN, state ? HIGH : LOW);
+    digitalWrite(RELAY_PIN, state ? HIGH : LOW);
 }
 
 void controllResetValue() {
@@ -246,17 +261,18 @@ void connectToMQTTBroker() {
 
     if (currentMillisForMQTT - lastMQTTReconnect >= MQTTReconnectInterval || lastMQTTReconnect == 0) {
         lastMQTTReconnect = currentMillisForMQTT;
-        Serial.printf("Attempting to connect to MQTT Broker as %s...\n", client_id.c_str());
+        // Serial.printf("Attempting to connect to MQTT Broker as %s...\n", client_id.c_str());
+        // Serial.println("topic send: " + String(send_topic));
 
-        Serial.printf("MQTT Address: %s\n", mqttAddress.c_str());
-        Serial.printf("MQTT Username: %s\n", mqttUsername.c_str());
-        Serial.printf("MQTT Password: %s\n", mqttPassword.c_str());
-        Serial.printf("MQTT Port: %d\n", mqttPort);
+        // Serial.printf("MQTT Address: %s\n", mqttAddress.c_str());
+        // Serial.printf("MQTT Username: %s\n", mqttUsername.c_str());
+        // Serial.printf("MQTT Password: %s\n", mqttPassword.c_str());
+        // Serial.printf("MQTT Port: %d\n", mqttPort);
 
         if (mqtt_client.connect(client_id.c_str(), mqttUsername.c_str(), mqttPassword.c_str())) {
             Serial.println("Connected to MQTT broker");
-            mqtt_client.subscribe(receive_topic);
-            publishJson(send_topic, "", "NOTI", relayState);
+            mqtt_client.subscribe(receive_topic.c_str());
+            publishJson(send_topic.c_str(), "", "NOTI", relayState);
         } else {
             Serial.print("Failed to connect to MQTT broker, rc=");
             Serial.print(mqtt_client.state());
@@ -283,12 +299,12 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
     } else {
         Serial.println("Message too long");
         return;
-    }
+    } 
 
-    Serial.println("Message arrived [" + String(topic) + "] " + String(incomingMessage));
+    Serial.println("Message arrived [" + String(topic) + "] " + String(incomingMessage)); 
 
     // Xử lý lệnh nhận từ MQTT (JSON)
-    if (strcmp(topic, receive_topic) == 0) {
+    if (strcmp(topic, receive_topic.c_str()) == 0) {
         JsonDocument doc;  // Khai báo JsonDocument
         DeserializationError error = deserializeJson(doc, incomingMessage);
         
@@ -315,13 +331,14 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
                 relayState = false;
             }
 
-            digitalWrite(LED_PIN, relayState ? HIGH : LOW);
-            publishJson(send_topic, id, "CONTROLL_RES", relayState);
+            // digitalWrite(LED_PIN, relayState ? HIGH : LOW);
+            handleToggleStateElectric(relayState);
+            publishJson(send_topic.c_str(), id, "CONTROLL_RES", relayState);
         }
 
         // Nhận lệnh truy vấn trạng thái
         if (strcmp(type, "STATUS") == 0) {
-            publishJson(send_topic, id, "STATUS_RES", relayState);
+            publishJson(send_topic.c_str(), id, "STATUS_RES", relayState);
         }
     }
 }
@@ -353,6 +370,7 @@ void startAccessPoint() {
     WiFi.mode(WIFI_AP);
     delay(100);
 
+    WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
     WiFi.softAP(client_id+"_WIFI", accessPointPass);
 
     Serial.println("ESP is in AP mode. Connect to SSID 'ESP-AP-Setup' and send POST requests.");
@@ -367,6 +385,11 @@ void startAccessPoint() {
             GMTSeconds = server.arg("gmt").toInt() * 60 * 60;
             ssid = server.arg("ssid");
             password = server.arg("password");
+
+            // Tạo lại chuỗi topic
+            send_topic = ownerId + "/" + client_id + "/send";
+            receive_topic = ownerId + "/" + client_id + "/receive"; 
+            // -------------
 
             saveToEEPROM("ownerId", ownerId);
             saveToEEPROM("GMTSeconds", String(GMTSeconds));
