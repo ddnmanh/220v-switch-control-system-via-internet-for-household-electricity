@@ -1,6 +1,11 @@
 
+export interface ResponseMessageDTO {
+    property: string;
+    message: string;
+}
 
-export interface API_response {
-    data: any;
-    error: any;
+export interface ResponseDTO {
+    code: number;
+    message: ResponseMessageDTO[];
+    data: Record<string, any>;
 }

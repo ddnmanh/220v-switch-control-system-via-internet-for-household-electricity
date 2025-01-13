@@ -1,29 +1,32 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet, ImageBackground, SafeAreaView } from 'react-native';
+import React, { Fragment } from 'react';
+import { View, Text, TouchableOpacity, Animated, StyleSheet, ImageBackground } from 'react-native';
 import { ShadowView } from '@dotmind/rn-shadow-generator';
 import { Divider } from 'react-native-paper';
 import IconCPN from '../components/Icon';
 import colorGlobal from '../constants/colors';
 import variablesGlobal from '../constants/variables';
 import PopoverOverlay from './PopoverOverlay';
-import { HouseContext } from '@/hooks/context/HouseData.context';
+import { HouseContext, HouseContextProps } from '@/hooks/context/HouseData.context';
 import { useNavigation } from '@react-navigation/native';
 import useMyAnimation from '@/hooks/animated/Animation.animated';
 import { DynamicValuesContext } from '@/hooks/context/DynamicValues.context';
-import { useRouter } from 'expo-router';
+import imagesGlobal from '@/constants/images';
+import { HouseWithRelationINF } from '@/interfaces/House.interface';
 
 const HeaderCPN = ({ ...props }) => {
 
     const { dimensionsSize } = React.useContext(DynamicValuesContext) || { dimensionsSize: {width: 0, height: 0} };
-    const { housesData, houseDataChosen, areaDataChosen, handleChoosenHouseByID, handleChooseAreaByID } = React.useContext(HouseContext) || {};
+    const { housesData, houseDataSelected, roomDataSelected, idHouseSelected, idRoomSelected, handleChoosenHouseByID, handleChooseRoomByID } = React.useContext(HouseContext) as HouseContextProps;
 
     const navigation = useNavigation();
 
-    const btnAddRef = React.useRef<TouchableOpacity>(null);
-    const btnMoreRef = React.useRef<TouchableOpacity>(null);
+    const btnAddRef = React.useRef<typeof TouchableOpacity | null>(null);
+    const btnMoreRef = React.useRef<typeof TouchableOpacity | null>(null);
 
     const [toggleMoreDropDown, setToggleMoreDropDown] = React.useState(false);
     const [toggleAddDropDown, setToggleAddDropDown] = React.useState(false);
+
+
 
     const gatewayToggleDropDown = (dropDownName: string) => {
         switch (dropDownName) {
@@ -55,17 +58,29 @@ const HeaderCPN = ({ ...props }) => {
         }
     }, [props.scrollY]);
 
-    const handleGotoArea = (roomID: number) => {
-        handleChooseAreaByID && handleChooseAreaByID(roomID);
+    const handleGotoRoom = (roomID: string) => {
+        handleChooseRoomByID && handleChooseRoomByID(roomID);
         gatewayToggleDropDown('more');
-        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "area", params: { idArea: roomID } } });
+
+        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "roomScreen", params: { idRoom: roomID } } });
     }
 
-    const handleChangeChooseHouse = (id_house: number) => {
-        handleChoosenHouseByID && handleChoosenHouseByID(id_house);
-        handleChooseAreaByID && handleChooseAreaByID(0);
+    const handleChangeChooseHouse = (id_house: string) => {
+
         gatewayToggleDropDown('more');
-        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } );
+
+        if (id_house === idHouseSelected) {
+            return;
+        }
+
+        handleChoosenHouseByID(id_house);
+        handleChooseRoomByID('');
+        // Đặt lại stack và chuyển hướng đến màn hình mới
+        // Xoá lịch sử chuyển hướng
+        navigation.reset({
+            index: 0,
+            routes: [ { name: "(main)", params: { screen: "(home)", params: { screen: "indexScreen" }}}]
+        });
     }
 
     const handleGotoHouseSetting = () => {
@@ -75,11 +90,27 @@ const HeaderCPN = ({ ...props }) => {
 
     const handleGotoAddDevice = () => {
         gatewayToggleDropDown('add');
-        navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: houseDataChosen.id, idArea: areaDataChosen.id } });
+        navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: houseDataSelected?.id, idRoom: roomDataSelected?.id } });
     }
 
+    const handleGotoRoomSettingScreen = () => {
+        gatewayToggleDropDown('more');
+        navigation.navigate("(room)", { screen: "roomSettingScreen", params: { idHouse: houseDataSelected?.id, idRoom: roomDataSelected?.id } });
+    }
+
+    const handleGotoCreateHouseScreen = () => {
+        gatewayToggleDropDown('add');
+        navigation.navigate("(house)", { screen: "createHouseScreen" });
+    }
+
+    const handleGotoCreateRoomScreen = () => {
+        gatewayToggleDropDown('add');
+        navigation.navigate("(room)", { screen: "createRoomScreen" });
+    }
+
+
     return (
-        <SafeAreaView style={[styles.header, { height: variablesGlobal.heightHeader }]}>
+        <View style={[styles.header, { height: variablesGlobal.heightHeader }]}>
             <Animated.View
                 style={[
                     { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, },
@@ -87,7 +118,11 @@ const HeaderCPN = ({ ...props }) => {
                 ]}
             >
                 <ImageBackground
-                    source={{ uri: houseDataChosen?.image_bg }}
+                    source={
+                        houseDataSelected?.setting?.wallpaper_path
+                            ? { uri: houseDataSelected?.setting?.wallpaper_path }
+                            : imagesGlobal.WallpaperDefault
+                    }
                     resizeMode='cover'
                     blurRadius={100}
                     style={styles.header_backgroundImg}
@@ -105,7 +140,8 @@ const HeaderCPN = ({ ...props }) => {
                     &&
                     <TouchableOpacity
                         style={styles.backButton}
-                        onPress={() => navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } ) }
+                        // onPress={() => navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } ) }
+                        onPress={() => navigation.goBack() }
                     >
                         <IconCPN iconName='angleLeftRegular' size={18} color='#fff'></IconCPN>
                         <Text style={styles.backButton_text}>Nhà</Text>
@@ -148,7 +184,9 @@ const HeaderCPN = ({ ...props }) => {
                                 style={styles.dropDown_shadow}
                             >
                                 {
-                                    <>
+                                    (housesData?.length >= 1)
+                                    &&
+                                    <Fragment>
                                         <TouchableOpacity
                                             style={styles.dropDown_item}
                                             onPress={() => handleGotoAddDevice()}
@@ -164,6 +202,7 @@ const HeaderCPN = ({ ...props }) => {
 
                                         <TouchableOpacity
                                             style={styles.dropDown_item}
+                                            onPress={() => handleGotoCreateRoomScreen()}
                                         >
                                             <View style={styles.dropDown_item_icon}></View>
                                             <Text style={styles.dropDown_item_text}>Thêm Phòng</Text>
@@ -173,128 +212,159 @@ const HeaderCPN = ({ ...props }) => {
                                         </TouchableOpacity>
 
                                         <Divider style={{ height: 8, backgroundColor: 'transparent' }}></Divider>
-
-                                        <TouchableOpacity
-                                            style={styles.dropDown_item}
-                                        >
-                                            <View style={styles.dropDown_item_icon}></View>
-                                            <Text style={styles.dropDown_item_text}>Thêm Nhà Mới</Text>
-                                            <View style={[styles.dropDown_item_icon]}>
-                                                <IconCPN iconName='homeRegular' size={13} color='#aaa'></IconCPN>
-                                            </View>
-                                        </TouchableOpacity>
-
-                                    </>
+                                    </Fragment>
                                 }
+
+                                <TouchableOpacity
+                                    style={styles.dropDown_item}
+                                    onPress={() => handleGotoCreateHouseScreen()}
+                                >
+                                    <View style={styles.dropDown_item_icon}></View>
+                                    <Text style={styles.dropDown_item_text}>Thêm Nhà Mới</Text>
+                                    <View style={[styles.dropDown_item_icon]}>
+                                        <IconCPN iconName='homeRegular' size={13} color='#aaa'></IconCPN>
+                                    </View>
+                                </TouchableOpacity>
                             </ShadowView>
                         </View>
                     </PopoverOverlay>
 
 
                     {/* For button more */}
-                    <TouchableOpacity
-                        ref={btnMoreRef}
-                        style={[styles.buttonBar_button]}
-                        onPress={() => {
-                            gatewayToggleDropDown('more');
-                        }}
-                    >
-                        <IconCPN iconName={'circleEllipsis'} size={23} color={'#d4d4d8'}></IconCPN>
-                        <View></View>
-                    </TouchableOpacity>
 
-                    <PopoverOverlay
-                        visible={toggleMoreDropDown}
-                        buttonRef={btnMoreRef} // Pass the button ref to PopoverOverlay
-                        onClose={() => setToggleMoreDropDown(false)}
-                    >
-                        <View style={[styles.dropDown]}>
-                            <ShadowView
-                                level={80}
-                                shadowColor={'#000'}
-                                direction={'bottomLeft'}
-                                style={styles.dropDown_shadow}
+                    {
+                        (housesData?.length >= 1)
+                        &&
+                        <Fragment>
+                            <TouchableOpacity
+                                ref={btnMoreRef}
+                                style={[styles.buttonBar_button]}
+                                onPress={() => {
+                                    gatewayToggleDropDown('more');
+                                }}
                             >
-                                {
-                                    <>
-                                        <TouchableOpacity
-                                            style={styles.dropDown_item}
-                                            onPress={() => {
-                                                handleGotoHouseSetting();
-                                            }}
-                                        >
-                                            <View style={styles.dropDown_item_icon}></View>
-                                            <Text style={styles.dropDown_item_text}>Cài đặt nhà</Text>
-                                            <View style={styles.dropDown_item_icon}>
-                                                <IconCPN iconName='gearSolid' size={15} color='#aaa'></IconCPN>
-                                            </View>
-                                        </TouchableOpacity>
+                                <IconCPN iconName={'circleEllipsis'} size={23} color={'#d4d4d8'}></IconCPN>
+                                <View></View>
+                            </TouchableOpacity>
 
-                                        <Divider style={{ height: 8, backgroundColor: 'transparent' }}></Divider>
-
+                            <PopoverOverlay
+                                visible={toggleMoreDropDown}
+                                buttonRef={btnMoreRef} // Pass the button ref to PopoverOverlay
+                                onClose={() => setToggleMoreDropDown(false)}
+                            >
+                                <View style={[styles.dropDown]}>
+                                    <ShadowView
+                                        level={80}
+                                        shadowColor={'#000'}
+                                        direction={'bottomLeft'}
+                                        style={styles.dropDown_shadow}
+                                    >
                                         {
-                                            housesData?.map((house: any, index: number) => (
+                                            <>
+                                                <TouchableOpacity
+                                                    style={styles.dropDown_item}
+                                                    onPress={() => {
+                                                        handleGotoHouseSetting();
+                                                    }}
+                                                >
+                                                    <View style={styles.dropDown_item_icon}></View>
+                                                    <Text style={styles.dropDown_item_text}>Cài đặt nhà</Text>
+                                                    <View style={styles.dropDown_item_icon}>
+                                                        <IconCPN iconName='gearSolid' size={15} color='#aaa'></IconCPN>
+                                                    </View>
+                                                </TouchableOpacity>
 
-                                                <React.Fragment key={index}>
-                                                    <TouchableOpacity
-                                                        key={index}
-                                                        style={styles.dropDown_item}
-                                                        onPress={() => {
-                                                            handleChangeChooseHouse(house.id);
-                                                        }}
-                                                    >
-                                                        <View style={styles.dropDown_item_icon}>
-                                                            {
-                                                                houseDataChosen?.id === house.id && <IconCPN iconName='check' size={13} color='#aaa'></IconCPN>
-                                                            }
-                                                        </View>
-                                                        <Text style={styles.dropDown_item_text}>{house.name}</Text>
-                                                        <View style={styles.dropDown_item_icon}></View>
-                                                    </TouchableOpacity>
-                                                    {
-                                                        index < housesData.length - 1 && <Divider style={{ height: 1, backgroundColor: colorGlobal.border }}></Divider>
-                                                    }
-                                                </React.Fragment>
-
-                                            ))
-                                        }
-
-                                        <Divider style={{ height: 8, backgroundColor: 'transparent' }}></Divider>
-
-                                        {
-                                            houseDataChosen?.areas?.map((room: any, index: number) => {
-
-                                                return (
-                                                    <React.Fragment key={index}>
+                                                {
+                                                    idRoomSelected !== ''
+                                                    &&
+                                                    <>
+                                                        <Divider style={{ height: 1, backgroundColor: colorGlobal.border }}></Divider>
                                                         <TouchableOpacity
-                                                            key={index} style={styles.dropDown_item}
-                                                            onPress={() => handleGotoArea(room.id)}
+                                                            style={styles.dropDown_item}
+                                                            onPress={() => {
+                                                                handleGotoRoomSettingScreen();
+                                                            }}
                                                         >
-                                                            <View style={styles.dropDown_item_icon}>
-                                                                {
-                                                                    areaDataChosen?.id === room.id && <IconCPN iconName='check' size={13} color='#aaa'></IconCPN>
-                                                                }
-                                                            </View>
-                                                            <Text style={styles.dropDown_item_text}>{room.name}</Text>
                                                             <View style={styles.dropDown_item_icon}></View>
+                                                            <Text style={styles.dropDown_item_text}>Cài phòng</Text>
+                                                            <View style={styles.dropDown_item_icon}>
+                                                                <IconCPN iconName='gearSolid' size={15} color='#aaa'></IconCPN>
+                                                            </View>
                                                         </TouchableOpacity>
-                                                        {
-                                                            index < houseDataChosen.areas.length - 1 && <Divider style={{ height: 1, backgroundColor: colorGlobal.border }}></Divider>
-                                                        }
-                                                    </React.Fragment>
-                                                )
-                                            })
+                                                    </>
+                                                }
+
+
+
+                                                <Divider style={{ height: 8, backgroundColor: 'transparent' }}></Divider>
+
+                                                {
+                                                    housesData?.map((house: any, index: number) => (
+                                                        <React.Fragment key={index}>
+                                                            <TouchableOpacity
+                                                                key={index}
+                                                                style={styles.dropDown_item}
+                                                                onPress={() => {
+                                                                    handleChangeChooseHouse(house.id);
+                                                                }}
+                                                            >
+                                                                <View style={styles.dropDown_item_icon}>
+                                                                    {
+                                                                        (idHouseSelected === house.id) && <IconCPN iconName='check' size={13} color='#aaa'></IconCPN>
+                                                                    }
+                                                                </View>
+                                                                <Text style={styles.dropDown_item_text}>{house.name}</Text>
+                                                                <View style={styles.dropDown_item_icon}></View>
+                                                            </TouchableOpacity>
+                                                            {
+                                                                index < housesData.length - 1 && <Divider style={{ height: 1, backgroundColor: colorGlobal.border }}></Divider>
+                                                            }
+                                                        </React.Fragment>
+
+                                                    ))
+                                                }
+
+                                                <Divider style={{ height: 8, backgroundColor: 'transparent' }}></Divider>
+
+                                                {
+                                                    houseDataSelected?.rooms?.map((room: any, index: number) => {
+
+                                                        return (
+                                                            <React.Fragment key={index}>
+                                                                <TouchableOpacity
+                                                                    key={index} style={styles.dropDown_item}
+                                                                    onPress={() => handleGotoRoom(room.id)}
+                                                                >
+                                                                    <View style={styles.dropDown_item_icon}>
+                                                                        {
+                                                                            (idRoomSelected === room.id) && <IconCPN iconName='check' size={13} color='#aaa'></IconCPN>
+                                                                        }
+                                                                    </View>
+                                                                    <Text style={styles.dropDown_item_text}>{room.name}</Text>
+                                                                    <View style={styles.dropDown_item_icon}></View>
+                                                                </TouchableOpacity>
+                                                                {
+                                                                    (index < houseDataSelected.rooms.length - 1) && <Divider style={{ height: 1, backgroundColor: colorGlobal.border }}></Divider>
+                                                                }
+                                                            </React.Fragment>
+                                                        )
+                                                    })
+                                                }
+                                            </>
                                         }
-                                    </>
-                                }
-                            </ShadowView>
-                        </View>
-                    </PopoverOverlay>
+                                    </ShadowView>
+                                </View>
+                            </PopoverOverlay>
+
+                        </Fragment>
+                    }
+
+
 
                 </View>
             </View>
 
-        </SafeAreaView>
+        </View>
     );
 }
 

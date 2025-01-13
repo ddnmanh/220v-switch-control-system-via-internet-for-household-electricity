@@ -3,35 +3,51 @@ import React from 'react'
 import IconCPN from './Icon';
 import classGlobal from '@/constants/class';
 import variablesGlobal from '@/constants/variables';
+import { isLoading } from 'expo-font';
+
+interface ButtonProps {
+
+    content: string;
+
+    type: 'primary' | 'cancel' | 'nothing';
+
+    handlePress: () => void;
+
+    isLoading?: boolean;
+
+    disable: boolean;
+
+    icon?: { name: string; size?: number, color?: string } | null | undefined;
+
+}
 
 
-const ButtonCPN = ({content='Nhấn', type='primary', handlePress, isLoading = false, disable=false, icon = null}) => {
-
+const ButtonCPN = (props: ButtonProps) => {
     return (
         <TouchableOpacity
-            disabled={disable}
-            title={content}
+            disabled={props.disable}
+            // title={props.content}
             activeOpacity={0.75}
-            onPress={disable ? () => {} : handlePress}
+            onPress={props.disable ? () => {} : props.handlePress}
             style={
                 [
-                    type == 'nothing' ? {} : styles.container,
-                    classGlobal.button[type][0],
-                    { opacity: disable ? 0.5 : 1 }
+                    props.type == 'nothing' ? {} : styles.container,
+                    classGlobal.button[props.type][0],
+                    { opacity: props.disable ? 0.5 : 1 }
                 ]
             }
         >
             {
-                icon
+                props.icon
                 &&
-                <IconCPN iconName={icon.name} size={icon.size} color={icon.color}></IconCPN>
+                <IconCPN iconName={props.icon.name} size={props.icon.size || 12} color={props.icon.color || ''}></IconCPN>
             }
-            <Text style={ [(type == 'nothing') ? {fontSize: 0} : styles.text, classGlobal.button[type][1]] }>{content.toUpperCase()}</Text>
+            <Text style={ [(props.type == 'nothing') ? {fontSize: 0} : styles.text, classGlobal.button[props.type][1]] }>{props.content.toUpperCase()}</Text>
             {
-                isLoading
+                props.isLoading
                 &&
                 <ActivityIndicator
-                    animating={isLoading}
+                    animating={props.isLoading}
                     color="#fff"
                     size="small"
                     className="ml-2"
@@ -51,7 +67,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        columnGap: 15
+        columnGap: 10
     },
     text: {
         fontSize: 16,

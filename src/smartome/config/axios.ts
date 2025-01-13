@@ -1,137 +1,100 @@
-
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-// Config axios
+// Config axios instance
 const axiosInstance = axios.create({
     baseURL: process.env.EXPO_PUBLIC_DOMAIN_SERVER_API || 'https://smartome.dnmanh.io.vn/api',
-    timeout: 10000,  // Timeout after 10s
+    timeout: 20000, // Timeout after 20 seconds
 });
 
-// Add interceptor to request handle before sending
+// Add request interceptor
 axiosInstance.interceptors.request.use(
-    (config:any) => {
-        return config;
-    },
-    (error:any) => {
-        return Promise.reject(error);
-    }
+    (config) => config,
+    (error) => Promise.reject(error)
 );
 
-// Add interceptor to response handle
+// Add response interceptor
 axiosInstance.interceptors.response.use(
-    (response:any) => {
-        return response;
-    },
-    (error:any) => {
-        return Promise.reject(error);
-    }
+    (response) => response,
+    (error) => Promise.reject(error)
 );
 
 export default axiosInstance;
 
-/// --------------------------------------------
-
-const getAccessToken = async () => {
+// SecureStore utilities
+const getToken = async (key: string) => {
     try {
-        return await SecureStore.getItemAsync(process.env.EXPO_PUBLIC_TOKEN_ACCESS_NAME || 'access_token');
+        return await SecureStore.getItemAsync(key);
     } catch (error) {
-        console.error('Error fetching access token:', error);
+        console.log(`Error fetching token (${key}):`, error);
         return null;
     }
-}
+};
 
-const getRefreshToken = async () => {
-    try {
-        return await SecureStore.getItemAsync(process.env.EXPO_PUBLIC_TOKEN_REFRESH_NAME || 'refresh_token');
-    } catch (error) {
-        console.error('Error fetching refresh token:', error);
-        return null;
-    }
-}
+const getAccessToken = () => getToken(process.env.EXPO_PUBLIC_TOKEN_ACCESS_NAME || 'access_token');
 
-// Hàm fetch có thể nhận phương thức và dữ liệu
-export const fetchJSONData = async (path_url:string, method = 'GET', data = null, includeToken = 'access') => {
+const getRefreshToken = () => getToken(process.env.EXPO_PUBLIC_TOKEN_REFRESH_NAME || 'refresh_token');
+
+// Fetch function for JSON data
+export const axiosJSONData = async (
+    path: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+    data: Record<string, unknown> | null = null,
+    tokenType: 'access' | 'refresh' | 'none' = 'access'
+) => {
     try {
-        const config: any = {
-            method, // HTTP method
-            url: path_url, // path of API
-            headers: {
-                'Content-Type': ['GET', 'POST', 'PUT', 'DELETE'].includes(method)
-                    ? 'application/json'
-                    : 'application/x-www-form-urlencoded',
-            },
+        const headers: Record<string, string> = {
+            // 'Content-Type': method === 'GET' ? 'application/json' : 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
         };
 
-        // Add token
-        switch (includeToken) {
-            case 'refresh':
-                const refreshToken = await getRefreshToken();
-                if (refreshToken) {
-                    config.headers.Authorization = `Bearer ${refreshToken}`;
-                }
-                break;
-            case 'access':
-                const accessToken = await getAccessToken();
-                if (accessToken) {
-                    config.headers.Authorization = `Bearer ${accessToken}`;
-                }
-                break;
-            default:
-                break;
+        if (tokenType !== 'none') {
+            const token = await (tokenType === 'access' ? getAccessToken() : getRefreshToken());
+            if (token) headers.Authorization = `Bearer ${token}`;
         }
 
-        // if different GET method then add data
-        if (data) {
-            config.data = data;
-        }
+        const response = await axiosInstance({
+            method,
+            url: path,
+            headers,
+            data,
+        });
 
-        const response = await axiosInstance(config);
         return response.data;
-
     } catch (error) {
-        console.error(`Error fetching with: ${path_url}`, error);
+        console.log(`Error in axiosJSONData (${path}):`, error);
         throw error;
     }
 };
 
-// Hàm fetch FormData với tùy chọn lấy token
-export const fetchFormData = async (path_url:string, method = 'POST', formData:any, includeToken = 'access') => {
+// Fetch function for FormData
+export const axiosFormData = async (
+    path: string,
+    method: 'POST' | 'PUT' | 'DELETE' = 'POST',
+    formData: FormData,
+    tokenType: 'access' | 'refresh' | 'none' = 'access'
+) => {
     try {
-        const config: any = {
-            method: method,
-            url: path_url,
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+        const headers: Record<string, string> = {
+            'Content-Type': 'multipart/form-data',
         };
 
-        // Add token
-        switch (includeToken) {
-            case 'refresh':
-                const refreshToken = await getRefreshToken();
-                if (refreshToken) {
-                    config.headers.Authorization = `Bearer ${refreshToken}`;
-                }
-                break;
-            case 'access':
-                const accessToken = await getAccessToken();
-                if (accessToken) {
-                    config.headers.Authorization = `Bearer ${accessToken}`;
-                }
-                break;
-            default:
-                break;
+        if (tokenType !== 'none') {
+            const token = await (tokenType === 'access' ? getAccessToken() : getRefreshToken());
+            if (token) headers.Authorization = `Bearer ${token}`;
         }
 
-        // if different GET method then add data
-        config.data = formData;
+        const response = await axiosInstance({
+            method,
+            url: path,
+            headers,
+            data: formData,
+        });
 
-        const response = await axiosInstance(config);
         return response.data;
-
     } catch (error) {
-        console.error(`Error fetching with: ${path_url}`, error);
+        console.log(`Error in axiosFormData (${path}):`, error);
         throw error;
     }
 };

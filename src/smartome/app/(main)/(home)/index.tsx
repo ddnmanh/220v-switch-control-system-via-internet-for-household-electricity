@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, TouchableOpacity } from 'react-native';
 import HeaderCPN from '@/components/Header';
 import variablesGlobal from '@/constants/variables';
 import { DynamicValuesContext, DimensionsSizeITF, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
@@ -8,9 +8,10 @@ import useMyAnimation from '@/hooks/animated/Animation.animated';
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
 import { HouseContext } from '@/hooks/context/HouseData.context';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import PaaCard from '@/components/PadCard';
-import SwitchDevice from '@/components/devices/Switch';
+import SwitchItemDevice from '@/components/devices/SwitchItem';
+import imagesGlobal from '@/constants/images';
 
 
 const variablesInComponent = {
@@ -25,7 +26,7 @@ const Index = () => {
 
     const navigation = useNavigation();
 
-    const { housesData, houseDataChosen, handleChoosenHouseByID, handleChooseAreaByID } = React.useContext(HouseContext) || {};
+    const { housesData, houseDataSelected, idHouseSelected, idRoomSelected } = React.useContext(HouseContext) || {};
 
     const { dimensionsSize, deviceItemSize } = React.useContext(DynamicValuesContext) || {
         dimensionsSize: { width: 0, height: 0 } as DimensionsSizeITF,
@@ -47,31 +48,24 @@ const Index = () => {
         }
     }, [scrollY]);
 
-    useFocusEffect(
-        React.useCallback(() => {
-          // Logic của bạn muốn thực thi khi mỗi lần truy cập vào màn hình này
-          handleChooseAreaByID && handleChooseAreaByID(0);
-
-          return () => {
-            // Logic cleanup nếu cần thiết khi rời khỏi màn hình
-          };
-        }, [])
-    );
-
     const handleGotoAddDevice = () => {
-        navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: houseDataChosen.id, idArea: null } });
+        navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: idHouseSelected, idArea: null } });
     }
 
     return (
-        <SafeAreaView style={{ width: dimensionsSize?.width, height: dimensionsSize?.height, }}>
+        <View style={{ width: dimensionsSize?.width, height: dimensionsSize?.height, }}>
             <ImageBackground
-                source={{ uri: houseDataChosen?.image_bg }}
+                source={
+                    houseDataSelected?.setting?.wallpaper_path
+                        ? { uri: houseDataSelected?.setting?.wallpaper_path }
+                        : imagesGlobal.WallpaperDefault
+                }
                 resizeMode='cover'
                 blurRadius={0.7}
                 style={styles.backgroundImage}
             >
                 <HeaderCPN
-                    title={houseDataChosen?.name || 'Nhà Của Tôi'}
+                    title={houseDataSelected?.name || 'Nhà Của Tôi'}
                     scrollY={scrollY}
                 ></HeaderCPN>
 
@@ -86,7 +80,7 @@ const Index = () => {
                     stickyHeaderIndices={[]}
                 >
                     <View style={styles.clusterAddDevice}>
-                        <Text style={styles.house_name}>{houseDataChosen?.name || 'Nhà Của Tôi'}</Text>
+                        <Text style={styles.house_name}>{houseDataSelected?.name || 'Nhà Của Tôi'}</Text>
                         <BlurView intensity={variablesInComponent.intensityDeviceItemBlur} tint='dark' style={[styles.device_item, styles.device_item_blur, { width: deviceItemSize.width, height: deviceItemSize.height }]}>
                             <TouchableOpacity style={[styles.device_item_content, styles.device_item_add]}
                                 onPress={() => handleGotoAddDevice()}
@@ -101,19 +95,38 @@ const Index = () => {
                         </BlurView>
                     </View>
 
+                    <View style={[styles.clusterAreaOfHouse, { marginTop: variablesInComponent.gapInDeviceList }]}>
+                        <View style={styles.device_container}>
+                        {
+                            (houseDataSelected && houseDataSelected?.rooms?.length > 0)
+                            &&
+                            houseDataSelected?.own_devices?.map((own_device:any, index:number) => {
+                                return <SwitchItemDevice key={houseDataSelected.id+"-"+own_device.id+index} device={own_device} />
+                            })
+                        }
+                        </View>
+                    </View>
+
                     {
-                        houseDataChosen?.areas?.map((area:any, index:number) => (
-                            <View style={styles.clusterAreaOfHouse} key={index}>
-                                <Text style={styles.house_areaName}>{area.name}</Text>
-                                <View style={styles.device_container}>
-                                    {
-                                        area.devices.map((device:any, index:number) => {
-                                            return <SwitchDevice key={houseDataChosen.id+"-"+area.id+"-"+device.id} device={device} />
-                                        })
-                                    }
+                        (houseDataSelected && houseDataSelected?.rooms?.length > 0)
+                        &&
+                        houseDataSelected?.rooms?.map((room:any, index:number) => {
+                            if (!room?.own_devices || room?.own_devices?.length === 0) {
+                                return null;
+                            }
+                            return (
+                                <View style={styles.clusterAreaOfHouse} key={index}>
+                                    <Text style={styles.house_areaName}>{room?.name}</Text>
+                                    <View style={styles.device_container}>
+                                        {
+                                            room?.own_devices?.map((device:any, index:number) => {
+                                                return <SwitchItemDevice key={houseDataSelected.id+"-"+room.id+"-"+device.id} device={device} />
+                                            })
+                                        }
+                                    </View>
                                 </View>
-                            </View>
-                        ))
+                            );
+                        })
                     }
 
                     <PaaCard width={'100%'} height={100}></PaaCard>
@@ -121,7 +134,7 @@ const Index = () => {
                 </ScrollView>
             </ImageBackground>
 
-        </SafeAreaView>
+        </View>
     );
 
 };
@@ -156,14 +169,14 @@ const styles = StyleSheet.create({
         fontSize: 30, fontWeight: 'bold', color: variablesInComponent.textPrimary,
     },
     house_areaName: {
-        marginTop: 30, marginBottom: 20, fontSize: 20, fontWeight: '500', color: variablesInComponent.textPrimary
+        marginBottom: 20, fontSize: 20, fontWeight: '500', color: variablesInComponent.textPrimary
     },
     clusterAddDevice: {
         marginTop: 20, marginHorizontal: variablesGlobal.marginScreenAppHorizontal, backgroundColor: 'transparent',
         flex: 1, flexDirection: 'column', justifyContent: 'flex-start', gap: 20,
     },
     clusterAreaOfHouse: {
-        marginHorizontal: variablesGlobal.marginScreenAppHorizontal, backgroundColor: 'transparent',
+        marginTop: 30, marginHorizontal: variablesGlobal.marginScreenAppHorizontal, backgroundColor: 'transparent',
     },
     device_container: {
         flex: 1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: variablesInComponent.gapInDeviceList,

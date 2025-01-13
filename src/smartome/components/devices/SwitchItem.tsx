@@ -1,12 +1,13 @@
-// components/SwitchDevice.tsx
-import React, { useState, useEffect, useCallback } from "react";
-import { Button, FlatList, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableHighlight, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, Vibration, View } from "react-native";
+// components/SwitchItemDevice.tsx
+import React, { useState, useEffect } from "react";
+import { StyleSheet, Text, TouchableNativeFeedback, TouchableOpacity, Vibration, View } from "react-native";
 import { useMQTTContext } from "@/hooks/context/MQTT.context";
-import { DynamicValuesContext, DimensionsSizeITF, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
-import { HouseContext } from '@/hooks/context/HouseData.context';
-import variablesGlobal from '@/constants/variables';
+import { DynamicValuesContext, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
+import { useNavigation } from "@react-navigation/native";
+import { OwnDeviceINF } from "@/interfaces/House.interface";
+import { HouseContext, HouseContextProps } from "@/hooks/context/HouseData.context";
 
 const variablesInComponent = {
     textPrimary: '#fff',
@@ -15,24 +16,19 @@ const variablesInComponent = {
     intensityDeviceItemBlur: 70,
 }
 
-interface SwitchDevice {
-    name: string;
-    online: boolean;
-    state: boolean;
-    topicSend: string;
-    topicReceive: string;
-}
-
-interface Message {
+export interface Message {
     destinationName: string;
     payloadString: string;
 }
 
-interface SwitchDeviceProps {
-    device: SwitchDevice;
+interface SwitchItemDeviceProps {
+    device: OwnDeviceINF;
 }
 
-const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
+const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device }) => {
+
+    const navigation = useNavigation();
+
     const {
         subscribeTopicMQTT,
         publishToTopicMQTT,
@@ -41,37 +37,21 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
         isMQTTConnected,
     } = useMQTTContext();
 
-    const [thisDevice, setThisDevice] = useState<SwitchDevice>(device);
-    const [idRequire, setIdRequire] = useState<string>("");
+    const {handleUpdateDataOwnDevice} = React.useContext(HouseContext) as HouseContextProps;
+
+    const idMQTTRequire = React.useRef<string>("");
     const { deviceItemSize } = React.useContext(DynamicValuesContext) || {
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
 
-    const handleControllToEquipment = useCallback(
-        (type: string = "CONTROLL") => {
-            const strTimestamp = new Date().getTime().toString();
-            setIdRequire(strTimestamp);
-            publishToTopicMQTT(
-                thisDevice.topicSend,
-                JSON.stringify({
-                    type: type,
-                    id: strTimestamp,
-                    value: !thisDevice.state,
-                })
-            );
-        },
-        [thisDevice, publishToTopicMQTT]
-    );
-
     useEffect(() => {
-        if (isMQTTConnected) subscribeTopicMQTT(thisDevice.topicReceive);
-        if (isMQTTConnected) handleControllToEquipment("STATUS");
+        if (isMQTTConnected && device?.mqtt_topic_receive) subscribeTopicMQTT(device?.mqtt_topic_receive);
+        if (isMQTTConnected && device?.mqtt_topic_send) handleControllToEquipment("STATUS");
     }, [isMQTTConnected, subscribeTopicMQTT])
 
     useEffect(() => {
-
         const handleMessage = (message: Message) => {
-            if (message.destinationName === thisDevice.topicReceive) {
+            if (message.destinationName === device?.mqtt_topic_receive) {
                 try {
                     console.log(
                         `Message received on Device Card ${message.destinationName}: ${message.payloadString}`
@@ -80,56 +60,76 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
                     const parsedMessage = JSON.parse(message.payloadString);
 
                     console.log(
-                        parsedMessage.id === idRequire,
+                        parsedMessage.id === idMQTTRequire.current,
                         " ------------------ ",
-                        idRequire,
+                        idMQTTRequire.current,
                         parsedMessage.id
                     );
 
                     if (parsedMessage.type === "NOTI") {
-                        setThisDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));
-                        setIdRequire("");
+                        handleUpdateDataOwnDevice({...device, state: parsedMessage.value, online: true} as OwnDeviceINF);
+                        idMQTTRequire.current = "";
                     }
 
                     if (
                         parsedMessage.type === "CONTROLL_RES" &&
-                        parsedMessage.id === idRequire
+                        parsedMessage.id === idMQTTRequire.current
                     ) {
-                        setThisDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));
-                        setIdRequire("");
+                        handleUpdateDataOwnDevice({...device, state: parsedMessage.value, online: true} as OwnDeviceINF);
+                        idMQTTRequire.current = "";
                     }
 
                     if (
                         parsedMessage.type === "STATUS_RES" &&
-                        parsedMessage.id === idRequire
+                        parsedMessage.id === idMQTTRequire.current
                     ) {
-                        setThisDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));
-                        setIdRequire("");
+                        handleUpdateDataOwnDevice({...device, state: parsedMessage.value, online: true} as OwnDeviceINF);
+                        idMQTTRequire.current = "";
                     }
                 } catch (error) {
-                    console.error("Error parsing message payload", error);
+                    console.log("Error parsing message payload", error);
                 }
             }
         };
 
         if (isMQTTConnected) setOnMessageArrivedFromMQTT(handleMessage);
 
-
         return () => removeOnMessageArrivedFromMQTT(handleMessage);
     }, [
-        thisDevice.topicReceive,
+        device?.mqtt_topic_receive,
         subscribeTopicMQTT,
         setOnMessageArrivedFromMQTT,
         removeOnMessageArrivedFromMQTT,
-        idRequire,
+        idMQTTRequire.current,
     ]);
 
+    const handleControllToEquipment = (type: string = "CONTROLL") => {
+        const strTimestamp = new Date().getTime().toString();
+        idMQTTRequire.current = strTimestamp;
+        publishToTopicMQTT(
+            device?.mqtt_topic_send,
+            JSON.stringify({
+                type: type,
+                id: strTimestamp,
+                value: !device?.state,
+            })
+        );
+    };
 
     return (
         <BlurView intensity={70} tint='dark' style={[styles.device_item, styles.device_item_blur, { width: deviceItemSize.width, height: deviceItemSize.height }]}>
             <TouchableNativeFeedback
                 onPress={() => {
-                    console.log('device', device);
+                    navigation.navigate(
+                        "(devices)",
+                            {
+                                screen: "deviceScreen",
+                                params: {
+                                    typeDevice: "SWITCH",
+                                    device: device
+                                }
+                            }
+                    );
                 }}
                 onLongPress={() => {
                     console.log('long press');
@@ -142,16 +142,16 @@ const SwitchDevice: React.FC<SwitchDeviceProps> = ({ device }) => {
                             style={styles.content_top_icon}
                             onPress={() => isMQTTConnected ? handleControllToEquipment("CONTROLL") : {}}
                         >
-                            <IconCPN iconName={thisDevice.state ? 'lightSwitchOnSolid' : 'lightSwitchOffSolid'} size={'100%'} color={thisDevice.state ? '#0ea5e9' : '#a3a3a3'}></IconCPN>
+                            <IconCPN iconName={device?.state ? 'lightSwitchOnSolid' : 'lightSwitchOffSolid'} size={'100%'} color={device?.state ? '#0ea5e9' : '#a3a3a3'}></IconCPN>
                         </TouchableOpacity>
                         <View style={styles.content_top_right}>
                             <Text style={styles.content_top_nameDevice}>Công tắt</Text>
-                            <Text style={[styles.content_top_statusOnline, !thisDevice.online && styles.content_top_statusOnline__offline]}>{thisDevice.online ? 'Online' : 'Offline'}</Text>
-                            <Text style={styles.content_top_statusDevice}>{thisDevice.state ? 'Đang đóng' : 'Đang hở'}</Text>
+                            <Text style={[styles.content_top_statusOnline, !device?.online && styles.content_top_statusOnline__offline]}>{device?.online ? 'Online' : 'Offline'}</Text>
+                            <Text style={styles.content_top_statusDevice}>{device?.state ? 'Bật nguồn' : 'Tắt nguồn'}</Text>
                         </View>
                     </View>
                     <View style={styles.device_item_content_bottom}>
-                        <Text style={styles.device_item_name}>{thisDevice.name}</Text>
+                        <Text style={styles.device_item_name}>{device?.name}</Text>
                     </View>
                 </View>
             </TouchableNativeFeedback>
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row', alignItems: 'stretch', justifyContent: 'flex-start', columnGap: 5,
     },
     content_top_icon: {
-        width: '42%', aspectRatio: 1/1, padding: 5, alignItems: 'center', justifyContent: 'center',
+        width: '42%', aspectRatio: (1/1), padding: 5, alignItems: 'center', justifyContent: 'center',
     },
     content_top_right: {
         flex: 1, justifyContent: 'center', alignItems: 'stretch', flexDirection: 'column', rowGap: 2
@@ -222,4 +222,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default SwitchDevice;
+export default SwitchItemDevice;

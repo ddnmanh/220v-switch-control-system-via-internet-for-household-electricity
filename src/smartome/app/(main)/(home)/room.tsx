@@ -1,13 +1,12 @@
 
 import React from 'react';
-import { Button, FlatList, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback, Vibration, View } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DynamicValuesContext, DimensionsSizeITF, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
-import { HouseContext } from '@/hooks/context/HouseData.context';
+import { HouseContext, HouseContextProps } from '@/hooks/context/HouseData.context';
 import HeaderCPN from '@/components/Header';
 import variablesGlobal from '@/constants/variables';
-import { BlurView } from 'expo-blur';
-import IconCPN from '@/components/Icon';
-import SwitchDevice from '@/components/devices/Switch';
+import imagesGlobal from '@/constants/images';
+import SwitchItemDevice from '@/components/devices/SwitchItem';
 
 
 const variablesInComponent = {
@@ -17,38 +16,37 @@ const variablesInComponent = {
     intensityDeviceItemBlur: 70,
 }
 
-const Area = ({route}: any) => {
-
-    const { idArea } = route.params || {};
-
-    console.log("Area screen id area " + idArea);
-
+const Room = ({route}: any) => {
 
     const { dimensionsSize, deviceItemSize } = React.useContext(DynamicValuesContext) || {
         dimensionsSize: { width: 0, height: 0 } as DimensionsSizeITF,
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
 
-    const { houseDataChosen, areaDataChosen } = React.useContext(HouseContext) || {
-        houseDataChosen: {},
-        areaDataChosen: {},
-    };
+    const { houseDataSelected, roomDataSelected, handleChooseRoomByID } = React.useContext(HouseContext) as HouseContextProps;
 
     const [scrollY, setScrollY] = React.useState(0);
 
-    console.log(areaDataChosen);
-
+    React.useEffect(() => {
+        return () => {
+            handleChooseRoomByID('');
+        }
+    }, []);
 
     return (
-        <SafeAreaView style={{width: dimensionsSize?.width, height: dimensionsSize?.height}}>
+        <View style={{width: dimensionsSize?.width, height: dimensionsSize?.height}}>
             <ImageBackground
-                source={{ uri: houseDataChosen?.image_bg }}
+                source={
+                    houseDataSelected?.setting?.wallpaper_path
+                        ? { uri: houseDataSelected?.setting?.wallpaper_path }
+                        : imagesGlobal.WallpaperDefault
+                }
                 resizeMode='cover'
                 blurRadius={0.7}
                 style={styles.backgroundImage}
             >
                 <HeaderCPN
-                    title={areaDataChosen?.name}
+                    title={roomDataSelected?.name}
                     scrollY={scrollY}
                     showBackButton={true}
                 ></HeaderCPN>
@@ -60,16 +58,16 @@ const Area = ({route}: any) => {
                         setScrollY(event.nativeEvent.contentOffset.y);
                     }}
                     scrollEventThrottle={1} // Tần suất gọi sự kiện onScroll
-                    style={styles.scroll}
+                    style={[styles.scroll]}
                     stickyHeaderIndices={[]}
                 >
-                    <Text style={styles.house_name}>{areaDataChosen?.name}</Text>
+                    <Text style={styles.house_name}>{roomDataSelected?.name}</Text>
 
                     <View style={styles.clusterAreaOfHouse}>
                         <View style={styles.device_container}>
                             {
-                                areaDataChosen?.devices?.map((device:any, index:number) => {
-                                    return <SwitchDevice key={houseDataChosen.id+"-"+areaDataChosen.id+"-"+device.id} device={device} />
+                                roomDataSelected?.own_devices?.map((device:any, index:number) => {
+                                    return <SwitchItemDevice key={houseDataSelected?.id+"-"+roomDataSelected.id+"-"+device.id} device={device}/>
                                 })
                             }
                         </View>
@@ -78,11 +76,11 @@ const Area = ({route}: any) => {
                 </ScrollView>
 
             </ImageBackground>
-        </SafeAreaView>
+        </View>
     );
 };
 
-export default Area;
+export default Room;
 
 const styles = StyleSheet.create({
     backgroundImage: {

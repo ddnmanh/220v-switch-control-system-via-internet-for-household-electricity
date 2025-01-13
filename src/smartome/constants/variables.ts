@@ -1,4 +1,6 @@
 
+
+
 const variablesGlobal : Record<string, number> = {
     borderRadius: 10,
     inputFontSize: 16,

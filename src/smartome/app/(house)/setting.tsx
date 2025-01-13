@@ -2,60 +2,144 @@
 
 import IconCPN from '@/components/Icon';
 import variablesGlobal from '@/constants/variables';
-import useMyAnimation from '@/hooks/animated/Animation.animated';
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Animated, Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect } from 'react';
+import Modal from "react-native-modal";
+import { Image, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Divider } from 'react-native-paper';
-import {HouseContext} from '@/hooks/context/HouseData.context';
+import {HouseContext, HouseContextProps} from '@/hooks/context/HouseData.context';
+import imagesGlobal from '@/constants/images';
+import fontsGlobal from '@/constants/fonts';
+import HouseFetch from '@/fetch/House.fetch';
+import colorGlobal from '@/constants/colors';
+import { HouseWithRelationINF } from '@/interfaces/House.interface';
 
 const Setting = () => {
 
     const navigation = useNavigation();
-    const { houseDataChosen } = React.useContext(HouseContext) || { houseDataChosen: {} };
-
-    const houseNameOnHeaderAnimation = useMyAnimation({ opacity: 0, translateY: 0, scale: 1, rotate: 0 });
+    const { houseDataSelected, handleUpdateHouse, handleDeleteHouse } = React.useContext(HouseContext) as HouseContextProps;
 
     const [forcusHouseNameInput, setForcusHouseNameInput] = React.useState(false);
-    const [forcusHouseNoteInput, setForcusHouseNoteInput] = React.useState(false);
+    const [forcusHouseDescInput, setForcusHouseDescInput] = React.useState(false);
 
-    const [newHouseName, setNewHouseName] = React.useState(houseDataChosen.name || 'Tên nhà của tôi');
-    const [newHouseNote, setNewHouseNote] = React.useState(houseDataChosen.note || '');
+    const [newHouseName, setNewHouseName] = React.useState(houseDataSelected?.name || 'Tên nhà của tôi');
+    const [newHouseDesc, setNewHouseDesc] = React.useState(houseDataSelected?.desc || '');
+
+    const [isRenameHouse, setIsRenameHouse] = React.useState(false);
+
+    const [openModalVerifyDeleteHouse, setOpenModalVerifyDeleteHouse] = React.useState(false);
 
     const [scrollY, setScrollY] = React.useState(0);
 
+    const toggleModal = () => {
+        setOpenModalVerifyDeleteHouse(prev => !prev);
+    }
+
+    const handleBackButton = () => {
+        navigation.goBack();
+    }
+
+    useEffect(() => {
+        if (newHouseName !== houseDataSelected?.name || newHouseDesc !== houseDataSelected?.desc) {
+            setIsRenameHouse(true);
+        } else {
+            setIsRenameHouse(false);
+        }
+    }, [newHouseName, newHouseDesc]);
+
+    const handleUpdateHouseInfo = async () => {
+
+        Keyboard.dismiss();
+
+        if (forcusHouseNameInput) setForcusHouseNameInput(false);
+        if (forcusHouseDescInput) setForcusHouseDescInput(false);
+
+        try {
+            let response = await HouseFetch.update({house_id: houseDataSelected?.id, name: newHouseName, desc: newHouseDesc, is_wallpaper_blur: false, is_main_house: false});
+
+            if (response.code === 200) {
+                handleUpdateHouse({...houseDataSelected, name: newHouseName, desc: newHouseDesc} as HouseWithRelationINF);
+            }
+        } catch (error) {
+            console.log('Error in handleUpdateHouseInfo: ', error);
+        }
+        setIsRenameHouse(false);
+    }
+
+    const handleDeleteThisHouse = async () => {
+        try {
+            let response = await HouseFetch.delete({house_id: houseDataSelected?.id});
+
+            console.log('response: ', response);
+
+            toggleModal();
+
+            if (response.code === 200) {
+                handleDeleteHouse(houseDataSelected?.id ? houseDataSelected?.id : '');
+            }
+        } catch (error) {
+            console.log('Error in handleDeleteHouse: ', error);
+        }
+
+        navigation.reset({
+            index: 0, // Đặt lại stack và chuyển hướng đến màn hình mới
+            routes: [
+                {
+                    name: "(main)", // Tên stack chính
+                    params: {
+                        screen: "(home)", // Tên stack con hoặc màn hình
+                        params: {
+                            screen: "indexScreen", // Tên màn hình thực tế bên trong
+                        },
+                    },
+                },
+            ],
+        });
+
+    }
+
     return (
-        <SafeAreaView style={{backgroundColor: 'transparent', flex: 1}}>
-            <View style={[styles.header, { backgroundColor: scrollY>20 ? '#fff' : 'transparent', borderWidth: 1, borderColor:  scrollY>20 ? '#d4d4d8' : 'transparent'}]}>
-                <View style={styles.header_container}>
+        <View style={{backgroundColor: 'transparent', flex: 1}}>
+
+            <View style={[styles.header, scrollY < 20 ? {backgroundColor: 'transparent', borderBottomColor: 'transparent'} : {} ]}>
+                <View style={[styles.header_container, { alignItems: 'center', justifyContent: 'space-between' }]}>
                     <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => navigation.navigate("(house)", { screen: "housemange" })}
+                        style={[styles.headerButton]}
+                        onPress={() => handleBackButton()}
                     >
                         <IconCPN iconName='angleLeftRegular' size={18} color='#FB923C'></IconCPN>
-                        <Text style={styles.backButton_text}>Quản Lý</Text>
+                        {/* Không có nội dung vẫn giữ Text để không bị vỡ layout */}
+                        <Text style={[styles.headerButton_text]}></Text>
                     </TouchableOpacity>
 
-                    <Animated.View
-                        style={[
-                            styles.clusterText,
-                            { opacity: houseNameOnHeaderAnimation.animationValue.opacity },
-                        ]}
-                    >
-                        <Text style={styles.clusterText_text}>Cài Đặt Nhà</Text>
-                    </Animated.View>
-
-                    <View style={styles.buttonBar}>
-                        <TouchableOpacity
-                            style={[styles.buttonBar_button]}
-                            onPress={() => navigation.navigate( "(main)", { screen: "(home)", params: { screen: "index" } } ) }
-                        >
-                            <Text style={styles.buttonBar_buttonText}>Xong</Text>
-                        </TouchableOpacity>
-
+                    <View style={[ styles.headerClusterTittle]}>
+                        <Text style={[styles.headerClusterTittle_text]}>Cài đặt nhà</Text>
                     </View>
+
+                    <View style={[styles.buttonBarRight]}>
+                        {
+                            (isRenameHouse === true)
+                            &&
+                            <TouchableOpacity
+                                style={[styles.headerButton]}
+                                onPress={() => handleUpdateHouseInfo()}
+                            >
+                                <Text style={styles.headerButton_text}>Lưu</Text>
+                            </TouchableOpacity>
+                            ||
+                            <TouchableOpacity
+                                style={[styles.headerButton]}
+                                onPress={() => navigation.navigate("(house)", { screen: "housemange" })}
+                            >
+                                <Text style={styles.headerButton_text}>Quản lý</Text>
+                            </TouchableOpacity>
+                        }
+                    </View>
+
                 </View>
             </View>
+
+
             <View style={styles.content}>
                 <ScrollView
                     style={styles.scroll}
@@ -75,7 +159,7 @@ const Setting = () => {
                                 placeholderTextColor='#999999'
                                 value={newHouseName}
                                 onFocus={() => setForcusHouseNameInput(true)}
-                                // onBlur={() => setForcusHouseNameInput(false)}
+                                onBlur={() => setForcusHouseNameInput(false)}
                                 onChange={(e) => setNewHouseName(e.nativeEvent.text)}
                             />
                             {
@@ -99,17 +183,21 @@ const Setting = () => {
                         <Text style={styles.clusterInput_title}>ẢNH NỀN CHÍNH</Text>
                         <View style={styles.clusterInput_box}>
                             <TouchableOpacity style={{paddingVertical: 10, paddingTop: 0}}>
-                                <Text style={{ fontFamily: 'SanFranciscoText-SemiBold', color: '#FB923C', fontSize: 15, lineHeight: 18  }}>Chụp Ảnh</Text>
+                                <Text style={{ fontFamily: fontsGlobal.mainSemiBold, color: '#FB923C', fontSize: 15, lineHeight: 18  }}>Chụp Ảnh</Text>
                             </TouchableOpacity>
                             <Divider style={{ height: 1, backgroundColor: '#e4e4e7' }}></Divider>
                             <TouchableOpacity style={[{paddingVertical: 10}, {flex: 1, flexDirection: 'row', alignItems: 'center'}]}>
-                                <Text style={{ flex: 1, fontFamily: 'SanFranciscoText-SemiBold', color: '#000', fontSize: 15, }}>Chọn ảnh Có sẳn</Text>
+                                <Text style={{ flex: 1, fontFamily: fontsGlobal.mainSemiBold, color: '#000', fontSize: 15, }}>Chọn ảnh Có sẳn</Text>
                                 <IconCPN iconName="angleLeftRegular" color="#c1c1c1" rotate={180} size={12}></IconCPN>
                             </TouchableOpacity>
                             <Divider style={{ height: 1, backgroundColor: '#e4e4e7' }}></Divider>
                             <View style={{paddingVertical: 10, paddingBottom: 0}}>
                                 <Image
-                                    source={ {uri: houseDataChosen?.image_bg} }
+                                    source={
+                                        houseDataSelected?.setting?.wallpaper_path
+                                            ? { uri: houseDataSelected?.setting?.wallpaper_path }
+                                            : imagesGlobal.WallpaperDefault
+                                    }
                                     resizeMode="contain"
                                     style={{ height: 250, borderRadius: 10 }}
                                 />
@@ -126,59 +214,102 @@ const Setting = () => {
                                 style={[styles.clusterInput_boxTextInput_textInput]}
                                 placeholder='Thêm ghi chú để bạn nhanh nhớ ngôi nhà của bạn hơn'
                                 placeholderTextColor='#999999'
-                                value={newHouseNote}
-                                onFocus={() => setForcusHouseNoteInput(true)}
-                                onBlur={() => setForcusHouseNoteInput(false)}
+                                value={newHouseDesc}
+                                onFocus={() => setForcusHouseDescInput(true)}
+                                onBlur={() => setForcusHouseDescInput(false)}
                                 multiline={true}
                                 numberOfLines={4}
-                                onChange={(e) => setNewHouseNote(e.nativeEvent.text)}
+                                onChange={(e) => setNewHouseDesc(e.nativeEvent.text)}
                             />
                         </View>
                     </View>
 
                     <Divider style={{ height: 40, backgroundColor: 'transparent' }}></Divider>
 
-                    <TouchableOpacity style={styles.clusterInput_box}>
+                    <TouchableOpacity
+                        style={styles.clusterInput_box}
+                        onPress={() => setOpenModalVerifyDeleteHouse(true)}
+                    >
                         <Text style={[styles.clusterInput_box_text, {color: 'red'}]}>Xoá Nhà Này</Text>
                     </TouchableOpacity>
 
                     <Divider style={{ height: 80, backgroundColor: 'transparent' }}></Divider>
                 </ScrollView>
             </View>
-        </SafeAreaView>
+
+
+            <Modal
+                isVisible={openModalVerifyDeleteHouse}
+                onBackdropPress={toggleModal}
+                animationIn="slideInUp"
+                animationOut="slideOutDown"
+                backdropColor="rgba(0, 0, 0, 0.5)"
+                useNativeDriver={true}
+                // hideModalContentWhileAnimating={true} // Giảm hiện tượng nhấp nháy
+                // statusBarTranslucent={true} // Để modal che phủ thanh trạng thái
+                style={styles.bottomModal}
+            >
+                <View style={styles.modalContent}>
+
+                    <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", borderRadius: 13, overflow: 'hidden'}}>
+                        <View style={{width: '100%', paddingHorizontal: 30, paddingVertical: 15, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 6, backgroundColor: colorGlobal.subBackColor}}>
+                            <Text style={{fontSize: 18, fontWeight: '500', color: colorGlobal.textSecondary}}>Xoá nhà</Text>
+                            <Text style={{fontSize: 12, fontWeight: '400', textAlign: 'center', color: colorGlobal.textSecondary}}>Khi xoá nhà, các dữ liệu về nhà này sẽ bị xoá và không thể khôi phục, các thiết bị thuộc nhà này sẽ ở chế độ chờ kết nối lại</Text>
+                        </View>
+                        <Divider style={{width: '100%', height: 1.8, backgroundColor: '#e4e4e7'}}></Divider>
+                        <TouchableOpacity
+                            style={{width: '100%', height: 50, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: colorGlobal.subBackColor}}
+                            activeOpacity={0.4}
+                            onPress={() => handleDeleteThisHouse()}
+                        >
+                            <Text style={{fontSize: 18, fontWeight: '500', color: 'red'}}>Xoá</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity
+                        style={{width: '100%', height: 50, borderRadius: 13, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff'}}
+                        activeOpacity={0.7}
+                        onPress={() => setOpenModalVerifyDeleteHouse(prev => !prev)}
+                    >
+                        <Text style={{fontSize: 18, fontWeight: '500', color: '#FB923C'}}>Huỷ</Text>
+                    </TouchableOpacity>
+
+                </View>
+            </Modal>
+
+
+        </View>
     );
 };
 
 export default Setting;
 
 const styles = StyleSheet.create({
+    // Header
     header: {
-        height: variablesGlobal.heightHeader, flexDirection: 'row', alignItems: 'flex-end', zIndex: 99999, position: 'relative',
+        height: 87, flexDirection: 'row', alignItems: 'flex-end', zIndex: 99999, position: 'relative',
+        borderBottomWidth: 1, borderBottomColor: '#e4e4e7', backgroundColor: '#fff'
     },
     header_container: {
-        paddingBottom: 10, paddingHorizontal: variablesGlobal.marginScreenAppHorizontal, flex: 1, flexDirection: 'row', alignItems: 'stretch', justifyContent: 'space-between', position: 'relative',
+        marginBottom: 10, paddingHorizontal: variablesGlobal.marginScreenAppHorizontal,
+        flex: 1, flexDirection: 'row', alignItems: 'stretch', justifyContent: 'space-between', position: 'relative',
     },
-    backButton: {
+    headerButton: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', columnGap: 3, zIndex: 10,
     },
-    backButton_text: {
-        fontSize: 16, fontFamily: 'SanFranciscoText-SemiBold', color: '#FB923C'
+    headerButton_text: {
+        fontSize: 16, fontFamily: fontsGlobal.mainSemiBold, color: '#FB923C'
     },
-    clusterText: {
-        flex: 1, position: 'absolute', top: 0, left: 0, right: 0, bottom: 10, // same as paddingBottom of header_container
+    headerClusterTittle: {
+        flex: 1, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, // same as paddingBottom of header_container
     },
-    clusterText_text: {
-        textAlign: 'center', fontSize: 16, fontFamily: 'SanFranciscoText-SemiBold', color: 'white',
+    headerClusterTittle_text: {
+        textAlign: 'center', fontSize: 16, fontFamily: fontsGlobal.mainSemiBold, color: '#000'
     },
-    buttonBar: {
-        flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', columnGap: 20, zIndex: 10,
+    buttonBarRight: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', columnGap: 20, zIndex: 10,
     },
-    buttonBar_button: {
-        padding: 2, borderRadius: 100,
-    },
-    buttonBar_buttonText: {
-        fontSize: 16, fontFamily: 'SanFranciscoText-SemiBold', color: '#FB923C'
-    },
+
     //
     content: {
         flex: 1, display: 'flex', flexDirection: 'column', zIndex: 1, height: '100%'
@@ -190,20 +321,72 @@ const styles = StyleSheet.create({
         width: '100%', flexDirection: 'column', alignItems: 'stretch', justifyContent: 'flex-start', rowGap: 4
     },
     clusterInput_title: {
-        fontSize: 12, fontFamily: 'SanFranciscoText-SemiBold', color: '#a1a1aa', marginLeft: 16,
+        fontSize: 12, fontFamily: fontsGlobal.mainSemiBold, color: '#a1a1aa', marginLeft: 16,
     },
     clusterInput_boxTextInput: {
         paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#fff', borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', columnGap: 10,
     },
     clusterInput_boxTextInput_textInput: {
-        paddingVertical: 0, paddingHorizontal: 0, flex: 1, backgroundColor: 'transparent', fontSize: 15, color: '#000', fontFamily: 'SanFranciscoText-SemiBold',
+        paddingVertical: 0, paddingHorizontal: 0, flex: 1, backgroundColor: 'transparent', fontSize: 15, color: '#000', fontFamily: fontsGlobal.mainSemiBold,
         height: '100%', textAlign: 'left', textAlignVertical: 'top'
     },
     clusterInput_box: {
         paddingHorizontal: 16, paddingVertical: 16, backgroundColor: '#fff', borderRadius: 10,
     },
     clusterInput_box_text: {
-        fontSize: 15, fontFamily: 'SanFranciscoText-SemiBold', color: '#000', lineHeight: 18,
+        fontSize: 15, fontFamily: fontsGlobal.mainSemiBold, color: '#000', lineHeight: 18,
+    },
+
+    // Modal
+    bottomModal: {
+        margin: 0, // Đảm bảo modal chiếm toàn màn hình
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        width: '96%',
+        marginHorizontal: '2%',
+        marginBottom: 20,
+        backgroundColor: 'transparent',
+        flexDirection: 'column',
+        alignItems: 'stretch',
+        rowGap: 8,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#000',
+    },
+    message: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 10,
+        textAlign: 'center',
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    actionButton: {
+        flex: 1,
+        marginHorizontal: 10,
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    cancelButton: {
+        backgroundColor: '#E5E5E5',
+    },
+    deleteButtonModal: {
+        backgroundColor: '#FF3B30',
+    },
+    cancelText: {
+        color: '#000',
+        fontSize: 16,
+    },
+    deleteText: {
+        color: '#FFF',
+        fontSize: 16,
     },
 });
 

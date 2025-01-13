@@ -3,6 +3,11 @@
 # dependencies
 node_modules/
 
+.google-services.json
+
+.env
+!.env.example
+
 # Expo
 .expo/
 dist/

@@ -25,9 +25,13 @@ const colorGlobal: Record<string, string> = {
     btnLink: '#3490dc',
 
     backColor: '#FFF',
+    subBackColor: 'rgb(240, 240, 240)',
     borderLine: '#d4d4d8',
 
     border: '#d4d4d8',
+
+    onPower: '#10B981',
+    offPower: '#EF4444',
 };
 
 export default colorGlobal;
