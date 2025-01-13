@@ -3,6 +3,7 @@ import React from 'react';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack'; // Import StackNavigator
 import Setting from './setting';
 import Manage from './manage';
+import CreateHouseScreen from './create';
 
 const Stack = createStackNavigator(); // Tạo Stack Navigator
 
@@ -16,6 +17,7 @@ export default function HouseLayout() {
         >
             <Stack.Screen name="housemange" component={Manage} options={{ title: 'Nhà Của Tôi', headerShown: false }} />
             <Stack.Screen name="housesetting" component={Setting} options={{ title: 'Nhà Của Tôi', headerShown: false }} />
+            <Stack.Screen name="createHouseScreen" component={CreateHouseScreen} options={{ title: 'Thêm nhà mới', headerShown: false }} />
         </Stack.Navigator>
     );
 }

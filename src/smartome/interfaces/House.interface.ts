@@ -3,13 +3,15 @@
 export interface OwnDeviceINF {
     id: string;
     id_device: string;
+    mqtt_topic_send: string;
+    mqtt_topic_receive: string;
     name: string;
     desc: string;
     state: boolean;
     online: boolean;
 }
 
-export interface AreaWithRelationINF {
+export interface RoomWithRelationINF {
     id: string;
     name: string;
     desc: string;
@@ -30,7 +32,7 @@ export interface HouseWithRelationINF {
     name: string;
     desc: string;
     own_devices: OwnDeviceINF[];
-    areas: AreaWithRelationINF[];
+    rooms: RoomWithRelationINF[];
     setting: HouseSettingINF;
 }
 

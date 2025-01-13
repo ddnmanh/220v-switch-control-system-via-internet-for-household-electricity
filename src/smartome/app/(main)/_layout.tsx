@@ -6,7 +6,7 @@ import Account from './account';
 import Auto from './auto';
 import variablesGlobal from '@/constants/variables';
 import { DynamicValuesContext } from '@/hooks/context/DynamicValues.context';
-import { HouseContext } from '@/hooks/context/HouseData.context';
+import { HouseContext, HouseContextProps } from '@/hooks/context/HouseData.context';
 import { ImageBackground } from 'react-native';
 import imagesGlobal from '@/constants/images';
 
@@ -17,7 +17,7 @@ const Tab = createBottomTabNavigator();
 export default function MainLayout() {
 
     const { dimensionsSize } = React.useContext(DynamicValuesContext) || { dimensionsSize: { width: 0, height: 0 } };
-    const { houseDataChosen } = React.useContext(HouseContext) || { houseDataChosen: null };
+    const { houseDataSelected } = React.useContext(HouseContext) as HouseContextProps;
 
     return (
         <Tab.Navigator
@@ -57,8 +57,8 @@ export default function MainLayout() {
                 tabBarBackground: () => (
                     <ImageBackground
                         source={
-                            houseDataChosen?.setting?.wallpaper_path
-                            ? { uri: houseDataChosen?.setting?.wallpaper_path }
+                            houseDataSelected?.setting?.wallpaper_path
+                            ? { uri: houseDataSelected?.setting?.wallpaper_path }
                             : imagesGlobal.WallpaperDefault
                         }
                         resizeMode='cover'

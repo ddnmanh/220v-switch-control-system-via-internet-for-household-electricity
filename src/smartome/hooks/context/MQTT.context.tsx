@@ -63,6 +63,7 @@ export const MQTTContextProvider: React.FC<MQTTContextProviderProps> = ({ childr
             },
             userName: process.env.EXPO_PUBLIC_MQTT_BROKER_USERNAME as string || 'app',
             password: process.env.EXPO_PUBLIC_MQTT_BROKER_PASSWORD as string || '123',
+            keepAliveInterval: 60,
         });
 
         client.onConnectionLost = (response: any) => {

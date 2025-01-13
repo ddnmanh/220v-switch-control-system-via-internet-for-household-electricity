@@ -5,23 +5,27 @@ import variablesGlobal from '@/constants/variables';
 import { useNavigation } from '@react-navigation/native';
 import Modal from "react-native-modal";
 import React from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import {HouseContext, HouseContextProps} from '@/hooks/context/HouseData.context';
 import fontsGlobal from '@/constants/fonts';
 import RoomFetch from '@/fetch/Room.fetch';
 import { Divider } from 'react-native-paper';
 import colorGlobal from '@/constants/colors';
+import { ResponseDTO } from '@/interfaces/API.interface';
+import { RoomWithRelationINF } from '@/interfaces/House.interface';
 
 const RoomSettingScreen = () => {
 
     const navigation = useNavigation();
-    const { areaDataChosen } = React.useContext(HouseContext) as HouseContextProps;
+    const { roomDataSelected, handleUpdateDataRoom, handleDeleteRoom } = React.useContext(HouseContext) as HouseContextProps;
+
+    const [thisRoomData, setThisRoomData] = React.useState<RoomWithRelationINF | null>(roomDataSelected);
 
     const [forcusRoomNameInput, setForcusRoomNameInput] = React.useState(false);
     const [forcusRoomDescInput, setForcusRoomDescInput] = React.useState(false);
 
-    const [newRoomName, setNewRoomName] = React.useState(areaDataChosen.name || '');
-    const [newRoomDesc, setNewRoomDesc] = React.useState(areaDataChosen.desc || '');
+    const [newRoomName, setNewRoomName] = React.useState(roomDataSelected?.name || '');
+    const [newRoomDesc, setNewRoomDesc] = React.useState(roomDataSelected?.desc || '');
 
 
     const [isChangeRoomInfo, setIsChangeRoomInfo] = React.useState(false);
@@ -33,15 +37,16 @@ const RoomSettingScreen = () => {
 
 
     React.useEffect(() => {
-        if (Object.keys(areaDataChosen).length > 0) {
-            setNewRoomName(areaDataChosen.name);
-            setNewRoomDesc(areaDataChosen.desc);
+        if (roomDataSelected && Object.keys(roomDataSelected).length > 0) {
+            setThisRoomData(roomDataSelected);
+            setNewRoomName(roomDataSelected?.name);
+            setNewRoomDesc(roomDataSelected?.desc);
         }
-    }, [areaDataChosen]);
+    }, [roomDataSelected]);
 
 
     React.useEffect(() => {
-        if (newRoomName !== areaDataChosen.name || newRoomDesc !== areaDataChosen.desc) {
+        if (newRoomName !== thisRoomData?.name || newRoomDesc !== thisRoomData?.desc) {
             setIsChangeRoomInfo(true);
         } else {
             setIsChangeRoomInfo(false);
@@ -61,21 +66,27 @@ const RoomSettingScreen = () => {
     }
 
     const handleUpdateRoomInfo = async () => {
+        Keyboard.dismiss();
+
         try {
-            await RoomFetch.update({area_id: areaDataChosen.id, name: newRoomName, desc: newRoomDesc});
+            let response:ResponseDTO = await RoomFetch.update({room_id: thisRoomData?.id, name: newRoomName, desc: newRoomDesc});
+            if (response.code === 200) {
+                handleUpdateDataRoom({...thisRoomData, name: newRoomName, desc: newRoomDesc} as RoomWithRelationINF);
+            }
+
         } catch (error) {
             console.log('Error: ', error);
         }
         setIsChangeRoomInfo(false);
     }
 
-    const handleDeleteRoom = async () => {
+    const handleDeleteThisRoom = async () => {
         try {
-            let response = await RoomFetch.delete({area_id: areaDataChosen.id});
-            console.log('response: ', response);
-
-            handleGoToHomeScreen();
-
+            let response = await RoomFetch.delete({room_id: thisRoomData?.id});
+            if (response.code === 200) {
+                handleDeleteRoom(thisRoomData?.id ? thisRoomData?.id : '');
+                handleGoToHomeScreen();
+            }
         } catch (error) {
             console.log('Error: ', error);
         }
@@ -197,16 +208,16 @@ const RoomSettingScreen = () => {
             >
                 <View style={styles.modalContent}>
 
-                    <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: colorGlobal.subBackColor, borderRadius: 13, overflow: 'hidden'}}>
-                        <View style={{width: '100%', paddingHorizontal: 30, paddingVertical: 15, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 6, backgroundColor: 'transparent'}}>
+                    <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", borderRadius: 13, overflow: 'hidden'}}>
+                        <View style={{width: '100%', paddingHorizontal: 30, paddingVertical: 15, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 6, backgroundColor: colorGlobal.subBackColor}}>
                             <Text style={{fontSize: 18, fontWeight: '500', color: colorGlobal.textSecondary}}>Xoá phòng</Text>
                             <Text style={{fontSize: 12, fontWeight: '400', textAlign: 'center', color: colorGlobal.textSecondary}}>Khi xoá phòng, các dữ liệu về phòng này sẽ bị xoá và không thể khôi phục, các thiết bị thuộc phòng này sẽ ở chế độ chờ kết nối lại</Text>
                         </View>
                         <Divider style={{width: '100%', height: 1.8, backgroundColor: '#e4e4e7'}}></Divider>
                         <TouchableOpacity
-                            style={{width: '100%', height: 50, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent'}}
+                            style={{width: '100%', height: 50, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: colorGlobal.subBackColor}}
                             activeOpacity={0.4}
-                            onPress={() => handleDeleteRoom()}
+                            onPress={() => handleDeleteThisRoom()}
                         >
                             <Text style={{fontSize: 18, fontWeight: '500', color: 'red'}}>Xoá</Text>
                         </TouchableOpacity>

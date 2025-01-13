@@ -7,25 +7,25 @@ import OwnDeviceFetch from '@/fetch/OwnDevice.fetch';
 import { HouseContext, HouseContextProps } from '@/hooks/context/HouseData.context';
 import variablesGlobal from '@/constants/variables';
 import IconCPN from '@/components/Icon';
-import { SwitchDeviceITF } from '@/components/devices/SwitchItem';
 import Modal from "react-native-modal";
 import { Divider } from 'react-native-paper';
 import fontsGlobal from '@/constants/fonts';
+import { OwnDeviceINF } from '@/interfaces/House.interface';
 
 
 const SettingDevice = ({route}: any) => {
 
-    const { idArea, device } = route.params;
+    const { idRoom, device } = route.params;
 
     const navigation = useNavigation();
 
-    const { handleUpdateDataSwitchDevice } = useContext(HouseContext) as HouseContextProps;
+    const { handleUpdateDataOwnDevice, handleDeleteOwnDevice } = useContext(HouseContext) as HouseContextProps;
 
-    const [thisDevice, setThisDevice] = React.useState<SwitchDeviceITF>(device);
+    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF>(device);
 
     React.useEffect(() => {
-        if (thisDevice) handleUpdateDataSwitchDevice(thisDevice.id, thisDevice?.state, thisDevice.online, thisDevice?.name);
-    }, [thisDevice]);
+        if (thisOwnDevice) handleUpdateDataOwnDevice(thisOwnDevice);
+    }, [thisOwnDevice]);
 
 
     const handleBackButton = () => {
@@ -40,9 +40,10 @@ const SettingDevice = ({route}: any) => {
 
     const handleDeleteDevice = async () => {
         try {
-            const response = await OwnDeviceFetch.delete({id_own_device: thisDevice.id});
+            const response = await OwnDeviceFetch.delete({id_own_device: thisOwnDevice.id});
             if (response.code === 200) {
-                setThisDevice({} as SwitchDeviceITF);
+                setThisOwnDevice({} as OwnDeviceINF);
+                handleDeleteOwnDevice(thisOwnDevice.id);
                 setOpenModalVerifyDeleteDevice(false);
                 setTimeout(() => {
                     navigation.navigate("(main)", { screen: '(home)', params: { screen: 'index' } });
@@ -100,7 +101,7 @@ const SettingDevice = ({route}: any) => {
                             overflow: 'hidden' // Ngăn các phần tử tràn ra bên ngoài
                         }}
 
-                        onPress={() => navigation.navigate('logDeviceScreen', { idArea: idArea, device: thisDevice })}
+                        onPress={() => navigation.navigate('logDeviceScreen', { idRoom: idRoom, device: thisOwnDevice })}
                     >
                         <Text
                             style={{
@@ -158,14 +159,14 @@ const SettingDevice = ({route}: any) => {
                     >
                         <View style={styles.modalContent}>
 
-                            <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: colorGlobal.subBackColor, borderRadius: 13, overflow: 'hidden'}}>
-                                <View style={{width: '100%', paddingHorizontal: 30, paddingVertical: 15, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 6, backgroundColor: 'transparent'}}>
+                            <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", borderRadius: 13, overflow: 'hidden'}}>
+                                <View style={{width: '100%', paddingHorizontal: 30, paddingVertical: 15, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 6, backgroundColor: colorGlobal.subBackColor}}>
                                     <Text style={{fontSize: 18, fontWeight: '500', color: colorGlobal.textSecondary}}>Xoá thiết bị</Text>
                                     <Text style={{fontSize: 12, fontWeight: '400', textAlign: 'center', color: colorGlobal.textSecondary}}>Khi bạn xoá, thiết bị sẽ bị xoá và không thể điều khiển qua ứng dụng, điều khiển ở thiết bị vẫn hoạt động</Text>
                                 </View>
                                 <Divider style={{width: '100%', height: 1.8, backgroundColor: '#e4e4e7'}}></Divider>
                                 <TouchableOpacity
-                                    style={{width: '100%', height: 50, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent'}}
+                                    style={{width: '100%', height: 50, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: colorGlobal.subBackColor}}
                                     activeOpacity={0.4}
                                     onPress={() => handleDeleteDevice()}
                                 >

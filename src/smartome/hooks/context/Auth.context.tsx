@@ -62,8 +62,12 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
     // Navigation helper
     const navigateToLogin = () => {
         console.log('Navigating to login screen...');
-
-        navigation.navigate("(auth)", { screen: "logInScreen" });
+        // Đặt lại stack và chuyển hướng đến màn hình mới
+        // Xoá lịch sử chuyển hướng
+        navigation.reset({
+            index: 0,
+            routes: [ { name: "(auth)", params: { screen: "logInScreen"} } ]
+        });
     };
 
     // API calls
@@ -109,8 +113,6 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
             }
         } catch (error) {
             console.log('Error renewing access token:', error);
-            console.log(error.response.data);
-
             navigateToLogin();
         }
     };
@@ -120,8 +122,8 @@ const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ children }) =
         const checkAuthentication = async () => {
             console.log('Checking authentication...');
             await handleRenewAccessToken();
-            console.log('ACCESS TOKEN: ' + await getToken(ACCESS_TOKEN_KEY));
-            console.log('REFRESH TOKEN: ' + await getToken(REFRESH_TOKEN_KEY));
+            // console.log('ACCESS TOKEN: ' + await getToken(ACCESS_TOKEN_KEY));
+            // console.log('REFRESH TOKEN: ' + await getToken(REFRESH_TOKEN_KEY));
         };
 
         checkAuthentication();

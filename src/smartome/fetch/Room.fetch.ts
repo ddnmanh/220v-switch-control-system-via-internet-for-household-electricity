@@ -9,15 +9,25 @@ enum TokenType {
 
 export default new class RoomFetch {
     private endpoints = {
-        create: '/area',
-        getInfo: '/area',
-        update: '/area',
-        delete: '/area',
+        create: '/room',
+        getInfo: '/room',
+        update: '/room',
+        delete: '/room',
     };
 
     /**
+     * Create room
+     * @param {Record<string, any>} data: { name, desc }
+     *
+     * @returns {Promise<any>}
+     */
+    async create(data: Record<string, any>): Promise<any> {
+        return await axiosJSONData(this.endpoints.create, 'POST', data, TokenType.ACCESS);
+    }
+
+    /**
      * Get user information
-     * @param {Record<string, any>} data: { area_id, name, desc }
+     * @param {Record<string, any>} data: { room_id, name, desc }
      *
      * @returns {Promise<any>}
      */
@@ -27,7 +37,7 @@ export default new class RoomFetch {
 
     /**
      * Get user information
-     * @param {Record<string, any>} data: { area_id }
+     * @param {Record<string, any>} data: { room_id }
      *
      * @returns {Promise<any>}
      */

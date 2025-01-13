@@ -7,33 +7,34 @@ import OwnDeviceFetch from '@/fetch/OwnDevice.fetch';
 import { HouseContext, HouseContextProps } from '@/hooks/context/HouseData.context';
 import variablesGlobal from '@/constants/variables';
 import IconCPN from '@/components/Icon';
-import { Message, SwitchDeviceITF } from '@/components/devices/SwitchItem';
+import { Message } from '@/components/devices/SwitchItem';
 import imagesGlobal from '@/constants/images';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DynamicValuesContext, DynamicValuesContextProps } from '@/hooks/context/DynamicValues.context';
 import { useMQTTContext } from '@/hooks/context/MQTT.context';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import fontsGlobal from '@/constants/fonts';
+import { OwnDeviceINF } from '@/interfaces/House.interface';
 
 
 const Device = ({route}: any) => {
 
-    const { device, topic } = route.params;
+    const { device } = route.params;
 
     const navigation = useNavigation();
 
-    const { handleUpdateDataSwitchDevice } = useContext(HouseContext) as HouseContextProps;
+    const { idRoomSelected, handleUpdateDataOwnDevice } = useContext(HouseContext) as HouseContextProps;
 
     const {dimensionsSize} = React.useContext(DynamicValuesContext) as DynamicValuesContextProps;
 
-    const [thisOwnDevice, setThisOwnDevice] = React.useState<SwitchDeviceITF>(device);
+    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF>(device);
 
     const [newNameDevice, setNewNameDevice] = React.useState<string>('');
 
     const [isRenameDevice, setIsRenameDevice] = React.useState<boolean>(false);
 
     React.useEffect(() => {
-        if (thisOwnDevice) handleUpdateDataSwitchDevice(thisOwnDevice.id, thisOwnDevice?.state, thisOwnDevice.online, thisOwnDevice?.name);
+        if (thisOwnDevice) handleUpdateDataOwnDevice(thisOwnDevice);
         setNewNameDevice(thisOwnDevice?.name ? thisOwnDevice?.name : '');
     }, [thisOwnDevice]);
 
@@ -51,7 +52,7 @@ const Device = ({route}: any) => {
         const strTimestamp = new Date().getTime().toString();
         setIdRequire(strTimestamp);
         publishToTopicMQTT(
-            topic.receive,
+            thisOwnDevice?.mqtt_topic_send,
             JSON.stringify({
                 type: type,
                 id: strTimestamp,
@@ -62,7 +63,7 @@ const Device = ({route}: any) => {
 
     React.useEffect(() => {
         const handleMessage = (message: Message) => {
-            if (message.destinationName === topic.send) {
+            if (message.destinationName === thisOwnDevice?.mqtt_topic_receive) {
                 try {
                     console.log(
                         `Message received on Device Card ${message.destinationName}: ${message.payloadString}`
@@ -107,7 +108,7 @@ const Device = ({route}: any) => {
 
         return () => removeOnMessageArrivedFromMQTT(handleMessage);
     }, [
-        topic,
+        thisOwnDevice.mqtt_topic_receive,
         subscribeTopicMQTT,
         setOnMessageArrivedFromMQTT,
         removeOnMessageArrivedFromMQTT,
@@ -133,7 +134,6 @@ const Device = ({route}: any) => {
         }
     }
 
-    console.log(newNameDevice);
 
     const [isFocusNameInput, setIsFocusNameInput] = React.useState<boolean>(false);
 
@@ -207,53 +207,53 @@ const Device = ({route}: any) => {
                     </View>
                 </View>
 
-            <TouchableWithoutFeedback onPress={() => handleOnBlurInputNewNameDevice() } style={{width: dimensionsSize.width, height: dimensionsSize.height}}>
-                <View style={{width: '100%', height: '100%', backgroundColor: 'transparent'}}>
+                <TouchableWithoutFeedback onPress={() => handleOnBlurInputNewNameDevice() } style={{width: dimensionsSize.width, height: dimensionsSize.height}}>
+                    <View style={{width: '100%', height: '100%', backgroundColor: 'transparent'}}>
 
-                    <View  style={{width: '100%', height: dimensionsSize.height - 48 - 100 , backgroundColor: 'transparent', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 46}}>
-                        <LinearGradient
-                            colors={[thisOwnDevice?.state ? '#e879f9' : "#a3a3a3", thisOwnDevice?.state ? '#4c1d95' : "#525252"]}
-                            locations={[0.1, 0.9]}
-                            style={[{width: 220, height: 220, borderRadius: 220, justifyContent: 'center', alignItems: 'center'}, {borderWidth: 0, borderColor: '#16a34a'}]}
-                        >
-                            <TouchableOpacity style={[{width: 220 - 25, height: 220 - 25, justifyContent: 'center', alignItems: 'center'}]} activeOpacity={0.8}
+                        <View  style={{width: '100%', height: dimensionsSize.height - 48 - 100 , backgroundColor: 'transparent', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 46}}>
+                            <LinearGradient
+                                colors={[thisOwnDevice?.state ? '#e879f9' : "#a3a3a3", thisOwnDevice?.state ? '#4c1d95' : "#525252"]}
+                                locations={[0.1, 0.9]}
+                                style={[{width: 220, height: 220, borderRadius: 220, justifyContent: 'center', alignItems: 'center'}, {borderWidth: 0, borderColor: '#16a34a'}]}
+                            >
+                                <TouchableOpacity style={[{width: 220 - 20, height: 220 - 20, justifyContent: 'center', alignItems: 'center'}]} activeOpacity={0.8}
+                                    onPress={() => handleControllToEquipment("CONTROLL")}
+                                >
+                                    <Image source={imagesGlobal.deviceSwitchButton} style={{width: 220 -20, height: 220 -20, resizeMode: 'contain' }} />
+                                </TouchableOpacity>
+                            </LinearGradient>
+                            <Text style={{textAlign: 'center', fontSize: 18, color: colorGlobal.textSecondary}}>{thisOwnDevice?.state ? "Bật" : "Tắt"} Nguồn</Text>
+                        </View>
+
+                        <View style={{width: '100%', height: 100, paddingTop: 0, paddingHorizontal: 50, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', rowGap: 46}}>
+
+                            <TouchableOpacity activeOpacity={0.8} style={{width: 50, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 3}}
                                 onPress={() => handleControllToEquipment("CONTROLL")}
                             >
-                                <Image source={imagesGlobal.deviceSwitchButton} style={{width: 220 -25, height: 220 -25, resizeMode: 'contain' }} />
-                            </TouchableOpacity>
-                        </LinearGradient>
-                        <Text style={{textAlign: 'center', fontSize: 18, color: colorGlobal.textSecondary}}>{thisOwnDevice?.state ? "Bật" : "Tắt"} Nguồn</Text>
+                                <View style={{padding: 15, borderRadius: 100, justifyContent: 'center', alignItems: 'center', backgroundColor: thisOwnDevice?.state ? "#7c3aed" : "#e9d5ff" }}>
+                                    <IconCPN iconName='powerOffRegular' size={18} color={colorGlobal.textSecondary}></IconCPN>
+                                </View>
+                                <Text style={{fontSize: 10, fontFamily: 'SanFranciscoText-SemiBold', color: colorGlobal.textSecondary}}>{thisOwnDevice?.state ? "Bật" : "Tắt"}</Text>
+                            </TouchableOpacity >
+
+                            <TouchableOpacity activeOpacity={0.8} style={{width: 50, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 3 }}>
+                                <View style={{padding: 15, borderRadius: 100, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e9d5ff' }}>
+                                    <IconCPN iconName='badgeCheckSolid' size={18} color={colorGlobal.textSecondary}></IconCPN>
+                                </View>
+                                <Text style={{fontSize: 10, fontFamily: 'SanFranciscoText-SemiBold', color: colorGlobal.textSecondary}}>Tự động</Text>
+                            </TouchableOpacity >
+
+                            <TouchableOpacity activeOpacity={0.8} style={{width: 50, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 3 }}
+                                onPress={() => navigation.navigate('settingDeviceScreen', {device: thisOwnDevice, idRoom: idRoomSelected })}
+                            >
+                                <View style={{padding: 15, borderRadius: 100, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e9d5ff' }}>
+                                    <IconCPN iconName='gearSolid' size={18} color={colorGlobal.textSecondary}></IconCPN>
+                                </View>
+                                <Text style={{fontSize: 10, fontFamily: 'SanFranciscoText-SemiBold', color: colorGlobal.textSecondary}}>Cài đặt</Text>
+                            </TouchableOpacity >
+                        </View>
                     </View>
-
-                    <View style={{width: '100%', height: 100, paddingTop: 0, paddingHorizontal: 50, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', rowGap: 46}}>
-
-                        <TouchableOpacity activeOpacity={0.8} style={{width: 50, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 3}}
-                            onPress={() => handleControllToEquipment("CONTROLL")}
-                        >
-                            <View style={{padding: 15, borderRadius: 100, justifyContent: 'center', alignItems: 'center', backgroundColor: thisOwnDevice?.state ? "#7c3aed" : "#e9d5ff" }}>
-                                <IconCPN iconName='powerOffRegular' size={18} color={colorGlobal.textSecondary}></IconCPN>
-                            </View>
-                            <Text style={{fontSize: 10, fontFamily: 'SanFranciscoText-SemiBold', color: colorGlobal.textSecondary}}>{thisOwnDevice?.state ? "Bật" : "Tắt"}</Text>
-                        </TouchableOpacity >
-
-                        <TouchableOpacity activeOpacity={0.8} style={{width: 50, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 3 }}>
-                            <View style={{padding: 15, borderRadius: 100, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e9d5ff' }}>
-                                <IconCPN iconName='badgeCheckSolid' size={18} color={colorGlobal.textSecondary}></IconCPN>
-                            </View>
-                            <Text style={{fontSize: 10, fontFamily: 'SanFranciscoText-SemiBold', color: colorGlobal.textSecondary}}>Tự động</Text>
-                        </TouchableOpacity >
-
-                        <TouchableOpacity activeOpacity={0.8} style={{width: 50, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 3 }}
-                            onPress={() => navigation.navigate('settingDeviceScreen', {device: thisOwnDevice, topic: topic})}
-                        >
-                            <View style={{padding: 15, borderRadius: 100, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e9d5ff' }}>
-                                <IconCPN iconName='gearSolid' size={18} color={colorGlobal.textSecondary}></IconCPN>
-                            </View>
-                            <Text style={{fontSize: 10, fontFamily: 'SanFranciscoText-SemiBold', color: colorGlobal.textSecondary}}>Cài đặt</Text>
-                        </TouchableOpacity >
-                    </View>
-                </View>
-            </TouchableWithoutFeedback>
+                </TouchableWithoutFeedback>
 
             </LinearGradient>
 

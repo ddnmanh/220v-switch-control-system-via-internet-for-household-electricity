@@ -6,6 +6,8 @@ import { DynamicValuesContext, DeviceItemSizeITF } from '@/hooks/context/Dynamic
 import { BlurView } from 'expo-blur';
 import IconCPN from '@/components/Icon';
 import { useNavigation } from "@react-navigation/native";
+import { OwnDeviceINF } from "@/interfaces/House.interface";
+import { HouseContext, HouseContextProps } from "@/hooks/context/HouseData.context";
 
 const variablesInComponent = {
     textPrimary: '#fff',
@@ -14,32 +16,16 @@ const variablesInComponent = {
     intensityDeviceItemBlur: 70,
 }
 
-export interface SwitchDeviceITF {
-    id: string;
-    id_device: string;
-    id_area: string;
-    name: string;
-    desc: string;
-    online: boolean;
-    state: boolean;
-}
-
-export interface TopicDeviceITF {
-    send: string;
-    receive: string;
-}
-
 export interface Message {
     destinationName: string;
     payloadString: string;
 }
 
 interface SwitchItemDeviceProps {
-    device: SwitchDeviceITF;
-    topic: TopicDeviceITF;
+    device: OwnDeviceINF;
 }
 
-const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) => {
+const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device }) => {
 
     const navigation = useNavigation();
 
@@ -51,24 +37,21 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) =>
         isMQTTConnected,
     } = useMQTTContext();
 
-    const [thisDevice, setThisDevice] = useState<SwitchDeviceITF>(device);
-    const [idRequire, setIdRequire] = useState<string>("");
+    const {handleUpdateDataOwnDevice} = React.useContext(HouseContext) as HouseContextProps;
+
+    const idMQTTRequire = React.useRef<string>("");
     const { deviceItemSize } = React.useContext(DynamicValuesContext) || {
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
 
     useEffect(() => {
-        setThisDevice(device);
-    }, [device]);
-
-    useEffect(() => {
-        if (isMQTTConnected && topic) subscribeTopicMQTT(topic.send);
-        if (isMQTTConnected && topic) handleControllToEquipment("STATUS");
+        if (isMQTTConnected && device?.mqtt_topic_receive) subscribeTopicMQTT(device?.mqtt_topic_receive);
+        if (isMQTTConnected && device?.mqtt_topic_send) handleControllToEquipment("STATUS");
     }, [isMQTTConnected, subscribeTopicMQTT])
 
     useEffect(() => {
         const handleMessage = (message: Message) => {
-            if (message.destinationName === topic.send) {
+            if (message.destinationName === device?.mqtt_topic_receive) {
                 try {
                     console.log(
                         `Message received on Device Card ${message.destinationName}: ${message.payloadString}`
@@ -77,31 +60,31 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) =>
                     const parsedMessage = JSON.parse(message.payloadString);
 
                     console.log(
-                        parsedMessage.id === idRequire,
+                        parsedMessage.id === idMQTTRequire.current,
                         " ------------------ ",
-                        idRequire,
+                        idMQTTRequire.current,
                         parsedMessage.id
                     );
 
                     if (parsedMessage.type === "NOTI") {
-                        setThisDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));
-                        setIdRequire("");
+                        handleUpdateDataOwnDevice({...device, state: parsedMessage.value, online: true} as OwnDeviceINF);
+                        idMQTTRequire.current = "";
                     }
 
                     if (
                         parsedMessage.type === "CONTROLL_RES" &&
-                        parsedMessage.id === idRequire
+                        parsedMessage.id === idMQTTRequire.current
                     ) {
-                        setThisDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));
-                        setIdRequire("");
+                        handleUpdateDataOwnDevice({...device, state: parsedMessage.value, online: true} as OwnDeviceINF);
+                        idMQTTRequire.current = "";
                     }
 
                     if (
                         parsedMessage.type === "STATUS_RES" &&
-                        parsedMessage.id === idRequire
+                        parsedMessage.id === idMQTTRequire.current
                     ) {
-                        setThisDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));
-                        setIdRequire("");
+                        handleUpdateDataOwnDevice({...device, state: parsedMessage.value, online: true} as OwnDeviceINF);
+                        idMQTTRequire.current = "";
                     }
                 } catch (error) {
                     console.log("Error parsing message payload", error);
@@ -113,26 +96,25 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) =>
 
         return () => removeOnMessageArrivedFromMQTT(handleMessage);
     }, [
-        topic,
+        device?.mqtt_topic_receive,
         subscribeTopicMQTT,
         setOnMessageArrivedFromMQTT,
         removeOnMessageArrivedFromMQTT,
-        idRequire,
+        idMQTTRequire.current,
     ]);
 
     const handleControllToEquipment = (type: string = "CONTROLL") => {
         const strTimestamp = new Date().getTime().toString();
-        setIdRequire(strTimestamp);
+        idMQTTRequire.current = strTimestamp;
         publishToTopicMQTT(
-            topic.receive,
+            device?.mqtt_topic_send,
             JSON.stringify({
                 type: type,
                 id: strTimestamp,
-                value: !thisDevice?.state,
+                value: !device?.state,
             })
         );
     };
-
 
     return (
         <BlurView intensity={70} tint='dark' style={[styles.device_item, styles.device_item_blur, { width: deviceItemSize.width, height: deviceItemSize.height }]}>
@@ -144,8 +126,7 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) =>
                                 screen: "deviceScreen",
                                 params: {
                                     typeDevice: "SWITCH",
-                                    device: thisDevice,
-                                    topic: topic
+                                    device: device
                                 }
                             }
                     );
@@ -161,16 +142,16 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device, topic }) =>
                             style={styles.content_top_icon}
                             onPress={() => isMQTTConnected ? handleControllToEquipment("CONTROLL") : {}}
                         >
-                            <IconCPN iconName={thisDevice?.state ? 'lightSwitchOnSolid' : 'lightSwitchOffSolid'} size={'100%'} color={thisDevice?.state ? '#0ea5e9' : '#a3a3a3'}></IconCPN>
+                            <IconCPN iconName={device?.state ? 'lightSwitchOnSolid' : 'lightSwitchOffSolid'} size={'100%'} color={device?.state ? '#0ea5e9' : '#a3a3a3'}></IconCPN>
                         </TouchableOpacity>
                         <View style={styles.content_top_right}>
                             <Text style={styles.content_top_nameDevice}>Công tắt</Text>
-                            <Text style={[styles.content_top_statusOnline, !thisDevice.online && styles.content_top_statusOnline__offline]}>{thisDevice.online ? 'Online' : 'Offline'}</Text>
-                            <Text style={styles.content_top_statusDevice}>{thisDevice?.state ? 'Bật nguồn' : 'Tắt nguồn'}</Text>
+                            <Text style={[styles.content_top_statusOnline, !device?.online && styles.content_top_statusOnline__offline]}>{device?.online ? 'Online' : 'Offline'}</Text>
+                            <Text style={styles.content_top_statusDevice}>{device?.state ? 'Bật nguồn' : 'Tắt nguồn'}</Text>
                         </View>
                     </View>
                     <View style={styles.device_item_content_bottom}>
-                        <Text style={styles.device_item_name}>{thisDevice?.name}</Text>
+                        <Text style={styles.device_item_name}>{device?.name}</Text>
                     </View>
                 </View>
             </TouchableNativeFeedback>

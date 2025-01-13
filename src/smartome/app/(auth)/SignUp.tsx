@@ -286,9 +286,9 @@ export default function SignUp() {
                         <Text style={styles.linkBar_link}>Đăng nhập</Text>
                     </TouchableWithoutFeedback>
                 </View>
-                <TouchableWithoutFeedback onPress={() => navigation.navigate( "(auth)", { screen: "otpVerifyScreen" } ) }>
+                {/* <TouchableWithoutFeedback onPress={() => navigation.navigate( "(auth)", { screen: "otpVerifyScreen" } ) }>
                     <Text style={styles.linkBar_link}>Giả sử đăng ký thành công</Text>
-                </TouchableWithoutFeedback>
+                </TouchableWithoutFeedback> */}
                 <View style={styles.linkBar_line}>
                     <Text style={styles.linkBar_line_title}>Lựa chọn khác</Text>
                 </View>

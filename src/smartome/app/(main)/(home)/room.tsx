@@ -23,13 +23,13 @@ const Room = ({route}: any) => {
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
 
-    const { houseDataChosen, areaDataChosen, handleChooseAreaByID } = React.useContext(HouseContext) as HouseContextProps;
+    const { houseDataSelected, roomDataSelected, handleChooseRoomByID } = React.useContext(HouseContext) as HouseContextProps;
 
     const [scrollY, setScrollY] = React.useState(0);
 
     React.useEffect(() => {
         return () => {
-            handleChooseAreaByID(null);
+            handleChooseRoomByID('');
         }
     }, []);
 
@@ -37,8 +37,8 @@ const Room = ({route}: any) => {
         <View style={{width: dimensionsSize?.width, height: dimensionsSize?.height}}>
             <ImageBackground
                 source={
-                    houseDataChosen?.setting?.wallpaper_path
-                        ? { uri: houseDataChosen?.setting?.wallpaper_path }
+                    houseDataSelected?.setting?.wallpaper_path
+                        ? { uri: houseDataSelected?.setting?.wallpaper_path }
                         : imagesGlobal.WallpaperDefault
                 }
                 resizeMode='cover'
@@ -46,7 +46,7 @@ const Room = ({route}: any) => {
                 style={styles.backgroundImage}
             >
                 <HeaderCPN
-                    title={areaDataChosen?.name}
+                    title={roomDataSelected?.name}
                     scrollY={scrollY}
                     showBackButton={true}
                 ></HeaderCPN>
@@ -61,15 +61,13 @@ const Room = ({route}: any) => {
                     style={[styles.scroll]}
                     stickyHeaderIndices={[]}
                 >
-                    <Text style={styles.house_name}>{areaDataChosen?.name}</Text>
+                    <Text style={styles.house_name}>{roomDataSelected?.name}</Text>
 
                     <View style={styles.clusterAreaOfHouse}>
                         <View style={styles.device_container}>
                             {
-                                areaDataChosen?.own_devices?.map((device:any, index:number) => {
-                                    let topicSend = houseDataChosen.id +"/"+device.id_device+"/send";
-                                    let topicReceive = houseDataChosen.id +"/"+device.id_device+"/receive";
-                                    return <SwitchItemDevice key={houseDataChosen.id+"-"+areaDataChosen.id+"-"+device.id} device={device} topic={{send: topicSend, receive: topicReceive}}/>
+                                roomDataSelected?.own_devices?.map((device:any, index:number) => {
+                                    return <SwitchItemDevice key={houseDataSelected?.id+"-"+roomDataSelected.id+"-"+device.id} device={device}/>
                                 })
                             }
                         </View>

@@ -14,40 +14,34 @@ import HouseFetch from '@/fetch/House.fetch';
 import colorGlobal from '@/constants/colors';
 import { HouseWithRelationINF } from '@/interfaces/House.interface';
 
-const Setting = () => {
-
+const CreateHouseScreen = () => {
     const navigation = useNavigation();
-    const { houseDataSelected, handleUpdateHouse, handleDeleteHouse } = React.useContext(HouseContext) as HouseContextProps;
+
+    const { handleAddHouse } = React.useContext(HouseContext) as HouseContextProps;
 
     const [forcusHouseNameInput, setForcusHouseNameInput] = React.useState(false);
     const [forcusHouseDescInput, setForcusHouseDescInput] = React.useState(false);
 
-    const [newHouseName, setNewHouseName] = React.useState(houseDataSelected?.name || 'Tên nhà của tôi');
-    const [newHouseDesc, setNewHouseDesc] = React.useState(houseDataSelected?.desc || '');
+    const [inputHouseName, setInputHouseName] = React.useState('');
+    const [inputHouseDesc, setInputHouseDesc] = React.useState('');
 
-    const [isRenameHouse, setIsRenameHouse] = React.useState(false);
-
-    const [openModalVerifyDeleteHouse, setOpenModalVerifyDeleteHouse] = React.useState(false);
+    const [isAddHouse, setIsAddHouse] = React.useState(false);
 
     const [scrollY, setScrollY] = React.useState(0);
-
-    const toggleModal = () => {
-        setOpenModalVerifyDeleteHouse(prev => !prev);
-    }
 
     const handleBackButton = () => {
         navigation.goBack();
     }
 
     useEffect(() => {
-        if (newHouseName !== houseDataSelected?.name || newHouseDesc !== houseDataSelected?.desc) {
-            setIsRenameHouse(true);
+        if (inputHouseName !== '' || inputHouseDesc !== '') {
+            setIsAddHouse(true);
         } else {
-            setIsRenameHouse(false);
+            setIsAddHouse(false);
         }
-    }, [newHouseName, newHouseDesc]);
+    }, [inputHouseName, inputHouseDesc]);
 
-    const handleUpdateHouseInfo = async () => {
+    const handleCreateHouse = async () => {
 
         Keyboard.dismiss();
 
@@ -55,47 +49,24 @@ const Setting = () => {
         if (forcusHouseDescInput) setForcusHouseDescInput(false);
 
         try {
-            let response = await HouseFetch.update({house_id: houseDataSelected?.id, name: newHouseName, desc: newHouseDesc, is_wallpaper_blur: false, is_main_house: false});
-
-            if (response.code === 200) {
-                handleUpdateHouse({...houseDataSelected, name: newHouseName, desc: newHouseDesc} as HouseWithRelationINF);
-            }
-        } catch (error) {
-            console.log('Error in handleUpdateHouseInfo: ', error);
-        }
-        setIsRenameHouse(false);
-    }
-
-    const handleDeleteThisHouse = async () => {
-        try {
-            let response = await HouseFetch.delete({house_id: houseDataSelected?.id});
+            let response = await HouseFetch.create({name: inputHouseName, desc: inputHouseDesc, is_wallpaper_blur: false});
 
             console.log('response: ', response);
 
-            toggleModal();
 
             if (response.code === 200) {
-                handleDeleteHouse(houseDataSelected?.id ? houseDataSelected?.id : '');
+                handleAddHouse({ ...response.data } as HouseWithRelationINF);
+                // Đặt lại stack và chuyển hướng đến màn hình mới
+                // Xoá lịch sử chuyển hướng
+                navigation.reset({
+                    index: 0,
+                    routes: [ { name: "(main)", params: { screen: "(home)", params: { screen: "indexScreen" }}}]
+                });
             }
         } catch (error) {
-            console.log('Error in handleDeleteHouse: ', error);
+            console.log('Error in handleCreateHouse: ', error);
         }
-
-        navigation.reset({
-            index: 0, // Đặt lại stack và chuyển hướng đến màn hình mới
-            routes: [
-                {
-                    name: "(main)", // Tên stack chính
-                    params: {
-                        screen: "(home)", // Tên stack con hoặc màn hình
-                        params: {
-                            screen: "indexScreen", // Tên màn hình thực tế bên trong
-                        },
-                    },
-                },
-            ],
-        });
-
+        setIsAddHouse(false);
     }
 
     return (
@@ -113,25 +84,18 @@ const Setting = () => {
                     </TouchableOpacity>
 
                     <View style={[ styles.headerClusterTittle]}>
-                        <Text style={[styles.headerClusterTittle_text]}>Cài đặt nhà</Text>
+                        <Text style={[styles.headerClusterTittle_text]}>Thêm nhà mới</Text>
                     </View>
 
                     <View style={[styles.buttonBarRight]}>
                         {
-                            (isRenameHouse === true)
+                            (isAddHouse === true)
                             &&
                             <TouchableOpacity
                                 style={[styles.headerButton]}
-                                onPress={() => handleUpdateHouseInfo()}
+                                onPress={() => handleCreateHouse()}
                             >
-                                <Text style={styles.headerButton_text}>Lưu</Text>
-                            </TouchableOpacity>
-                            ||
-                            <TouchableOpacity
-                                style={[styles.headerButton]}
-                                onPress={() => navigation.navigate("(house)", { screen: "housemange" })}
-                            >
-                                <Text style={styles.headerButton_text}>Quản lý</Text>
+                                <Text style={styles.headerButton_text}>Thêm</Text>
                             </TouchableOpacity>
                         }
                     </View>
@@ -157,17 +121,17 @@ const Setting = () => {
                                 style={styles.clusterInput_boxTextInput_textInput}
                                 placeholder='Tên nhà của tôi'
                                 placeholderTextColor='#999999'
-                                value={newHouseName}
+                                value={inputHouseName}
                                 onFocus={() => setForcusHouseNameInput(true)}
                                 onBlur={() => setForcusHouseNameInput(false)}
-                                onChange={(e) => setNewHouseName(e.nativeEvent.text)}
+                                onChange={(e) => setInputHouseName(e.nativeEvent.text)}
                             />
                             {
-                                forcusHouseNameInput && newHouseName.length > 0
+                                forcusHouseNameInput && inputHouseName.length > 0
                                 &&
                                 <TouchableOpacity
                                     onPress={() => {
-                                        setNewHouseName('');
+                                        setInputHouseName('');
                                         setForcusHouseNameInput(false);
                                     }}
                                 >
@@ -193,13 +157,9 @@ const Setting = () => {
                             <Divider style={{ height: 1, backgroundColor: '#e4e4e7' }}></Divider>
                             <View style={{paddingVertical: 10, paddingBottom: 0}}>
                                 <Image
-                                    source={
-                                        houseDataSelected?.setting?.wallpaper_path
-                                            ? { uri: houseDataSelected?.setting?.wallpaper_path }
-                                            : imagesGlobal.WallpaperDefault
-                                    }
+                                    source={ imagesGlobal.WallpaperDefault }
                                     resizeMode="contain"
-                                    style={{ height: 250, borderRadius: 10 }}
+                                    style={{ width: '100%', height: 250, borderRadius: 10 }}
                                 />
                             </View>
                         </View>
@@ -214,75 +174,25 @@ const Setting = () => {
                                 style={[styles.clusterInput_boxTextInput_textInput]}
                                 placeholder='Thêm ghi chú để bạn nhanh nhớ ngôi nhà của bạn hơn'
                                 placeholderTextColor='#999999'
-                                value={newHouseDesc}
+                                value={inputHouseDesc}
                                 onFocus={() => setForcusHouseDescInput(true)}
                                 onBlur={() => setForcusHouseDescInput(false)}
                                 multiline={true}
                                 numberOfLines={4}
-                                onChange={(e) => setNewHouseDesc(e.nativeEvent.text)}
+                                onChange={(e) => setInputHouseDesc(e.nativeEvent.text)}
                             />
                         </View>
                     </View>
-
-                    <Divider style={{ height: 40, backgroundColor: 'transparent' }}></Divider>
-
-                    <TouchableOpacity
-                        style={styles.clusterInput_box}
-                        onPress={() => setOpenModalVerifyDeleteHouse(true)}
-                    >
-                        <Text style={[styles.clusterInput_box_text, {color: 'red'}]}>Xoá Nhà Này</Text>
-                    </TouchableOpacity>
 
                     <Divider style={{ height: 80, backgroundColor: 'transparent' }}></Divider>
                 </ScrollView>
             </View>
 
-
-            <Modal
-                isVisible={openModalVerifyDeleteHouse}
-                onBackdropPress={toggleModal}
-                animationIn="slideInUp"
-                animationOut="slideOutDown"
-                backdropColor="rgba(0, 0, 0, 0.5)"
-                useNativeDriver={true}
-                // hideModalContentWhileAnimating={true} // Giảm hiện tượng nhấp nháy
-                // statusBarTranslucent={true} // Để modal che phủ thanh trạng thái
-                style={styles.bottomModal}
-            >
-                <View style={styles.modalContent}>
-
-                    <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", borderRadius: 13, overflow: 'hidden'}}>
-                        <View style={{width: '100%', paddingHorizontal: 30, paddingVertical: 15, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 6, backgroundColor: colorGlobal.subBackColor}}>
-                            <Text style={{fontSize: 18, fontWeight: '500', color: colorGlobal.textSecondary}}>Xoá nhà</Text>
-                            <Text style={{fontSize: 12, fontWeight: '400', textAlign: 'center', color: colorGlobal.textSecondary}}>Khi xoá nhà, các dữ liệu về nhà này sẽ bị xoá và không thể khôi phục, các thiết bị thuộc nhà này sẽ ở chế độ chờ kết nối lại</Text>
-                        </View>
-                        <Divider style={{width: '100%', height: 1.8, backgroundColor: '#e4e4e7'}}></Divider>
-                        <TouchableOpacity
-                            style={{width: '100%', height: 50, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: colorGlobal.subBackColor}}
-                            activeOpacity={0.4}
-                            onPress={() => handleDeleteThisHouse()}
-                        >
-                            <Text style={{fontSize: 18, fontWeight: '500', color: 'red'}}>Xoá</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <TouchableOpacity
-                        style={{width: '100%', height: 50, borderRadius: 13, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff'}}
-                        activeOpacity={0.7}
-                        onPress={() => setOpenModalVerifyDeleteHouse(prev => !prev)}
-                    >
-                        <Text style={{fontSize: 18, fontWeight: '500', color: '#FB923C'}}>Huỷ</Text>
-                    </TouchableOpacity>
-
-                </View>
-            </Modal>
-
-
         </View>
     );
 };
 
-export default Setting;
+export default CreateHouseScreen;
 
 const styles = StyleSheet.create({
     // Header
@@ -335,58 +245,6 @@ const styles = StyleSheet.create({
     },
     clusterInput_box_text: {
         fontSize: 15, fontFamily: fontsGlobal.mainSemiBold, color: '#000', lineHeight: 18,
-    },
-
-    // Modal
-    bottomModal: {
-        margin: 0, // Đảm bảo modal chiếm toàn màn hình
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        width: '96%',
-        marginHorizontal: '2%',
-        marginBottom: 20,
-        backgroundColor: 'transparent',
-        flexDirection: 'column',
-        alignItems: 'stretch',
-        rowGap: 8,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#000',
-    },
-    message: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 10,
-        textAlign: 'center',
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    actionButton: {
-        flex: 1,
-        marginHorizontal: 10,
-        paddingVertical: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    cancelButton: {
-        backgroundColor: '#E5E5E5',
-    },
-    deleteButtonModal: {
-        backgroundColor: '#FF3B30',
-    },
-    cancelText: {
-        color: '#000',
-        fontSize: 16,
-    },
-    deleteText: {
-        color: '#FFF',
-        fontSize: 16,
     },
 });
 

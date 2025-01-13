@@ -6,9 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import { HouseContext, HouseContextProps } from '@/hooks/context/HouseData.context';
 import variablesGlobal from '@/constants/variables';
 import IconCPN from '@/components/Icon';
-import { SwitchDeviceITF } from '@/components/devices/SwitchItem';
 import { Divider } from 'react-native-paper';
 import fontsGlobal from '@/constants/fonts';
+import { OwnDeviceINF } from '@/interfaces/House.interface';
 
 
 const LogDevice = ({route}: any) => {
@@ -17,15 +17,15 @@ const LogDevice = ({route}: any) => {
 
     const navigation = useNavigation();
 
-    const { handleUpdateDataSwitchDevice } = useContext(HouseContext) as HouseContextProps;
+    const { handleUpdateDataOwnDevice } = useContext(HouseContext) as HouseContextProps;
 
 
-    const [thisDevice, setThisDevice] = React.useState<SwitchDeviceITF>(device);
+    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF>(device);
 
 
     React.useEffect(() => {
-        handleUpdateDataSwitchDevice(thisDevice.id, thisDevice?.state, thisDevice.online, thisDevice.name);
-    }, [thisDevice]);
+        handleUpdateDataOwnDevice(thisOwnDevice);
+    }, [thisOwnDevice]);
 
 
     const handleBackButton = () => {

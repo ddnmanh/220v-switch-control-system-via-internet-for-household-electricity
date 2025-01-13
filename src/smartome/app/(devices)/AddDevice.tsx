@@ -17,7 +17,7 @@ const AddDevice = ({route}: any) => {
 
     const { idHouse, idArea } = route.params || {};
 
-    const {setHousesData} = useContext(HouseContext) || {};
+    const { handleAddHouse } = useContext(HouseContext) || {};
 
     const navigation = useNavigation();
     const { userInfo } = React.useContext(AuthContext) || {};

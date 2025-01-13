@@ -17,9 +17,9 @@ const SetupNewOwnDevice = ({route}: any) => {
 
     const navigation = useNavigation();
 
-    const { houseDataChosen, reloadHouseContext } = useContext(HouseContext) as HouseContextProps;
+    const { houseDataSelected, reloadHouseContext } = useContext(HouseContext) as HouseContextProps;
 
-    const [selectIdArea, setSelectIdArea] = React.useState(idArea ? idArea : '');
+    const [selectIdRoom, setSelectIdRoom] = React.useState(idArea ? idArea : '');
     const [isSelectError, setSelectError] = React.useState(false);
 
     const [nameDevice, setNameDevice] = React.useState('');
@@ -30,7 +30,7 @@ const SetupNewOwnDevice = ({route}: any) => {
     const handleSetupDevice = async () => {
         if (checkDataValid()) {
             try {
-                let response = await OwnDeviceFetch.create({id_house: houseDataChosen.id, id_area: selectIdArea, id_device: idDevice, name: nameDevice, desc: descDevice});
+                let response = await OwnDeviceFetch.create({id_house: houseDataSelected?.id, id_room: selectIdRoom, id_device: idDevice, name: nameDevice, desc: descDevice});
 
                 if (response.code === 200) {
                     setSettingUp(false);
@@ -38,7 +38,7 @@ const SetupNewOwnDevice = ({route}: any) => {
                     reloadHouseContext();
 
                     setTimeout(() => {
-                        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "roomScreen", params: { idArea: idArea } } });
+                        navigation.navigate( "(main)", { screen: "(home)", params: { screen: "indexScreen" } });
                     }, 2000);
 
                 }
@@ -50,7 +50,7 @@ const SetupNewOwnDevice = ({route}: any) => {
     }
 
     const checkDataValid = () : boolean => {
-        if (selectIdArea === '') {
+        if (selectIdRoom === '') {
             setSelectError(true);
             return false;
         }
@@ -69,16 +69,20 @@ const SetupNewOwnDevice = ({route}: any) => {
                     <SelectOptionCPN
                         label=""
                         options={
-                            houseDataChosen?.areas.map((area: any) => {
+                            houseDataSelected?.rooms
+                            ?
+                            houseDataSelected?.rooms?.map((area: any) => {
                                 return {
                                     label: area?.name,
                                     value: area?.id
                                 }
                             })
+                            :
+                            []
                         }
                         // options={options}
-                        value={selectIdArea}
-                        onChange={(value) => setSelectIdArea(value)}
+                        value={selectIdRoom}
+                        onChange={(value) => setSelectIdRoom(value)}
                         errorMessage={isSelectError ? 'Lựa chọn không hợp lệ' : ''}
                     />
                 </View>
@@ -90,7 +94,7 @@ const SetupNewOwnDevice = ({route}: any) => {
                 </View>
 
                 <View>
-                    <ButtonCPN content='Cấu hình' type='primary' handlePress={() => handleSetupDevice()} disable={!selectIdArea || isSettingUp} isLoading={isSettingUp}/>
+                    <ButtonCPN content='Cấu hình' type='primary' handlePress={() => handleSetupDevice()} disable={!selectIdRoom || isSettingUp} isLoading={isSettingUp}/>
                 </View>
             </View>
             <View style={styles.ortherMethodView}>
