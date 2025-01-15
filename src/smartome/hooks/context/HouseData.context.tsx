@@ -52,24 +52,31 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
     }, [housesData, idHouseSelected]);
 
     const handleUpdateDataHouseSelected = () => {
+        console.log('HANDLE UPDATE DATA HOUSE SELECTED');
+        console.log(housesData.length);
+        console.log(idHouseSelected);
+        console.log("-------------------------------");
+
+
+
         if (housesData.length > 0) {
             if (idHouseSelected === '') {
                 // Chọn nhà chính nếu có
                 let mainHouse = housesData.find((house: HouseWithRelationINF) => house.setting?.is_main_house);
 
                 if (mainHouse && Object.keys(mainHouse).length > 0) {
-                    setHouseDataSelected({...mainHouse});
-                    setIdHouseSelected(mainHouse.id);
+                    setHouseDataSelected(prev => mainHouse );
+                    setIdHouseSelected(prev => mainHouse.id);
                 } else {
-                    setHouseDataSelected({...housesData[0]});
-                    setIdHouseSelected(housesData[0].id);
+                    setHouseDataSelected(prev => housesData[0]);
+                    setIdHouseSelected(prev => housesData[0].id);
                 }
             } else {
                 // Kiểm tra xem houseId có tồn tại trong housesData không
                 const chosenHouse = housesData.find((house: any) => house.id === idHouseSelected);
                 if (chosenHouse && Object.keys(chosenHouse).length > 0) {
-                    setHouseDataSelected({...housesData[0]});
-                    setHouseDataSelected({...chosenHouse});
+                    setHouseDataSelected(prev => chosenHouse);
+                    setIdHouseSelected(prev => housesData[0].id);
                 }
             }
 
@@ -176,23 +183,15 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
 
     const handleUpdateDataOwnDevice = (ownDeviceNew: OwnDeviceINF) => {
 
-        let newHouse = housesData.map((house: HouseWithRelationINF) => {
+        console.log('HANDLE UPDATE DATA OWN DEVICE');
+        console.log(ownDeviceNew);
 
-            let newOwnDeviceOnHouse = house.own_devices.map((ownDevice: OwnDeviceINF) => {
-                if (ownDevice.id === ownDeviceNew.id) {
-                    return {
-                        ...ownDevice,
-                        name: ownDeviceNew.name,
-                        desc: ownDeviceNew.desc,
-                        state: ownDeviceNew.state,
-                        online: ownDeviceNew.online,
-                    }
-                }
-                return ownDevice;
-            });
 
-            let newRoom = house.rooms.map((rooms: RoomWithRelationINF) => {
-                let newOwnDevice = rooms.own_devices.map((ownDevice: any) => {
+
+        setHousesData((prevData) => {
+            return prevData.map((house: HouseWithRelationINF) => {
+
+                let newOwnDeviceOnHouse = house.own_devices.map((ownDevice: OwnDeviceINF) => {
                     if (ownDevice.id === ownDeviceNew.id) {
                         return {
                             ...ownDevice,
@@ -205,129 +204,145 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                     return ownDevice;
                 });
 
+                let newRoom = house.rooms.map((rooms: RoomWithRelationINF) => {
+                    let newOwnDevice = rooms.own_devices.map((ownDevice: any) => {
+                        if (ownDevice.id === ownDeviceNew.id) {
+                            return {
+                                ...ownDevice,
+                                name: ownDeviceNew.name,
+                                desc: ownDeviceNew.desc,
+                                state: ownDeviceNew.state,
+                                online: ownDeviceNew.online,
+                            }
+                        }
+                        return ownDevice;
+                    });
+
+                    return {
+                        ...rooms,
+                        own_devices: newOwnDevice
+                    }
+                });
+
                 return {
-                    ...rooms,
-                    own_devices: newOwnDevice
+                    ...house,
+                    own_devices: newOwnDeviceOnHouse,
+                    rooms: newRoom
                 }
             });
-
-            return {
-                ...house,
-                own_devices: newOwnDeviceOnHouse,
-                rooms: newRoom
-            }
         });
 
-        setHousesData(newHouse);
     }
 
     const handleUpdateHouse = (houseNew: HouseWithRelationINF) => {
-        let newHouse = housesData.map((house: any) => {
-            if (house.id === houseNew.id) {
-                return {
-                    ...house,
-                    name: houseNew.name,
-                    desc: houseNew.desc,
-                };
-            }
-            return house;
+        setHousesData((prevData) => {
+            return prevData.map((house: any) => {
+                if (house.id === houseNew.id) {
+                    return {
+                        ...house,
+                        name: houseNew.name,
+                        desc: houseNew.desc,
+                    };
+                }
+                return house;
+            });
         });
-
-        setHousesData(newHouse);
     }
 
     const handleUpdateDataRoom = (roomNew: RoomWithRelationINF) => {
-        let newHouse = housesData.map((house: any) => {
-            let newRooms = house.rooms.map((room: any) => {
-                if (room.id === roomNew.id) {
-                    return {
-                        ...room,
-                        name: roomNew.name,
-                        desc: roomNew.desc,
-                        own_devices: roomNew.own_devices
-                    };
-                }
-                return room;
+        setHousesData((prevData) => {
+            return prevData.map((house: any) => {
+                let newRooms = house.rooms.map((room: any) => {
+                    if (room.id === roomNew.id) {
+                        return {
+                            ...room,
+                            name: roomNew.name,
+                            desc: roomNew.desc,
+                            own_devices: roomNew.own_devices
+                        };
+                    }
+                    return room;
+                });
+
+                return {
+                    ...house,
+                    rooms: newRooms
+                };
             });
-
-            return {
-                ...house,
-                rooms: newRooms
-            };
         });
-
-        setHousesData(newHouse);
     }
 
     const handleDeleteRoom = (roomId: string) => {
-        let newHouse = housesData.map((house: any) => {
-            let newRooms = house.rooms.filter((room: any) => room.id !== roomId);
-            return {
-                ...house,
-                rooms: newRooms
-            };
-        });
 
-        setHousesData(newHouse);
+        setHousesData((prevData) => {
+            return prevData.map((house: any) => {
+                let newRooms = house.rooms.filter((room: any) => room.id !== roomId);
+                return {
+                    ...house,
+                    rooms: newRooms
+                };
+            });
+        });
     }
 
     const handleDeleteOwnDevice = (ownDeviceId: string) => {
-        let newHouse = housesData.map((house: any) => {
-            let newOwnDevices = house.own_devices.filter((ownDevice: any) => ownDevice.id !== ownDeviceId);
-            let newRooms = house.rooms.map((room: any) => {
-                let newOwnDevices = room.own_devices.filter((ownDevice: any) => ownDevice.id !== ownDeviceId);
+        setHousesData((prevData) => {
+            return prevData.map((house: any) => {
+                let newOwnDevices = house.own_devices.filter((ownDevice: any) => ownDevice.id !== ownDeviceId);
+                let newRooms = house.rooms.map((room: any) => {
+                    let newOwnDevices = room.own_devices.filter((ownDevice: any) => ownDevice.id !== ownDeviceId);
+                    return {
+                        ...room,
+                        own_devices: newOwnDevices
+                    };
+                });
+
                 return {
-                    ...room,
-                    own_devices: newOwnDevices
+                    ...house,
+                    own_devices: newOwnDevices,
+                    rooms: newRooms
                 };
             });
-
-            return {
-                ...house,
-                own_devices: newOwnDevices,
-                rooms: newRooms
-            };
         });
-
-        setHousesData(newHouse);
     }
 
     const handleDeleteHouse = (houseId: string) => {
-        let newHouse = housesData.filter((house: any) => house.id !== houseId);
-        if (newHouse.length > 0) {
-            setHouseDataSelected({...newHouse[0]});
-            setIdHouseSelected(newHouse[0].id);
-            // navigation.replace( "(main)", { screen: "(home)", params: { screen: "indexScreen" } } );
-        } else {
-            // Nếu không còn nhà nào thì set houseDataSelected = null
-            setHouseDataSelected(null);
-            setIdHouseSelected('');
-            // navigation.replace('(house)', { screen: 'createHouseScreen' });
-        }
-        setHousesData(newHouse);
+        setHousesData((prevData) => {
+            let newHouse = housesData.filter((house: any) => house.id !== houseId);
+            if (newHouse.length > 0) {
+                setHouseDataSelected({...newHouse[0]});
+                setIdHouseSelected(newHouse[0].id);
+                // navigation.replace( "(main)", { screen: "(home)", params: { screen: "indexScreen" } } );
+            } else {
+                // Nếu không còn nhà nào thì set houseDataSelected = null
+                setHouseDataSelected(null);
+                setIdHouseSelected('');
+                // navigation.replace('(house)', { screen: 'createHouseScreen' });
+            }
+
+            return newHouse;
+        });
     }
 
 
     const handleAddHouse = (houseNew: HouseWithRelationINF) => {
-        setHousesData([...housesData, houseNew]);
+        setHousesData(prevData => {
+            return [...prevData, houseNew];
+        });
     }
 
     const handleAddRoom = (roomNew: RoomWithRelationINF) => {
-
-        console.log('ROOM NEW', roomNew);
-
-
-        let newHouse = housesData.map((house: any) => {
-            if (house.id === idHouseSelected) {
-                return {
-                    ...house,
-                    rooms: [...house.rooms, roomNew]
-                };
-            }
-            return house;
-        });
-
-        setHousesData(newHouse);
+        setHousesData((prevData) => {
+            return prevData.map((house: any) => {
+                if (house.id === idHouseSelected) {
+                    return {
+                        ...house,
+                        rooms: [...house.rooms, roomNew]
+                    };
+                }
+                return house;
+            });
+        })
     }
 
 
@@ -340,6 +355,19 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
     // console.log(houseDataSelected?.name);
     // console.log("-----------------");
 
+
+    console.log('HOUSE CONTEXT RENDER');
+    console.log(housesData[0]?.rooms[1]?.own_devices[0]);
+    console.log(housesData[0]?.rooms[1]?.own_devices[1]);
+    console.log(houseDataSelected?.rooms[1]?.own_devices[0]);
+    console.log(houseDataSelected?.rooms[1]?.own_devices[1]);
+
+    // const handleLog = () => {
+    //     housesData[0].rooms[0].own_devices.forEach((ownDevice: any) => {
+    //         console.log(ownDevice);
+    //     });
+    // }
+    // handleLog();
 
 
 

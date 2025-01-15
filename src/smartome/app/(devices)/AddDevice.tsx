@@ -101,9 +101,6 @@ const AddDevice = ({route}: any) => {
 
         try {
 
-            console.error(`http://192.168.4.1/setWiFi?ownerId=${idHouse}&gmt=${gmt}&ssid=${houseSSID}&password=${passwordHouseSSID}`);
-
-
             const response = await fetch(`http://192.168.4.1/setWiFi?ownerId=${idHouse}&gmt=${gmt}&ssid=${houseSSID}&password=${passwordHouseSSID}`);
 
             if (response.status === 200) {

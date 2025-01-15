@@ -65,18 +65,18 @@ const Device = ({route}: any) => {
         const handleMessage = (message: Message) => {
             if (message.destinationName === thisOwnDevice?.mqtt_topic_receive) {
                 try {
-                    console.log(
-                        `Message received on Device Card ${message.destinationName}: ${message.payloadString}`
-                    );
+                    // console.log(
+                    //     `Message received on Device Card ${message.destinationName}: ${message.payloadString}`
+                    // );
 
                     const parsedMessage = JSON.parse(message.payloadString);
 
-                    console.log(
-                        parsedMessage.id === idRequire,
-                        " ------------------ ",
-                        idRequire,
-                        parsedMessage.id
-                    );
+                    // console.log(
+                    //     parsedMessage.id === idRequire,
+                    //     " ------------------ ",
+                    //     idRequire,
+                    //     parsedMessage.id
+                    // );
 
                     if (parsedMessage.type === "NOTI") {
                         setThisOwnDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));

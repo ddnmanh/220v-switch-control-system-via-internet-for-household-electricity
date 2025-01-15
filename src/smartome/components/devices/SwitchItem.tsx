@@ -1,5 +1,5 @@
 // components/SwitchItemDevice.tsx
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { StyleSheet, Text, TouchableNativeFeedback, TouchableOpacity, Vibration, View } from "react-native";
 import { useMQTTContext } from "@/hooks/context/MQTT.context";
 import { DynamicValuesContext, DeviceItemSizeITF } from '@/hooks/context/DynamicValues.context';
@@ -44,30 +44,44 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device }) => {
         deviceItemSize: { width: 0, height: 0 } as DeviceItemSizeITF,
     };
 
-    useEffect(() => {
+
+    /*
+    * Sử dụng ref để lưu trữ giá trị của device
+    * khi device thay đổi thì giá trị của deviceRef.current sẽ thay đổi theo
+    * Thì giá trị device đưa vào MQTT sẽ theo giá trị mới nhất
+    * Nếu không sử dụng ref thì giá trị device đưa vào MQTT sẽ là giá trị đầu tiên mà component nhận được
+    */
+    const deviceRef = React.useRef<OwnDeviceINF>(device);
+    React.useEffect(() => {
+        deviceRef.current = device;
+    }, [device]);
+    /* Code này có ý nghĩa fix lỗi là chính */
+
+
+    React.useEffect(() => {
         if (isMQTTConnected && device?.mqtt_topic_receive) subscribeTopicMQTT(device?.mqtt_topic_receive);
         if (isMQTTConnected && device?.mqtt_topic_send) handleControllToEquipment("STATUS");
     }, [isMQTTConnected, subscribeTopicMQTT])
 
-    useEffect(() => {
+    React.useEffect(() => {
         const handleMessage = (message: Message) => {
             if (message.destinationName === device?.mqtt_topic_receive) {
                 try {
-                    console.log(
-                        `Message received on Device Card ${message.destinationName}: ${message.payloadString}`
-                    );
+                    // console.log(
+                    //     `Message received on Device Card ${message.destinationName}: ${message.payloadString}`
+                    // );
 
                     const parsedMessage = JSON.parse(message.payloadString);
 
-                    console.log(
-                        parsedMessage.id === idMQTTRequire.current,
-                        " ------------------ ",
-                        idMQTTRequire.current,
-                        parsedMessage.id
-                    );
+                    // console.log(
+                    //     parsedMessage.id === idMQTTRequire.current,
+                    //     " ------------------ ",
+                    //     idMQTTRequire.current,
+                    //     parsedMessage.id
+                    // );
 
                     if (parsedMessage.type === "NOTI") {
-                        handleUpdateDataOwnDevice({...device, state: parsedMessage.value, online: true} as OwnDeviceINF);
+                        handleUpdateDataOwnDevice({...deviceRef.current, state: parsedMessage.value, online: true} as OwnDeviceINF);
                         idMQTTRequire.current = "";
                     }
 
@@ -75,7 +89,7 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device }) => {
                         parsedMessage.type === "CONTROLL_RES" &&
                         parsedMessage.id === idMQTTRequire.current
                     ) {
-                        handleUpdateDataOwnDevice({...device, state: parsedMessage.value, online: true} as OwnDeviceINF);
+                        handleUpdateDataOwnDevice({...deviceRef.current, state: parsedMessage.value, online: true} as OwnDeviceINF);
                         idMQTTRequire.current = "";
                     }
 
@@ -83,7 +97,7 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device }) => {
                         parsedMessage.type === "STATUS_RES" &&
                         parsedMessage.id === idMQTTRequire.current
                     ) {
-                        handleUpdateDataOwnDevice({...device, state: parsedMessage.value, online: true} as OwnDeviceINF);
+                        handleUpdateDataOwnDevice({...deviceRef.current, state: parsedMessage.value, online: true} as OwnDeviceINF);
                         idMQTTRequire.current = "";
                     }
                 } catch (error) {

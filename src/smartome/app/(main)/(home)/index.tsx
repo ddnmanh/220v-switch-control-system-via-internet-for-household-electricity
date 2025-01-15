@@ -120,6 +120,8 @@ const Index = () => {
                                     <View style={styles.device_container}>
                                         {
                                             room?.own_devices?.map((device:any, index:number) => {
+                                                console.log("SWITCH ITEM DEVICE: ", device.name);
+
                                                 return <SwitchItemDevice key={houseDataSelected.id+"-"+room.id+"-"+device.id} device={device} />
                                             })
                                         }
