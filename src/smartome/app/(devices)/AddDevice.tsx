@@ -23,11 +23,11 @@ const AddDevice = ({route}: any) => {
     const { userInfo } = React.useContext(AuthContext) || {};
     const { wifiInfomation } = useContext(WifiContext) || {};
 
-    const [deviceID, setDeviceID] = React.useState('8ZY73W');
+    const [deviceID, setDeviceID] = React.useState('');
     const [deviceSSID, setDeviceSSID] = React.useState('');
-    const [devicePass, setDevicePass] = React.useState('12345678');
-    const [houseSSID, setHouseSSID] = React.useState('labech_dnm');
-    const [passwordHouseSSID, setPasswordHouseSSID] = React.useState('techlab@dnmanh');
+    const [devicePass, setDevicePass] = React.useState('');
+    const [houseSSID, setHouseSSID] = React.useState('');
+    const [passwordHouseSSID, setPasswordHouseSSID] = React.useState('');
 
     const [isSettingUp, setIsSettingUp] = React.useState(false);
 
@@ -197,13 +197,13 @@ const AddDevice = ({route}: any) => {
                         </BlurView>
                     }
 
-                    <Text style={{marginBottom: 10}}>Tìm thông tin trên công tắc</Text>
+                    <Text style={{marginBottom: 10}}>Tìm thông tin trên thiết bị</Text>
                     <View style={styles.viewInput}>
                         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                            <InputCPN label="" placeholder="SWITCH_WIFI_4D7D" value={deviceSSID} onChange={(text) => setDeviceSSID(text)}></InputCPN>
+                            <InputCPN label="" placeholder="D7Y88D_WIFI, 8HIDJ8_WIFI,..." value={deviceSSID} onChange={(text) => setDeviceSSID(text)}></InputCPN>
                         </View>
                         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                            <InputCPN label="" type='text' placeholder="Mật khẩu công tắc" value={devicePass} onChange={(text) => setDevicePass(text)}></InputCPN>
+                            <InputCPN label="" type='text' placeholder="Mật khẩu thiết bị" value={devicePass} onChange={(text) => setDevicePass(text)}></InputCPN>
                         </View>
                     </View>
                 </View>

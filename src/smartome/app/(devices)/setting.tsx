@@ -162,7 +162,7 @@ const SettingDevice = ({route}: any) => {
                             <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center', backgroundColor: "#fff", borderRadius: 13, overflow: 'hidden'}}>
                                 <View style={{width: '100%', paddingHorizontal: 30, paddingVertical: 15, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 6, backgroundColor: colorGlobal.subBackColor}}>
                                     <Text style={{fontSize: 18, fontWeight: '500', color: colorGlobal.textSecondary}}>Xoá thiết bị</Text>
-                                    <Text style={{fontSize: 12, fontWeight: '400', textAlign: 'center', color: colorGlobal.textSecondary}}>Khi bạn xoá, thiết bị sẽ bị xoá và không thể điều khiển qua ứng dụng, điều khiển ở thiết bị vẫn hoạt động</Text>
+                                    <Text style={{fontSize: 12, fontWeight: '400', textAlign: 'center', color: colorGlobal.textSecondary}}>Khi bạn xoá, thiết bị sẽ không thể điều khiển qua ứng dụng nhưng điều khiển ở thiết bị vẫn hoạt động và ở chế độ chờ kết nối lại</Text>
                                 </View>
                                 <Divider style={{width: '100%', height: 1.8, backgroundColor: '#e4e4e7'}}></Divider>
                                 <TouchableOpacity
