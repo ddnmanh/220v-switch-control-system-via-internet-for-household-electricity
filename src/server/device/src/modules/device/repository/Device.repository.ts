@@ -16,7 +16,7 @@ export class DeviceRepository {
 
     async createDevice(newDevice: DeviceEntity): Promise<DeviceEntity> {
         newDevice.id = this.generateUUIDService.generateIdWithLength(6);
-        newDevice.deviceAP.apSSID = newDevice.type == DeviceType.SWITCH ? ('SW_' + newDevice.id) : newDevice.id;
+        newDevice.deviceAP.apSSID = newDevice.type == DeviceType.SWITCH ? (newDevice.id + '_WIFI') : newDevice.id;
         return await this.deviceRepository.save(newDevice);
     }
 
@@ -40,5 +40,4 @@ export class DeviceRepository {
         await this.deviceRepository.remove(device);
         return true;
     }
-
 }

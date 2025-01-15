@@ -33,6 +33,8 @@ export class OwnDeviceController implements OnModuleInit {
 
         try {
             const data: any = await firstValueFrom(this.svc.createOwnDevice(body));
+            console.log(data);
+
             return new StandardizeRes(data).resp();
         } catch (error: any) {
             return CatchingCommunicategRPC.catchRPCError(error);

@@ -22,7 +22,8 @@
     "proto:auth": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd -I=./node_modules/config-project-global/proto --ts_proto_out=src/proto/ node_modules/config-project-global/proto/auth.proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
     "proto:device": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd -I=./node_modules/config-project-global/proto --ts_proto_out=src/proto/ node_modules/config-project-global/proto/device.proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
     "proto:house": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd -I=./node_modules/config-project-global/proto --ts_proto_out=src/proto/ node_modules/config-project-global/proto/house.proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
-    "proto:all": "npm run proto:auth && npm run proto:device && npm run proto:house",
+    "proto:SysOpenration": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd -I=./node_modules/config-project-global/proto --ts_proto_out=src/proto/ node_modules/config-project-global/proto/SysOpenration.proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
+    "proto:all": "npm run proto:auth && npm run proto:device && npm run proto:house && npm run proto:SysOpenration",
     "mtls:generate-private-key-and-csr": "node ./scripts/generate-private-key-and-CSR.js",
     "mtls:generate-certificate": "node ./scripts/generate-certificate.js",
     "mtls:all": "npm run mtls:generate-private-key-and-csr && npm run mtls:generate-certificate"
