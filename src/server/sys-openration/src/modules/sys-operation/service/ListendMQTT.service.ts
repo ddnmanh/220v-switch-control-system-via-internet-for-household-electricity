@@ -18,6 +18,17 @@ export class ListendMQTTService implements OnModuleInit {
         this.connectToBroker();
     }
 
+    onModuleDestroy() {
+        this.client.end(false, () => {
+            this.logger.log('Disconnected from MQTT broker');
+        });
+    }
+
+    onApplicationShutdown(signal?: string) {
+        this.logger.log(`Application shutting down (signal: ${signal})`);
+        this.client.end(true); // Force disconnect immediately
+    }
+
     private connectToBroker() {
 
         this.client = connect(
@@ -26,6 +37,10 @@ export class ListendMQTTService implements OnModuleInit {
                 username: this.configService.get<string>('mqtt_username'),
                 password: this.configService.get<string>('mqtt_password'),
                 clientId: this.configService.get<string>('mqtt_client_id'),
+                connectTimeout: 10000,
+                reconnectPeriod: 3000,
+                keepalive: 60,
+                clean: true,
             }
         );
 
@@ -58,16 +73,20 @@ export class ListendMQTTService implements OnModuleInit {
         this.logger.log(`Received message on topic ${topic}: ${message}`);
 
         try {
-            let messageData = JSON.parse(message);
+            const messageData = JSON.parse(message);
 
-            if (messageData.type == 'CONTROLL_RES' || messageData.type == 'NOTI') {
-                let idHouse = topic.split('/')[0];
-                let idDevice = topic.split('/')[1];
+            if (messageData?.type === 'CONTROLL_RES' || messageData?.type === 'NOTI') {
+                const [idHouse, idDevice] = topic.split('/');
 
-                this.historyOperationRepository.createHistoryOperation(idHouse, idDevice, messageData.value);
+                if (idHouse && idDevice && messageData['value'] !== undefined) {
+                    this.historyOperationRepository.createHistoryOperation(idHouse, idDevice, messageData.value);
+                } else {
+                    this.logger.warn(`Invalid topic format: ${topic}`);
+                }
             }
         } catch (error) {
-            this.logger.error(`Error when parsing message: ${error}`);
+            this.logger.error(`Error parsing message: ${error.message}`);
         }
     }
+
 }

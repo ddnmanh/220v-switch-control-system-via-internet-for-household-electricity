@@ -28,9 +28,6 @@ export class SysOperationController implements OnModuleInit {
     @Get('device/:house_id?/:device_id?')
     @UseGuards(VerifyTokenInBearerGuard)
     public async getHouse(@Request() req:any, @Query('house_id') houseId: string, @Query('device_id') deviceId: string): Promise<any> {
-
-        console.log(`SysOperationController:param : ${houseId} - ${deviceId}`);
-
         try {
             const data: any = await firstValueFrom(this.svc.getHistoryDeviceInfo({ idHouse: houseId, idDevice: deviceId, mqttTopic: '' }));
 

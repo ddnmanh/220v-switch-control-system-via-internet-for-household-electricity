@@ -29,7 +29,6 @@ export class HistoryOperationRepository {
             .andWhere('historyOperation.idDevice = :idDevice', { idDevice: idDevice })
             .orderBy('historyOperation.eventDateTime', 'DESC')
             .getMany();
-
     }
 
 }

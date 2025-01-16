@@ -199,6 +199,15 @@ export class OwnDeviceService implements OnModuleInit {
 
             updateOwnDevice.name = body.name;
             updateOwnDevice.desc = body.desc;
+            updateOwnDevice.isSaveState = body.isSaveState === undefined ? updateOwnDevice.isSaveState : body.isSaveState;
+            updateOwnDevice.isVerifyResetFromApp = body.isVerifyResetFromApp === undefined ? updateOwnDevice.isVerifyResetFromApp : body.isVerifyResetFromApp;
+
+            console.log('OwnDeviceService:updateOwnDevice : ', body);
+            console.log(body['isSaveState']);
+
+
+            console.log('OwnDeviceService:updateOwnDevice : ', updateOwnDevice);
+
 
             let ownDeviceResult = await this.ownDeviceRepository.updateOwnDevice(updateOwnDevice);
 

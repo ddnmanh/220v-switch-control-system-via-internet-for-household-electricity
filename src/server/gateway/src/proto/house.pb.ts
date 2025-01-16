@@ -114,6 +114,8 @@ export interface UpdateOwnDeviceReq {
   idUser: string;
   name: string;
   desc: string;
+  isSaveState: boolean;
+  isVerifyResetFromApp: boolean;
 }
 
 /** Delete */

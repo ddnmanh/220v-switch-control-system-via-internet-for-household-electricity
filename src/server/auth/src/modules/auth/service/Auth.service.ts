@@ -198,6 +198,9 @@ export class AuthService implements OnModuleInit {
 
     async logIn(body: LogInDto): Promise<ServiceRes> {
 
+        console.log('login', body);
+
+
         let statusMessage:ErrServiceRes[] = [];
 
         if (body.username === '' || !body.username) statusMessage.push( {property: 'username', message: 'Username must not empty'} );
