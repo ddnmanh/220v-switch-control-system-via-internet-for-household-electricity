@@ -20,7 +20,7 @@ PubSubClient mqtt_client(espClient);
 // WiFi settings
 String ownerId = "";
 bool isSaveState = false;
-bool isVerifyWhenReset = true;
+bool isVerifyWhenReset = false;
 String ssid = ""; // labech_dnm
 String password = ""; // techlab@dnmanh
 String mqttAddress = "mqttsmartome.dnmanh.io.vn";
@@ -59,6 +59,8 @@ const unsigned long wiFiReconnectInterval = 1000 * 60;  // Milliseconds
 short timesWiFiConnect = 0;                             // Số lần thử kết nối WiFi
 bool wifiConnected = false;
 
+
+void restoreValueFromEEPROM();
 
 void handleDisconnectWiFi();
 
@@ -108,7 +110,7 @@ void setup() {
 
     // Lưu dữ liệu mặc định vào EEPROM
     // saveToEEPROM("isSaveState", "FALSE");
-    saveToEEPROM("isVerifyWhenReset", "FALSE"); 
+    // saveToEEPROM("isVerifyWhenReset", "FALSE"); 
     saveToEEPROM("MQTTAddress", mqttAddress);
     saveToEEPROM("MQTTUsername", mqttUsername);
     saveToEEPROM("MQTTPass", mqttPassword);
@@ -121,7 +123,7 @@ void setup() {
     // Khôi phục trạng thái công tắc từ EEPROM nếu cài đặt lưu trạng thái
     if (isSaveState) {
         relayState = readFromEEPROM("switchState") == "TRUE" ? true : false;
-        Serial.println("Restoring switch state from EEPROM");  
+        Serial.println("Restoring switch state from EEPROM");
         handleToggleStateElectric(relayState);
         publishJson(send_topic.c_str(), "", "NOTI", relayState);
     }
@@ -166,15 +168,25 @@ void loop() {
 
     usrStatusButton = listenButton(BUTTON_PIN, debounceDelay, pressHoldTime); // NO, PRESS, HOLD
     if (usrStatusButton == HOLD) { 
-        Serial.println("Reset all data");
-        handleClearAllUserData(); 
-        handleControllLed(5, 100, 100);
-        handleToggleStateElectric(relayState);
-        loadEEPROM();
-        handleDisconnectWiFi();
-        delay(1000);
-        startAccessPoint();
-        // ESP.restart();
+
+        if (isVerifyWhenReset) {
+            Serial.println("Cannot reset device because of verify when reset");
+            handleControllLed(3, 50, 50);
+            // Giúp đảm bảo rằng relay vẫn đảm bảo giữ nguyên trạng thái khi reset, tránh bị ảnh hưởng bởi loadEEPROM()
+            handleToggleStateElectric(relayState);
+        } else {
+            Serial.println("Reset all data");
+            handleClearAllUserData(); 
+            handleControllLed(5, 100, 100);
+            // Giúp đảm bảo rằng relay vẫn đảm bảo giữ nguyên trạng thái khi reset, tránh bị ảnh hưởng bởi loadEEPROM()
+            handleToggleStateElectric(relayState);
+            restoreValueFromEEPROM();
+            loadEEPROM();
+            handleDisconnectWiFi();
+            delay(1000);
+            startAccessPoint();
+        }
+
     }
 
     if (usrStatusButton == PRESS) {
@@ -190,6 +202,18 @@ void loop() {
         publishJson(send_topic.c_str(), "", "NOTI", relayState);
     }
 }
+
+
+void restoreValueFromEEPROM() { 
+    saveToEEPROM("ownerId", "");
+    saveToEEPROM("switchState", relayState ? "TRUE" : "FALSE");
+    saveToEEPROM("isSaveState", "FALSE");
+    saveToEEPROM("isVerifyWhenReset", "FALSE");
+    saveToEEPROM("GMTSeconds", String(GMTSeconds));
+    saveToEEPROM("SSID", "");
+    saveToEEPROM("SSIDPass", "");
+}
+
 
 void handleDisconnectWiFi() {
     WiFi.disconnect();
@@ -316,7 +340,7 @@ bool checkMQTTConnection() {
 }
 
 void mqttCallback(char *topic, byte *payload, unsigned int length) {
-    char incomingMessage[200];             // Kích thước mảng phù hợp với dữ liệu nhận
+    char incomingMessage[230];             // Kích thước mảng phù hợp với dữ liệu nhận
     if (length < sizeof(incomingMessage))  // Ép kiểu an toàn
     {
         for (unsigned int i = 0; i < length; i++) {
@@ -344,11 +368,13 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
         const char *type = doc["type"];
         bool value = doc["value"];
         bool saveState = doc["save_state"];
+        bool resetFromApp = doc["reset_from_app"];
 
         Serial.println("Id: " + String(id));
         Serial.println("Type: " + String(type));
         Serial.println("Value: " + String(value));
         Serial.println("saveState: " + String(saveState));
+        Serial.println("resetFromApp: " + String(resetFromApp));
 
         // Nhận lệnh điều khiển
         if (strcmp(type, "CONTROLL") == 0) {
@@ -382,11 +408,35 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
                 isSaveState = false;
                 saveToEEPROM("isSaveState", "FALSE"); 
             }
+
+            if (resetFromApp == 1) {
+                Serial.println("Require device accept reset from app: TRUE");
+                isVerifyWhenReset = true;
+                saveToEEPROM("isVerifyWhenReset", "TRUE"); 
+            } else {
+                Serial.println("Require device accept reset from app: FALSE");
+                isVerifyWhenReset = false;
+                saveToEEPROM("isVerifyWhenReset", "FALSE"); 
+            }
         }
 
         // Nhận lệnh truy vấn trạng thái
         if (strcmp(type, "STATUS") == 0) {
             publishJson(send_topic.c_str(), id, "STATUS_RES", relayState);
+        }
+        
+        // Nhận lệnh reset thiết bị, xoá dữ liệu và ở chế độ AP
+        if (strcmp(type, "RESET") == 0) {
+            Serial.println("handle reset device"); 
+            handleClearAllUserData();
+            handleControllLed(5, 100, 100);
+            // Giúp đảm bảo rằng relay vẫn đảm bảo giữ nguyên trạng thái khi reset, tránh bị ảnh hưởng bởi loadEEPROM()
+            handleToggleStateElectric(relayState);
+            restoreValueFromEEPROM();
+            loadEEPROM();
+            handleDisconnectWiFi();
+            delay(1000);
+            startAccessPoint();
         }
     }
 }
@@ -565,8 +615,7 @@ int getMemoriesIndexStart(String nameValue) {
 }
 
 void handleClearAllUserData() {  
-    clearEEPROM("ownerId");
-    saveToEEPROM("switchState", "FALSE");
+    clearEEPROM("ownerId"); 
     saveToEEPROM("isSaveState", "FALSE");
     saveToEEPROM("isVerifyWhenReset", "FALSE");
     saveToEEPROM("GMTSeconds", "0");
