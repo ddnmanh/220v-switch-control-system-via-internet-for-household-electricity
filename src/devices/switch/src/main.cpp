@@ -6,26 +6,26 @@
 #include <EEPROM.h>
 #include <ESP8266WebServer.h>
 
-String client_id = "7C3Q9S";  // Thay khi nạp code cho mỗi thiết bị
+String client_id = "KHGQCC";  // Thay khi nạp code cho mỗi thiết bị
 
 #define EEPROM_SIZE 256
 
 // Khởi tạo Web Server trên cổng 80
 ESP8266WebServer server(80);
-String accessPointPass = "12345678"; // Thay khi nạp code cho mỗi thiết bị
+String accessPointPass = "77242268"; // Thay khi nạp code cho mỗi thiết bị
 WiFiClient espClient;
 PubSubClient mqtt_client(espClient);
 
 
 // WiFi settings
 String ownerId = "";
-bool isSaveState = true;
+bool isSaveState = false;
 bool isVerifyWhenReset = true;
 String ssid = ""; // labech_dnm
 String password = ""; // techlab@dnmanh
-String mqttAddress = "192.168.1.4";
-String mqttUsername = "devicesUser";
-String mqttPassword = "123Devices123";
+String mqttAddress = "mqttsmartome.dnmanh.io.vn";
+String mqttUsername = "testUser";
+String mqttPassword = "123123@Test";
 int mqttPort = 1883;
 int GMTSeconds = 25200; // 7h
 
@@ -59,6 +59,8 @@ const unsigned long wiFiReconnectInterval = 1000 * 60;  // Milliseconds
 short timesWiFiConnect = 0;                             // Số lần thử kết nối WiFi
 bool wifiConnected = false;
 
+
+void handleDisconnectWiFi();
 
 void handleToggleStateElectric(bool state);
 
@@ -105,7 +107,7 @@ void setup() {
     EEPROM.begin(EEPROM_SIZE);   
 
     // Lưu dữ liệu mặc định vào EEPROM
-    saveToEEPROM("isSaveState", "FALSE");
+    // saveToEEPROM("isSaveState", "FALSE");
     saveToEEPROM("isVerifyWhenReset", "FALSE"); 
     saveToEEPROM("MQTTAddress", mqttAddress);
     saveToEEPROM("MQTTUsername", mqttUsername);
@@ -114,6 +116,15 @@ void setup() {
 
     // Đọc dữ liệu từ EEPROM
     loadEEPROM(); 
+
+
+    // Khôi phục trạng thái công tắc từ EEPROM nếu cài đặt lưu trạng thái
+    if (isSaveState) {
+        relayState = readFromEEPROM("switchState") == "TRUE" ? true : false;
+        Serial.println("Restoring switch state from EEPROM");  
+        handleToggleStateElectric(relayState);
+        publishJson(send_topic.c_str(), "", "NOTI", relayState);
+    }
 
 
     // Tạo lại chuỗi topic
@@ -158,17 +169,33 @@ void loop() {
         Serial.println("Reset all data");
         handleClearAllUserData(); 
         handleControllLed(5, 100, 100);
-        ESP.restart();
+        handleToggleStateElectric(relayState);
+        loadEEPROM();
+        handleDisconnectWiFi();
+        delay(1000);
+        startAccessPoint();
+        // ESP.restart();
     }
 
     if (usrStatusButton == PRESS) {
         Serial.println("Button pressed");
         relayState = !relayState;
-        // digitalWrite(LED_PIN, relayState ? HIGH : LOW);
-        // digitalWrite(RELAY_PIN, relayState ? HIGH : LOW);
+
+        // Nếu cài đặt lưu trạng thái thì lưu trạng thái công tắc mỗi khi có thay đổi vào EEPROM
+        if (isSaveState) {
+            saveToEEPROM("switchState", relayState ? "TRUE" : "FALSE");
+        }
+
         handleToggleStateElectric(relayState);
         publishJson(send_topic.c_str(), "", "NOTI", relayState);
     }
+}
+
+void handleDisconnectWiFi() {
+    WiFi.disconnect();
+    delay(100);
+    WiFi.mode(WIFI_OFF);
+    delay(100);
 }
 
 void handleToggleStateElectric(bool state) {
@@ -316,10 +343,12 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
         const char *id = doc["id"];
         const char *type = doc["type"];
         bool value = doc["value"];
+        bool saveState = doc["save_state"];
 
         Serial.println("Id: " + String(id));
         Serial.println("Type: " + String(type));
         Serial.println("Value: " + String(value));
+        Serial.println("saveState: " + String(saveState));
 
         // Nhận lệnh điều khiển
         if (strcmp(type, "CONTROLL") == 0) {
@@ -331,9 +360,28 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
                 relayState = false;
             }
 
+
+            // Nếu cài đặt lưu trạng thái thì lưu trạng thái công tắc mỗi khi có thay đổi vào EEPROM
+            if (isSaveState) {
+                saveToEEPROM("switchState", relayState ? "TRUE" : "FALSE");
+            }
+
             // digitalWrite(LED_PIN, relayState ? HIGH : LOW);
             handleToggleStateElectric(relayState);
             publishJson(send_topic.c_str(), id, "CONTROLL_RES", relayState);
+        }
+
+        // Nhận lệnh cài đặt thiết bị
+        if (strcmp(type, "SETTING") == 0) {
+            if (saveState == 1) {
+                Serial.println("Require device save state: TRUE");
+                isSaveState = true;
+                saveToEEPROM("isSaveState", "TRUE"); 
+            } else {
+                Serial.println("Require device save state: FALSE");
+                isSaveState = false;
+                saveToEEPROM("isSaveState", "FALSE"); 
+            }
         }
 
         // Nhận lệnh truy vấn trạng thái
@@ -410,6 +458,7 @@ void startAccessPoint() {
 // Đọc dữ liệu từ EEPROM
 void loadEEPROM() {  
     ownerId = readFromEEPROM("ownerId");
+    relayState = readFromEEPROM("switchState") == "TRUE" ? true : false;
     isSaveState = readFromEEPROM("isSaveState") == "TRUE" ? true : false;
     isVerifyWhenReset = readFromEEPROM("isVerifyWhenReset") == "TRUE" ? true : false;
     GMTSeconds = readFromEEPROM("GMTSeconds").toInt();
@@ -490,7 +539,9 @@ void clearEEPROM(String nameValue) {
 
 int getMemoriesIndexStart(String nameValue) { 
     if (nameValue == "ownerId") {
-        return 1; // 0 - 14
+        return 1; // 0 - 7
+    } else if (nameValue == "switchState") {
+        return 9; // 9 - 14
     } else if (nameValue == "isSaveState") {
         return 16; // 16 - 20
     } else if (nameValue == "isVerifyWhenReset") {
@@ -514,7 +565,8 @@ int getMemoriesIndexStart(String nameValue) {
 }
 
 void handleClearAllUserData() {  
-    clearEEPROM("ownerId"); 
+    clearEEPROM("ownerId");
+    saveToEEPROM("switchState", "FALSE");
     saveToEEPROM("isSaveState", "FALSE");
     saveToEEPROM("isVerifyWhenReset", "FALSE");
     saveToEEPROM("GMTSeconds", "0");
