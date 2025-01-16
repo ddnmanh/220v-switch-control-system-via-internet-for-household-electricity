@@ -1,5 +1,5 @@
 
-import { Text, View, StyleSheet, TouchableOpacity, Animated, Image, TouchableHighlight } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Animated, Image, TouchableHighlight, Switch } from 'react-native';
 import React, { useContext } from 'react';
 import colorGlobal from '@/constants/colors';
 import { useNavigation } from '@react-navigation/native';
@@ -11,22 +11,37 @@ import Modal from "react-native-modal";
 import { Divider } from 'react-native-paper';
 import fontsGlobal from '@/constants/fonts';
 import { OwnDeviceINF } from '@/interfaces/House.interface';
+import { useMQTTContext } from '@/hooks/context/MQTT.context';
 
 
-const SettingDevice = ({route}: any) => {
-
-    const { idRoom, device } = route.params;
+const SettingDevice = () => {
 
     const navigation = useNavigation();
 
-    const { handleUpdateDataOwnDevice, handleDeleteOwnDevice } = useContext(HouseContext) as HouseContextProps;
+    const {
+        publishToTopicMQTT,
+    } = useMQTTContext();
 
-    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF>(device);
+
+    const { handleUpdateDataOwnDevice, handleDeleteOwnDevice, ownDeviceDataSelected } = useContext(HouseContext) as HouseContextProps;
+
+    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF | null>(ownDeviceDataSelected);
+
+    const [deviceSaveState, setDeviceSaveState] = React.useState<boolean>(ownDeviceDataSelected?.is_save_state || false);
+    const [deviceResetFromApp, setDeviceResetFromApp] = React.useState<boolean>(ownDeviceDataSelected?.is_verify_reset_from_app || false);
+
+
+    React.useEffect(() => {
+        if (ownDeviceDataSelected && Object.keys(ownDeviceDataSelected).length > 0 && JSON.stringify(ownDeviceDataSelected) !== JSON.stringify(thisOwnDevice)) {
+            setThisOwnDevice(ownDeviceDataSelected);
+            setDeviceSaveState(ownDeviceDataSelected.is_save_state);
+            setDeviceResetFromApp(ownDeviceDataSelected.is_verify_reset_from_app);
+        }
+    }, [ownDeviceDataSelected]);
 
     React.useEffect(() => {
         if (thisOwnDevice) handleUpdateDataOwnDevice(thisOwnDevice);
     }, [thisOwnDevice]);
-
 
     const handleBackButton = () => {
         navigation.goBack();
@@ -39,11 +54,14 @@ const SettingDevice = ({route}: any) => {
     };
 
     const handleDeleteDevice = async () => {
+
+        handleResetToEquipment("RESET");
+
         try {
-            const response = await OwnDeviceFetch.delete({id_own_device: thisOwnDevice.id});
+            const response = await OwnDeviceFetch.delete({id_own_device: thisOwnDevice?.id});
             if (response.code === 200) {
-                setThisOwnDevice({} as OwnDeviceINF);
-                handleDeleteOwnDevice(thisOwnDevice.id);
+                setThisOwnDevice(null);
+                handleDeleteOwnDevice(thisOwnDevice?.id || "");
                 setOpenModalVerifyDeleteDevice(false);
                 setTimeout(() => {
                     navigation.navigate("(main)", { screen: '(home)', params: { screen: 'index' } });
@@ -53,6 +71,77 @@ const SettingDevice = ({route}: any) => {
             console.log(error);
         }
     }
+
+    const idMQTTRequire = React.useRef<string>("");
+
+    const handleResetToEquipment = (type: string = "RESET") => {
+        const strTimestamp = new Date().getTime().toString();
+        idMQTTRequire.current = strTimestamp;
+        publishToTopicMQTT(
+            thisOwnDevice?.mqtt_topic_send || "",
+            JSON.stringify({
+                type: type,
+                id: strTimestamp
+            })
+        );
+    };
+
+    const handleSettingToEquipment = (type: string = "SETTING", saveState: boolean = false, resetFromApp: boolean = false) => {
+        const strTimestamp = new Date().getTime().toString();
+        idMQTTRequire.current = strTimestamp;
+        publishToTopicMQTT(
+            thisOwnDevice?.mqtt_topic_send || "",
+            JSON.stringify({
+                type: type,
+                id: strTimestamp,
+                save_state: saveState,
+                reset_from_app: resetFromApp
+            })
+        );
+    };
+
+    const handleToggleSaveStateSwitch = async (type: string = "") => {
+
+        let newSaveState = deviceSaveState;
+        let newResetFromApp = deviceResetFromApp;
+
+        if (type == "STATE") {
+            newSaveState = !deviceSaveState;
+            setDeviceSaveState(newSaveState);
+        }
+
+        if (type == "RESET") {
+            newResetFromApp = !deviceResetFromApp;
+            setDeviceResetFromApp(newResetFromApp);
+        }
+
+        // Cập nhật trạng thái mới
+        handleSettingToEquipment("SETTING", newSaveState, newResetFromApp);
+
+        try {
+            // Sử dụng giá trị mới trong API call
+            const response = await OwnDeviceFetch.update({
+                id_own_device: thisOwnDevice?.id,
+                name: thisOwnDevice?.name,
+                desc: thisOwnDevice?.desc,
+                is_save_state: newSaveState,
+                is_verify_reset_from_app: newResetFromApp
+            });
+
+            console.log(' -----------> Response update device save state:', response);
+
+
+            if (response.code === 200) {
+                setThisOwnDevice(prev => (prev ? { ...prev, is_save_state: newSaveState, is_verify_reset_from_app: newResetFromApp } : null));
+            }
+        } catch (error) {
+            console.error('Error updating device save state:', error);
+        }
+    };
+
+    console.log("----------------------------------------");
+    console.log('SETTING DEVICE ', ownDeviceDataSelected);
+    console.log("----------------------------------------");
 
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
@@ -101,7 +190,7 @@ const SettingDevice = ({route}: any) => {
                             overflow: 'hidden' // Ngăn các phần tử tràn ra bên ngoài
                         }}
 
-                        onPress={() => navigation.navigate('logDeviceScreen', { idRoom: idRoom, device: thisOwnDevice })}
+                        onPress={() => navigation.navigate('logDeviceScreen')}
                     >
                         <Text
                             style={{
@@ -123,6 +212,78 @@ const SettingDevice = ({route}: any) => {
                             color={colorGlobal.textPrimary}
                         />
                     </TouchableOpacity>
+
+                    <View
+                        style={{
+                            width: '100%',
+                            paddingHorizontal: 16,
+                            paddingVertical: 16,
+                            backgroundColor: '#fff',
+                            borderRadius: 10,
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            overflow: 'hidden' // Ngăn các phần tử tràn ra bên ngoài
+                        }}
+                    >
+                        <Text
+                            style={{
+                                fontSize: 15,
+                                fontWeight: '400',
+                                color: colorGlobal.textPrimary,
+                                lineHeight: 18,
+                                flex: 1,          // Chiếm tối đa không gian có thể
+                                flexShrink: 1,    // Co lại nếu không đủ không gian
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis' // Thêm dấu "..." nếu text bị cắt bớt
+                            }}
+                        >
+                            Lưu trạng thái cuối
+                        </Text>
+                        <Switch
+                            trackColor={{ false: "#767577", true: colorGlobal.primary }}
+                            thumbColor={deviceSaveState ? colorGlobal.primary : "#f4f3f4"}
+                            ios_backgroundColor="#3e3e3e"
+                            onValueChange={() => handleToggleSaveStateSwitch("STATE")}
+                            value={deviceSaveState}
+                        />
+                    </View>
+
+                    <View
+                        style={{
+                            width: '100%',
+                            paddingHorizontal: 16,
+                            paddingVertical: 16,
+                            backgroundColor: '#fff',
+                            borderRadius: 10,
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            overflow: 'hidden' // Ngăn các phần tử tràn ra bên ngoài
+                        }}
+                    >
+                        <Text
+                            style={{
+                                fontSize: 15,
+                                fontWeight: '400',
+                                color: colorGlobal.textPrimary,
+                                lineHeight: 18,
+                                flex: 1,          // Chiếm tối đa không gian có thể
+                                flexShrink: 1,    // Co lại nếu không đủ không gian
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis' // Thêm dấu "..." nếu text bị cắt bớt
+                            }}
+                        >
+                            Reset thiết bị từ ứng dụng
+                        </Text>
+                        <Switch
+                            trackColor={{ false: "#767577", true: colorGlobal.primary }}
+                            thumbColor={deviceResetFromApp ? colorGlobal.primary : "#f4f3f4"}
+                            ios_backgroundColor="#3e3e3e"
+                            onValueChange={() => handleToggleSaveStateSwitch("RESET")}
+                            value={deviceResetFromApp}
+                        />
+                    </View>
 
 
                     <TouchableOpacity

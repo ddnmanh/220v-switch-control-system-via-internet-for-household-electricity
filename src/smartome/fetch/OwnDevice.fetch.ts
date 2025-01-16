@@ -27,7 +27,7 @@ export default new class OwnDeviceFetch {
 
     /**
      * Get user information
-     * @param {Record<string, any>} data: { id_device, name, desc }
+     * @param {Record<string, any>} data: { id_device, name, desc, is_save_state }
      *
      * @returns {Promise<any>}
      */

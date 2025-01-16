@@ -28,19 +28,19 @@ const SetupNewOwnDevice = ({route}: any) => {
     const [isSettingUp, setSettingUp] = React.useState(false);
 
     const handleSetupDevice = async () => {
+        setSettingUp(true);
         if (checkDataValid()) {
             try {
                 let response = await OwnDeviceFetch.create({id_house: houseDataSelected?.id, id_room: selectIdRoom, id_device: idDevice, name: nameDevice, desc: descDevice});
 
                 if (response.code === 200) {
-                    setSettingUp(false);
 
                     reloadHouseContext();
 
                     setTimeout(() => {
+                        setSettingUp(false);
                         navigation.navigate( "(main)", { screen: "(home)", params: { screen: "indexScreen" } });
                     }, 2000);
-
                 }
 
             } catch (error) {

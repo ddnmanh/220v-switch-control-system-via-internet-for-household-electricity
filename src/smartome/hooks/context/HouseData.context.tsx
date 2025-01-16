@@ -10,11 +10,13 @@ export interface HouseContextProps {
     housesData: HouseWithRelationINF[];
     houseDataSelected: HouseWithRelationINF | null;
     roomDataSelected: RoomWithRelationINF | null;
+    ownDeviceDataSelected: OwnDeviceINF | null;
     idHouseSelected: string;
     idRoomSelected: string;
     setHousesData: React.Dispatch<React.SetStateAction<any>>;
     handleChoosenHouseByID: (houseId: string) => void;
     handleChooseRoomByID: (roomId: string) => void;
+    handleChooseOwnDeviceByID: (ownDeviceId: string) => void;
     handleUpdateDataOwnDevice: (ownDeviceNew: OwnDeviceINF) => void;
     handleUpdateDataRoom(roomNew: RoomWithRelationINF): void;
     handleUpdateHouse(houseNew: HouseWithRelationINF): void;
@@ -41,6 +43,7 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
     const [housesData, setHousesData] = useState<HouseWithRelationINF[]>([]);
     const [houseDataSelected, setHouseDataSelected] = useState<HouseWithRelationINF | null>(null);
     const [roomDataSelected, setRoomDataSelected] = useState<RoomWithRelationINF | null>(null);
+    const [ownDeviceDataSelected, setOwnDeviceDataSelected] = useState<OwnDeviceINF | null>(null);
 
     const [idHouseSelected, setIdHouseSelected] = useState<string>('');
     const [idRoomSelected, setIdRoomSelected] = useState<string>('');
@@ -49,15 +52,9 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
 
     React.useEffect(() => {
         handleUpdateDataHouseSelected();
-    }, [housesData, idHouseSelected]);
+    }, [housesData]);
 
     const handleUpdateDataHouseSelected = () => {
-        console.log('HANDLE UPDATE DATA HOUSE SELECTED');
-        console.log(housesData.length);
-        console.log(idHouseSelected);
-        console.log("-------------------------------");
-
-
 
         if (housesData.length > 0) {
             if (idHouseSelected === '') {
@@ -76,12 +73,22 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                 const chosenHouse = housesData.find((house: any) => house.id === idHouseSelected);
                 if (chosenHouse && Object.keys(chosenHouse).length > 0) {
                     setHouseDataSelected(prev => chosenHouse);
-                    setIdHouseSelected(prev => housesData[0].id);
+                    setIdHouseSelected(prev => prev !== housesData[0].id ? prev : chosenHouse.id);
                 }
             }
 
+        } else {
+            setHouseDataSelected(null);
+            setIdHouseSelected('');
         }
     };
+
+    React.useEffect(() => {
+        const chosenHouse = housesData.find((house: any) => house.id === idHouseSelected);
+        if ( chosenHouse && Object.keys(chosenHouse).length > 0) {
+            setHouseDataSelected(chosenHouse);
+        }
+    }, [idHouseSelected]);
 
 
     React.useEffect(() => {
@@ -114,7 +121,7 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                         return {
                             ...ownDevice,
                             state: false,
-                            online: false
+                            online: false,
                         }
                     });
 
@@ -123,7 +130,7 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                             return {
                                 ...ownDevice,
                                 state: false,
-                                online: false
+                                online: false,
                             }
                         });
 
@@ -158,12 +165,7 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
     }, [userInfo, handleGetHouseWithAllRelations]);
 
     const handleChoosenHouseByID = (houseId: string) => {
-        // Kiểm tra xem houseId có tồn tại trong housesData không
-        const chosenHouse = housesData.find((house: any) => house.id === houseId);
-        if ( chosenHouse && Object.keys(chosenHouse).length > 0) {
-            setHouseDataSelected(chosenHouse);
-            setIdHouseSelected(houseId);
-        }
+        setIdHouseSelected(houseId);
     };
 
     const handleChooseRoomByID = (roomId: string) => {
@@ -181,17 +183,51 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
 
     };
 
+    const handleChooseOwnDeviceByID = (ownDeviceId: string) => {
+        if (ownDeviceId === '') {
+            setIdOwnDeviceSelected('');
+            setOwnDeviceDataSelected(null);
+        } else {
+
+            let isFound = false;
+
+            housesData.forEach((house: any) => {
+                return house.own_devices.forEach((ownDevice: any) => {
+                    if (ownDevice.id === ownDeviceId) {
+                        isFound = true;
+                        setOwnDeviceDataSelected(ownDevice);
+                        setIdOwnDeviceSelected(ownDeviceId);
+                    }
+                });
+            });
+
+            if (!isFound) {
+                housesData.forEach((house: any) => {
+                    return house.rooms.forEach((room: any) => {
+                        return room.own_devices.forEach((ownDevice: any) => {
+                            if (ownDevice.id === ownDeviceId) {
+                                isFound = true;
+                                setOwnDeviceDataSelected(ownDevice);
+                                setIdOwnDeviceSelected(ownDeviceId);
+                            }
+                        });
+                    });
+                });
+            }
+        }
+    }
+
     const handleUpdateDataOwnDevice = (ownDeviceNew: OwnDeviceINF) => {
 
         console.log('HANDLE UPDATE DATA OWN DEVICE');
         console.log(ownDeviceNew);
 
-
+        setOwnDeviceDataSelected(ownDeviceNew);
 
         setHousesData((prevData) => {
             return prevData.map((house: HouseWithRelationINF) => {
 
-                let newOwnDeviceOnHouse = house.own_devices.map((ownDevice: OwnDeviceINF) => {
+                let newOwnDeviceOnHouse = house.own_devices?.map((ownDevice: OwnDeviceINF) => {
                     if (ownDevice.id === ownDeviceNew.id) {
                         return {
                             ...ownDevice,
@@ -199,13 +235,15 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                             desc: ownDeviceNew.desc,
                             state: ownDeviceNew.state,
                             online: ownDeviceNew.online,
+                            is_save_state: ownDeviceNew.is_save_state,
+                            is_verify_reset_from_app: ownDeviceNew.is_verify_reset_from_app,
                         }
                     }
                     return ownDevice;
                 });
 
-                let newRoom = house.rooms.map((rooms: RoomWithRelationINF) => {
-                    let newOwnDevice = rooms.own_devices.map((ownDevice: any) => {
+                let newRoom = house.rooms?.map((rooms: RoomWithRelationINF) => {
+                    let newOwnDevice = rooms?.own_devices?.map((ownDevice: any) => {
                         if (ownDevice.id === ownDeviceNew.id) {
                             return {
                                 ...ownDevice,
@@ -213,6 +251,7 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                                 desc: ownDeviceNew.desc,
                                 state: ownDeviceNew.state,
                                 online: ownDeviceNew.online,
+                                is_verify_reset_from_app: ownDeviceNew.is_verify_reset_from_app,
                             }
                         }
                         return ownDevice;
@@ -307,20 +346,11 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
     }
 
     const handleDeleteHouse = (houseId: string) => {
-        setHousesData((prevData) => {
-            let newHouse = housesData.filter((house: any) => house.id !== houseId);
-            if (newHouse.length > 0) {
-                setHouseDataSelected({...newHouse[0]});
-                setIdHouseSelected(newHouse[0].id);
-                // navigation.replace( "(main)", { screen: "(home)", params: { screen: "indexScreen" } } );
-            } else {
-                // Nếu không còn nhà nào thì set houseDataSelected = null
-                setHouseDataSelected(null);
-                setIdHouseSelected('');
-                // navigation.replace('(house)', { screen: 'createHouseScreen' });
-            }
+        setHouseDataSelected(null);
+        setIdHouseSelected('');
 
-            return newHouse;
+        setHousesData((prevData) => {
+            return housesData.filter((house: any) => house.id !== houseId);
         });
     }
 
@@ -337,7 +367,7 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                 if (house.id === idHouseSelected) {
                     return {
                         ...house,
-                        rooms: [...house.rooms, roomNew]
+                        rooms: house.rooms ? [...house.rooms, roomNew] : [roomNew]
                     };
                 }
                 return house;
@@ -357,10 +387,16 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
 
 
     console.log('HOUSE CONTEXT RENDER');
-    console.log(housesData[0]?.rooms[1]?.own_devices[0]);
-    console.log(housesData[0]?.rooms[1]?.own_devices[1]);
-    console.log(houseDataSelected?.rooms[1]?.own_devices[0]);
-    console.log(houseDataSelected?.rooms[1]?.own_devices[1]);
+    console.log(idOwnDeviceSelected);
+
+    console.log(ownDeviceDataSelected);
+    console.log("-----------------------------");
+
+
+    // console.log(housesData[0]?.rooms[1]?.own_devices[0]);
+    // console.log(housesData[0]?.rooms[1]?.own_devices[1]);
+    // console.log(houseDataSelected?.rooms[1]?.own_devices[0]);
+    // console.log(houseDataSelected?.rooms[1]?.own_devices[1]);
 
     // const handleLog = () => {
     //     housesData[0].rooms[0].own_devices.forEach((ownDevice: any) => {
@@ -378,11 +414,13 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                 housesData,
                 houseDataSelected,
                 roomDataSelected,
+                ownDeviceDataSelected,
                 idHouseSelected,
                 idRoomSelected,
                 setHousesData,
                 handleChoosenHouseByID,
                 handleChooseRoomByID,
+                handleChooseOwnDeviceByID,
                 handleUpdateDataOwnDevice,
                 handleUpdateDataRoom,
                 handleUpdateHouse,

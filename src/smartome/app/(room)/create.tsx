@@ -47,6 +47,10 @@ const CreateRoomScreen = () => {
 
         try {
             let response = await RoomFetch.create({id_house: idHouseSelected, name: inputRoomName, desc: inputRoomDesc});
+
+            console.log('response: ', response);
+
+
             if (response.code === 200) {
                 handleAddRoom({ ...response.data } as RoomWithRelationINF);
                 // Đặt lại stack và chuyển hướng đến màn hình mới

@@ -9,6 +9,8 @@ export interface OwnDeviceINF {
     desc: string;
     state: boolean;
     online: boolean;
+    is_save_state: boolean;
+    is_verify_reset_from_app: boolean;
 }
 
 export interface RoomWithRelationINF {
@@ -35,13 +37,4 @@ export interface HouseWithRelationINF {
     rooms: RoomWithRelationINF[];
     setting: HouseSettingINF;
 }
-
-export interface HouseWithRelationINF {
-    id: string;
-    id_user: string;
-    name: string;
-    desc: string;
-    setting: HouseSettingINF;
-}
-
 

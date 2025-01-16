@@ -18,7 +18,7 @@ const variablesInComponent = {
     textPrimary: '#fff',
     textSecondary: '#ccc',
     gapInDeviceList: 14,
-    intensityDeviceItemBlur: 70,
+    intensityDeviceItemBlur: 50,
 }
 
 
@@ -26,7 +26,7 @@ const Index = () => {
 
     const navigation = useNavigation();
 
-    const { housesData, houseDataSelected, idHouseSelected, idRoomSelected } = React.useContext(HouseContext) || {};
+    const { houseDataSelected, idHouseSelected } = React.useContext(HouseContext) || {};
 
     const { dimensionsSize, deviceItemSize } = React.useContext(DynamicValuesContext) || {
         dimensionsSize: { width: 0, height: 0 } as DimensionsSizeITF,
@@ -46,11 +46,18 @@ const Index = () => {
             backgroundOnHeaderAnimation.fadeOut(50);
             houseNameOnHeaderAnimation.fadeOut(100);
         }
+
     }, [scrollY]);
 
     const handleGotoAddDevice = () => {
         navigation.navigate("(devices)", { screen: "addDevice", params: { idHouse: idHouseSelected, idArea: null } });
     }
+
+
+    React.useEffect(() => {
+        console.log("HOUSE INDEX MOUNT");
+
+    }, []);
 
     return (
         <View style={{ width: dimensionsSize?.width, height: dimensionsSize?.height, }}>
@@ -120,8 +127,6 @@ const Index = () => {
                                     <View style={styles.device_container}>
                                         {
                                             room?.own_devices?.map((device:any, index:number) => {
-                                                console.log("SWITCH ITEM DEVICE: ", device.name);
-
                                                 return <SwitchItemDevice key={houseDataSelected.id+"-"+room.id+"-"+device.id} device={device} />
                                             })
                                         }

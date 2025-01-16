@@ -37,7 +37,7 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device }) => {
         isMQTTConnected,
     } = useMQTTContext();
 
-    const {handleUpdateDataOwnDevice} = React.useContext(HouseContext) as HouseContextProps;
+    const { handleUpdateDataOwnDevice, handleChooseOwnDeviceByID } = React.useContext(HouseContext) as HouseContextProps;
 
     const idMQTTRequire = React.useRef<string>("");
     const { deviceItemSize } = React.useContext(DynamicValuesContext) || {
@@ -72,13 +72,6 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device }) => {
                     // );
 
                     const parsedMessage = JSON.parse(message.payloadString);
-
-                    // console.log(
-                    //     parsedMessage.id === idMQTTRequire.current,
-                    //     " ------------------ ",
-                    //     idMQTTRequire.current,
-                    //     parsedMessage.id
-                    // );
 
                     if (parsedMessage.type === "NOTI") {
                         handleUpdateDataOwnDevice({...deviceRef.current, state: parsedMessage.value, online: true} as OwnDeviceINF);
@@ -130,21 +123,19 @@ const SwitchItemDevice: React.FC<SwitchItemDeviceProps> = ({ device }) => {
         );
     };
 
+
+    const handleGotoDetailOwnDevice = () => {
+
+        handleChooseOwnDeviceByID(device?.id);
+
+        navigation.navigate( "(devices)", { screen: "deviceScreen" } );
+
+    }
+
     return (
-        <BlurView intensity={70} tint='dark' style={[styles.device_item, styles.device_item_blur, { width: deviceItemSize.width, height: deviceItemSize.height }]}>
+        <BlurView intensity={50} tint='dark' style={[styles.device_item, styles.device_item_blur, { width: deviceItemSize.width, height: deviceItemSize.height }]}>
             <TouchableNativeFeedback
-                onPress={() => {
-                    navigation.navigate(
-                        "(devices)",
-                            {
-                                screen: "deviceScreen",
-                                params: {
-                                    typeDevice: "SWITCH",
-                                    device: device
-                                }
-                            }
-                    );
-                }}
+                onPress={() => handleGotoDetailOwnDevice()}
                 onLongPress={() => {
                     console.log('long press');
                     Vibration.vibrate(80);

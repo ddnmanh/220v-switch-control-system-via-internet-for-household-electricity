@@ -41,13 +41,11 @@ type HistoryOperationDeviceITF = {
 
 const LogDevice = ({ route }: any) => {
 
-    const { device } = route.params;
-
     const navigation = useNavigation();
 
-    const { idHouseSelected } = useContext(HouseContext) as HouseContextProps;
+    const { idHouseSelected,  ownDeviceDataSelected} = useContext(HouseContext) as HouseContextProps;
 
-    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF>(device);
+    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF | null>(ownDeviceDataSelected);
 
     const [historyOperationDevice, setHistoryOperationDevice] = React.useState<any[]>([]);
 
@@ -59,11 +57,11 @@ const LogDevice = ({ route }: any) => {
 
     React.useEffect(() => {
         handleGetHistoryOperationDevice();
-    }, [device]);
+    }, [ownDeviceDataSelected]);
 
     const handleGetHistoryOperationDevice = async () => {
         try {
-            let response = await HistoryOperationDeviceFetch.get({ house_id: idHouseSelected, device_id: thisOwnDevice.id_device });
+            let response = await HistoryOperationDeviceFetch.get({ house_id: idHouseSelected, device_id: thisOwnDevice?.id_device });
 
             if (response.code === 200) {
                 if (response.data.length > 0) {
