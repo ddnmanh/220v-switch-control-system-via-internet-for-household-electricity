@@ -12,6 +12,7 @@ import { RoomRepository } from '../repositorys/Room.repository';
 import { CommonRes, DEVICE_SERVICE_NAME, DeviceServiceClient } from 'src/proto/device.pb';
 import { ClientGrpc, ServerGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { SYS_OPENRATION_SERVICE_NAME, SysOpenrationServiceClient } from 'src/proto/SysOpenration.pb';
 
 @Injectable()
 export class OwnDeviceService implements OnModuleInit {
@@ -19,7 +20,11 @@ export class OwnDeviceService implements OnModuleInit {
     @Inject(DEVICE_SERVICE_NAME)
     private readonly deviceService: ClientGrpc;
 
+    @Inject(SYS_OPENRATION_SERVICE_NAME)
+    private readonly sysOperationService: ClientGrpc;
+
     private deviceSvc: DeviceServiceClient;
+    private sysOperationSvc: SysOpenrationServiceClient;
     private readonly globalConstants: ConfigService;
     private readonly houseRepository: HouseRepository;
     private readonly roomRepository: RoomRepository;
@@ -39,6 +44,7 @@ export class OwnDeviceService implements OnModuleInit {
 
     public onModuleInit():void {
         this.deviceSvc = this.deviceService.getService<DeviceServiceClient>(DEVICE_SERVICE_NAME);
+        this.sysOperationSvc = this.sysOperationService.getService<SysOpenrationServiceClient>(SYS_OPENRATION_SERVICE_NAME);
     }
 
     async createOwnDevice(body: CreateOwnDeviceReq): Promise<ServiceRes> {
@@ -238,6 +244,11 @@ export class OwnDeviceService implements OnModuleInit {
                 statusMessage.push({ property: 'ownDevice', message: 'Own device is not belong to user' })
                return new ServiceRes('Own device is not belong to user', statusMessage, null);
             }
+
+
+            let ownDeviceDelete = await this.ownDeviceRepository.findOneWithHouse(body.idOwnDevice);
+
+            await firstValueFrom(this.sysOperationSvc.deleteHistoryDeviceInfo({idHouse: ownDeviceDelete.house.id, idDevice: ownDeviceDelete.idDevice}));
 
             await this.ownDeviceRepository.deleteOwnDevice(body.idOwnDevice);
 

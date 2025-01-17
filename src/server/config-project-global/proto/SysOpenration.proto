@@ -6,6 +6,7 @@ import "google/protobuf/struct.proto";
 
 service SysOpenrationService { 
   rpc GetHistoryDeviceInfo (GetHistoryDeviceReq) returns (CommonRes) {} 
+  rpc DeleteHistoryDeviceInfo (DeleteHistoryDeviceReq) returns (CommonRes) {} 
 
 }
 
@@ -22,9 +23,15 @@ message CommonRes {
   google.protobuf.Struct data = 4;
 } 
 
-// Get device info
+// Get history device
 message GetHistoryDeviceReq {
   string id_device = 1; 
   string id_house = 2;
   string mqtt_topic = 3;
+}
+
+// Delete history device
+message DeleteHistoryDeviceReq {
+  string id_house = 1;
+  string id_device = 2; 
 }

@@ -18,6 +18,7 @@ import { DEVICE_PACKAGE_NAME, DEVICE_SERVICE_NAME } from 'src/proto/device.pb';
 import { join } from 'path';
 import * as fs from 'fs';
 import * as grpc from '@grpc/grpc-js';
+import { SYS_OPENRATION_PACKAGE_NAME, SYS_OPENRATION_SERVICE_NAME } from 'src/proto/SysOpenration.pb';
 
 @Module({
     imports: [
@@ -40,7 +41,21 @@ import * as grpc from '@grpc/grpc-js';
                     ),
                 },
             },
-        ])
+            {
+                name: SYS_OPENRATION_SERVICE_NAME,
+                transport: Transport.GRPC,
+                options: {
+                    url: 'localhost:50054',
+                    package: SYS_OPENRATION_PACKAGE_NAME,
+                    protoPath: join(__dirname, '../../../node_modules/config-project-global/proto/SysOpenration.proto'),
+                    credentials: grpc.credentials.createSsl(
+                        fs.readFileSync(join(__dirname, '../../../node_modules/config-project-global/mTLS/RootCA.pem')),  // CA Root
+                        fs.readFileSync(join(__dirname, '../../../mTLS/houseService.key')),  // Private key client
+                        fs.readFileSync(join(__dirname, '../../../mTLS/houseService.crt')),  // Chứng chỉ client
+                    ),
+                },
+            },
+        ]),
     ],
     providers: [
         HouseService,

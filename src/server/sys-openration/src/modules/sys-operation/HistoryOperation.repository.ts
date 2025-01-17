@@ -31,4 +31,14 @@ export class HistoryOperationRepository {
             .getMany();
     }
 
+    async deleteHistoryDevice(idHouse: string, idDevice: string): Promise<void> {
+        await this.historyOperationRepository.createQueryBuilder()
+        .delete()
+        .from(HistoryOperationEntity)
+        .where('idHouse = :idHouse AND idDevice = :idDevice', { idHouse, idDevice })
+        .execute();
+    }
+
+
+
 }

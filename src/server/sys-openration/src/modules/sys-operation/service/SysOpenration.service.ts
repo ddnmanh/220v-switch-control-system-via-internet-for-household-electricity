@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { HistoryOperationRepository } from '../HistoryOperation.repository';
-import { GetHistoryDeviceReq } from 'src/proto/SysOpenration.pb';
+import { DeleteHistoryDeviceReq, GetHistoryDeviceReq } from 'src/proto/SysOpenration.pb';
 import { ErrServiceRes, ServiceRes } from 'src/DTO/serviceRes.dto';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class SysOperationService {
         this.historyOperationRepository = hOR;
     }
 
-    async getDeviceInfo(payload: GetHistoryDeviceReq) {
+    async getDeviceInfo(payload: GetHistoryDeviceReq):Promise<ServiceRes> {
         let statusMessage:ErrServiceRes[] = [];
 
         if (!payload.idHouse) {
@@ -50,10 +50,47 @@ export class SysOperationService {
                 }
             });
 
-            return new ServiceRes('Get house is successfully', statusMessage, dataModifyTime);
+            return new ServiceRes('Get history own device is successfully', statusMessage, dataModifyTime);
         } catch (error) {
-            console.log(`HouseService:getHouse : ${error.message}`);
+            console.log(`SysOperationService:getHistoryDevice : ${error.message}`);
             return new ServiceRes('Error when get house', [{ property: 'error', message: error.message }], null);
+        }
+    }
+
+    async deleteHistoryDevice(payload: DeleteHistoryDeviceReq):Promise<ServiceRes> {
+        let statusMessage:ErrServiceRes[] = [];
+
+        console.log(payload);
+
+
+        if (!payload.idHouse) {
+            statusMessage.push({ property: 'idHouse', message: 'idHouse is required' });
+            return new ServiceRes('Error when get house', statusMessage, null);
+        }
+
+        if (!payload.idDevice) {
+            statusMessage.push({ property: 'idDevice', message: 'idDevice is required' });
+            return new ServiceRes('Error when get house', statusMessage, null);
+        }
+
+        if (payload.idHouse.length !== 6) {
+            statusMessage.push({ property: 'idHouse', message: 'idHouse is not valid' });
+            return new ServiceRes('Error when get house', statusMessage, null);
+        }
+
+        if (payload.idDevice.length !== 6) {
+            statusMessage.push({ property: 'idDevice', message: 'idDevice is not valid' });
+            return new ServiceRes('Error when get house', statusMessage, null);
+        }
+
+        try {
+
+            let historyOperationDevice = await this.historyOperationRepository.deleteHistoryDevice(payload.idHouse, payload.idDevice);
+
+            return new ServiceRes('Delete history own device is successfully', statusMessage, historyOperationDevice);
+        } catch (error) {
+            console.log(`SysOperationService:deleteHistoryDevice : ${error.message}`);
+            return new ServiceRes('Error when delete history own device', [{ property: 'error', message: error.message }], null);
         }
     }
 }
