@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HouseRepository } from '../repositorys/House.repository';
 import { CreateOwnDeviceReq, DeleteOwnDeviceReq, GetOwnDeviceReq, UpdateOwnDeviceReq } from 'src/proto/house.pb';
@@ -9,10 +9,22 @@ import RoomEntity from 'src/entity/Room.entity';
 import { OwnDeviceRepository } from '../repositorys/OwnDevice.repository';
 import OwnDeviceEntity from 'src/entity/OwnDevice.entity';
 import { RoomRepository } from '../repositorys/Room.repository';
+import { CommonRes, DEVICE_SERVICE_NAME, DeviceServiceClient } from 'src/proto/device.pb';
+import { ClientGrpc, ServerGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import { SYS_OPENRATION_SERVICE_NAME, SysOpenrationServiceClient } from 'src/proto/SysOpenration.pb';
 
 @Injectable()
-export class OwnDeviceService {
+export class OwnDeviceService implements OnModuleInit {
 
+    @Inject(DEVICE_SERVICE_NAME)
+    private readonly deviceService: ClientGrpc;
+
+    @Inject(SYS_OPENRATION_SERVICE_NAME)
+    private readonly sysOperationService: ClientGrpc;
+
+    private deviceSvc: DeviceServiceClient;
+    private sysOperationSvc: SysOpenrationServiceClient;
     private readonly globalConstants: ConfigService;
     private readonly houseRepository: HouseRepository;
     private readonly roomRepository: RoomRepository;
@@ -28,6 +40,11 @@ export class OwnDeviceService {
         this.houseRepository = hR;
         this.roomRepository = aR;
         this.ownDeviceRepository = oDR;
+    }
+
+    public onModuleInit():void {
+        this.deviceSvc = this.deviceService.getService<DeviceServiceClient>(DEVICE_SERVICE_NAME);
+        this.sysOperationSvc = this.sysOperationService.getService<SysOpenrationServiceClient>(SYS_OPENRATION_SERVICE_NAME);
     }
 
     async createOwnDevice(body: CreateOwnDeviceReq): Promise<ServiceRes> {
@@ -65,6 +82,18 @@ export class OwnDeviceService {
             return new ServiceRes('Error when create own device', statusMessage, null);
         }
 
+        // Kiểm tra xem device có tồn tại không
+        try {
+            let device:CommonRes = await firstValueFrom(this.deviceSvc.getDeviceInfo({ deviceId: body.idDevice }));
+
+            if ( device.code === 200 && !device.data ) {
+                statusMessage.push({ property: 'device', message: 'This device could not be identified.' })
+                return new ServiceRes('This device could not be identified.', statusMessage, null);
+            }
+        } catch (error) {
+            console.log(`OwnDeviceService:createOwnDevice : ${error.message}`);
+            return new ServiceRes('Error when identified device', [{ property: 'error', message: error.message }], null);
+        }
 
         try {
 
@@ -176,6 +205,15 @@ export class OwnDeviceService {
 
             updateOwnDevice.name = body.name;
             updateOwnDevice.desc = body.desc;
+            updateOwnDevice.isSaveState = body.isSaveState === undefined ? updateOwnDevice.isSaveState : body.isSaveState;
+            updateOwnDevice.isVerifyResetFromApp = body.isVerifyResetFromApp === undefined ? updateOwnDevice.isVerifyResetFromApp : body.isVerifyResetFromApp;
+
+            console.log('OwnDeviceService:updateOwnDevice : ', body);
+            console.log(body['isSaveState']);
+
+
+            console.log('OwnDeviceService:updateOwnDevice : ', updateOwnDevice);
+
 
             let ownDeviceResult = await this.ownDeviceRepository.updateOwnDevice(updateOwnDevice);
 
@@ -206,6 +244,11 @@ export class OwnDeviceService {
                 statusMessage.push({ property: 'ownDevice', message: 'Own device is not belong to user' })
                return new ServiceRes('Own device is not belong to user', statusMessage, null);
             }
+
+
+            let ownDeviceDelete = await this.ownDeviceRepository.findOneWithHouse(body.idOwnDevice);
+
+            await firstValueFrom(this.sysOperationSvc.deleteHistoryDeviceInfo({idHouse: ownDeviceDelete.house.id, idDevice: ownDeviceDelete.idDevice}));
 
             await this.ownDeviceRepository.deleteOwnDevice(body.idOwnDevice);
 

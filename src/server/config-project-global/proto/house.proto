@@ -118,10 +118,12 @@ message UpdateOwnDeviceReq {
   string id_user = 2; 
   string name = 3; 
   string desc = 4;
+  bool is_save_state = 5;
+  bool is_verify_reset_from_app = 6;
 }
 
 // Delete
 message DeleteOwnDeviceReq {
   string id_own_device = 1; 
   string id_user = 3;
-} 
+}

@@ -20,8 +20,15 @@ export default class OwnDeviceEntity extends BaseEntity {
     @Column({ name: 'desc', type: 'varchar', length: 150, nullable: true })
     public desc!: string;
 
+    @Column({ name: 'is_save_state', type: 'boolean', default: false })
+    public isSaveState!: boolean;
+
+    @Column({ name: 'is_verify_reset_from_app', type: 'boolean', default: false })
+    public isVerifyResetFromApp!: boolean;
+
     @Column({ name: 'is_delete', type: 'boolean', default: false })
     public isDelete!: boolean;
+
 
     @CreateDateColumn({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
     public createdAt!: Date;

@@ -13,24 +13,6 @@ async function bootstrap() {
 
     const valueConfig = app.get(ConfigService);
 
-    // app.enableCors({
-    //     origin: [
-    //         'http://localhost:5173',
-    //         'http://46.250.232.16:5173',
-    //     ],
-    //     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    //     credentials: true,
-    // });
-
-    // app.enableCors({
-    //     origin: [
-    //         'http://192.168.1.10',
-    //         'http://46.250.232.16:5173',
-    //     ],
-    //     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    //     credentials: false,
-    // });
-
     app.enableCors({
         origin: true, // Mở cho tất cả origin hoặc chỉ origin cụ thể
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

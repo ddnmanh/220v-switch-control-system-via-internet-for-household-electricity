@@ -1,5 +1,5 @@
 {
-  "name": "house",
+  "name": "device",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -19,10 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "config-project-global:install": "npm i ../config-project-global",
-    "proto:house": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd -I=./node_modules/config-project-global/proto --ts_proto_out=src/proto/ node_modules/config-project-global/proto/house.proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
-    "proto:device": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd -I=./node_modules/config-project-global/proto --ts_proto_out=src/proto/ node_modules/config-project-global/proto/device.proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
     "proto:SysOpenration": "protoc --plugin=node_modules/.bin/protoc-gen-ts_proto.cmd -I=./node_modules/config-project-global/proto --ts_proto_out=src/proto/ node_modules/config-project-global/proto/SysOpenration.proto --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb",
-    "proto:all": "npm run proto:house && npm run proto:device && npm run proto:SysOpenration",
+    "proto:all": "npm run proto:SysOpenration",
     "mtls:generate-private-key-and-csr": "node ./scripts/generate-private-key-and-CSR.js",
     "mtls:generate-certificate": "node ./scripts/generate-certificate.js",
     "mtls:all": "npm run config-project-global:install && npm run mtls:generate-private-key-and-csr && npm run mtls:generate-certificate"
@@ -46,6 +44,7 @@
     "fix-esm": "^1.0.1",
     "grpc-tools": "^1.12.4",
     "lodash": "^4.17.21",
+    "mqtt": "^5.10.3",
     "mysql2": "^3.11.0",
     "nanoid": "^4.0.2",
     "nodemailer": "^6.9.16",

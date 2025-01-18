@@ -62,4 +62,11 @@ export class OwnDeviceRepository {
     async updateOwnDevice(updateOwnDevice: OwnDeviceEntity): Promise<OwnDeviceEntity> {
         return await this.ownDeviceRepository.save(updateOwnDevice);
     }
+
+    async findOneWithHouse(ownDeviceId: string): Promise<OwnDeviceEntity | null> {
+        return this.ownDeviceRepository.createQueryBuilder('ownDevice')
+            .leftJoinAndSelect('ownDevice.house', 'house')
+            .where('ownDevice.id = :ownDeviceId', { ownDeviceId })
+            .getOne();
+    }
 }

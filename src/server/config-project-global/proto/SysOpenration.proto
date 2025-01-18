@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package SysOpenration;
+
+import "google/protobuf/struct.proto"; 
+
+service SysOpenrationService { 
+  rpc GetHistoryDeviceInfo (GetHistoryDeviceReq) returns (CommonRes) {} 
+  rpc DeleteHistoryDeviceInfo (DeleteHistoryDeviceReq) returns (CommonRes) {} 
+
+}
+
+// Common 
+message FieldError {
+  string property = 1;
+  string message = 2;
+}
+
+message CommonRes { 
+  int32 code = 1;
+  string status = 2;
+  repeated FieldError message = 3;
+  google.protobuf.Struct data = 4;
+} 
+
+// Get history device
+message GetHistoryDeviceReq {
+  string id_device = 1; 
+  string id_house = 2;
+  string mqtt_topic = 3;
+}
+
+// Delete history device
+message DeleteHistoryDeviceReq {
+  string id_house = 1;
+  string id_device = 2; 
+}
