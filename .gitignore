@@ -1,2 +1,17 @@
-# Ignore all .DS_Store files recursively
 **/.DS_Store
+
+# expo
+.expo/
+
+# dependencies
+/node_modules
+
+# misc
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log* 
