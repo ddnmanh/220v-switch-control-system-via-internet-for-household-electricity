@@ -222,10 +222,8 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
         console.log('HANDLE UPDATE DATA OWN DEVICE');
         console.log(ownDeviceNew);
 
-        setOwnDeviceDataSelected(ownDeviceNew);
-
         setHousesData((prevData) => {
-            return prevData.map((house: HouseWithRelationINF) => {
+            let newHouse = prevData.map((house: HouseWithRelationINF) => {
 
                 let newOwnDeviceOnHouse = house.own_devices?.map((ownDevice: OwnDeviceINF) => {
                     if (ownDevice.id === ownDeviceNew.id) {
@@ -251,6 +249,7 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                                 desc: ownDeviceNew.desc,
                                 state: ownDeviceNew.state,
                                 online: ownDeviceNew.online,
+                                is_save_state: ownDeviceNew.is_save_state,
                                 is_verify_reset_from_app: ownDeviceNew.is_verify_reset_from_app,
                             }
                         }
@@ -269,7 +268,12 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
                     rooms: newRoom
                 }
             });
+
+            return newHouse;
         });
+
+
+        setOwnDeviceDataSelected(ownDeviceNew);
 
     }
 
@@ -374,38 +378,6 @@ const HouseContextProvider: React.FC<HouseContextProviderProps> = ({ children })
             });
         })
     }
-
-
-    // console.log('HOUSE CONTEXT CHANGED');
-    // console.log('HOUSE DATA', housesData[0]);
-    // console.log('HOUSE DATA SELECTED', houseDataSelected?.rooms[0]);
-
-    // console.log("HOUSE CONTEXT RENDER");
-    // console.log(idHouseSelected);
-    // console.log(houseDataSelected?.name);
-    // console.log("-----------------");
-
-
-    console.log('HOUSE CONTEXT RENDER');
-    console.log(idOwnDeviceSelected);
-
-    console.log(ownDeviceDataSelected);
-    console.log("-----------------------------");
-
-
-    // console.log(housesData[0]?.rooms[1]?.own_devices[0]);
-    // console.log(housesData[0]?.rooms[1]?.own_devices[1]);
-    // console.log(houseDataSelected?.rooms[1]?.own_devices[0]);
-    // console.log(houseDataSelected?.rooms[1]?.own_devices[1]);
-
-    // const handleLog = () => {
-    //     housesData[0].rooms[0].own_devices.forEach((ownDevice: any) => {
-    //         console.log(ownDevice);
-    //     });
-    // }
-    // handleLog();
-
-
 
 
     return (

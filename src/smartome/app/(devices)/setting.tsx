@@ -139,9 +139,9 @@ const SettingDevice = () => {
         }
     };
 
-    console.log("----------------------------------------");
-    console.log('SETTING DEVICE ', ownDeviceDataSelected);
-    console.log("----------------------------------------");
+    // console.log("----------------------------------------");
+    // console.log('SETTING DEVICE ', ownDeviceDataSelected);
+    // console.log("----------------------------------------");
 
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }} >
