@@ -9,34 +9,111 @@ import IconCPN from '@/components/Icon';
 import { Divider } from 'react-native-paper';
 import fontsGlobal from '@/constants/fonts';
 import { OwnDeviceINF } from '@/interfaces/House.interface';
+import HistoryOperationDeviceFetch from '@/fetch/HistoryOperationDevice.fetch';
+
+type Event = {
+    time: {
+        hour: number;
+        mins: number;
+    };
+    value: {
+        state: number;
+    };
+};
+
+type GroupedData = {
+    date: {
+        day: number;
+        month: number;
+        year: number;
+    };
+    event: Event[];
+};
+
+type HistoryOperationDeviceITF = {
+    id: number;
+    id_house: string;
+    id_device: string;
+    state: number;
+    event_date_time: string;
+};
 
 
-const LogDevice = ({route}: any) => {
-
-    const { device } = route.params;
+const LogDevice = ({ route }: any) => {
 
     const navigation = useNavigation();
 
-    const { handleUpdateDataOwnDevice } = useContext(HouseContext) as HouseContextProps;
+    const { idHouseSelected,  ownDeviceDataSelected} = useContext(HouseContext) as HouseContextProps;
 
+    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF | null>(ownDeviceDataSelected);
 
-    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF>(device);
+    const [historyOperationDevice, setHistoryOperationDevice] = React.useState<any[]>([]);
 
-
-    React.useEffect(() => {
-        handleUpdateDataOwnDevice(thisOwnDevice);
-    }, [thisOwnDevice]);
-
+    const [scrollY, setScrollY] = React.useState(0);
 
     const handleBackButton = () => {
         navigation.goBack();
     };
 
-    return (
-        <View style={{backgroundColor: '#fff', flex: 1}}>
-            <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0}}>
+    React.useEffect(() => {
+        handleGetHistoryOperationDevice();
+    }, [ownDeviceDataSelected]);
 
-                <View style={[styles.header, {backgroundColor: 'transparent', borderBottomColor: 'transparent'}]}>
+    const handleGetHistoryOperationDevice = async () => {
+        try {
+            let response = await HistoryOperationDeviceFetch.get({ house_id: idHouseSelected, device_id: thisOwnDevice?.id_device });
+
+            if (response.code === 200) {
+                if (response.data.length > 0) {
+                    setHistoryOperationDevice(groupDataByDate(response.data));
+                }
+            }
+
+        } catch (error) {
+            console.log('Error handleGetHistoryOperationDevice: ', error);
+        }
+    };
+
+
+    const groupDataByDate = (data: HistoryOperationDeviceITF[]): GroupedData[] => {
+        const groupedData: { [key: string]: GroupedData } = {};
+
+        data.forEach((item) => {
+            const utcDate = new Date(item.event_date_time);
+
+            // Chuyển sang múi giờ GMT+7
+            const gmt7Date = new Date(utcDate.getTime() + 7 * 60 * 60 * 1000);
+
+            // Lấy giá trị ngày, tháng, năm, giờ, phút và thêm "0" phía trước nếu cần
+            const day = gmt7Date.getUTCDate().toString().padStart(2, "0");
+            const month = (gmt7Date.getUTCMonth() + 1).toString().padStart(2, "0"); // Tháng bắt đầu từ 0
+            const year = gmt7Date.getUTCFullYear().toString();
+            const hour = gmt7Date.getUTCHours().toString().padStart(2, "0");
+            const mins = gmt7Date.getUTCMinutes().toString().padStart(2, "0");
+
+            const dateKey = `${year}-${month}-${day}`;
+
+            if (!groupedData[dateKey]) {
+                groupedData[dateKey] = {
+                    date: { day, month, year },
+                    event: [],
+                };
+            }
+
+            groupedData[dateKey].event.push({
+                time: { hour, mins },
+                value: { state: item.state },
+            });
+        });
+
+        return Object.values(groupedData);
+    };
+
+    return (
+        <View style={{ backgroundColor: '#fff', flex: 1 }}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
+
+                <View style={[styles.header, scrollY < 15 ? {backgroundColor: 'transparent', borderBottomColor: 'transparent'} : {} ]}>
                     <View style={[styles.header_container, { alignItems: 'center', justifyContent: 'space-between' }]}>
                         <TouchableOpacity
                             style={[styles.headerButton]}
@@ -47,15 +124,15 @@ const LogDevice = ({route}: any) => {
                             <Text style={[styles.headerButton_text]}></Text>
                         </TouchableOpacity>
 
-                        <View style={[ styles.headerClusterTittle]}>
-                            <Text style={[styles.headerClusterTittle_text, {color: "#000"}]}>Lịch sử thiết bị hoạt động</Text>
+                        <View style={[styles.headerClusterTittle]}>
+                            <Text style={[styles.headerClusterTittle_text, { color: "#000" }]}>Lịch sử thiết bị hoạt động</Text>
                         </View>
 
                         {/* Không có nội dung vẫn giữ Text để không bị vỡ layout */}
                         <View style={[styles.buttonBarRight]}>
                             <TouchableOpacity
                                 style={[styles.headerButton]}
-                                onPress={() => {}}
+                                onPress={() => { }}
                             >
                                 <Text style={styles.headerButton_text}></Text>
                             </TouchableOpacity>
@@ -65,174 +142,82 @@ const LogDevice = ({route}: any) => {
                 </View>
 
                 <ScrollView
-                    style={{width: '100%', height: '100%', paddingTop: 20, paddingHorizontal: variablesGlobal.marginScreenAppHorizontal, backgroundColor: colorGlobal.subBackColor, flexDirection: 'column', rowGap: 10}}
+                    style={{ width: '100%', height: '100%', paddingTop: 20, paddingHorizontal: variablesGlobal.marginScreenAppHorizontal, backgroundColor: colorGlobal.subBackColor, flexDirection: 'column', rowGap: 10 }}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{
                         rowGap: 16
-                  }}
+                    }}
+                    onScroll={(event) => {
+                        // Bắt sự kiện scroll và cập nhật giá trị scrollY
+                        setScrollY(event.nativeEvent.contentOffset.y);
+                    }}
                 >
 
-                    <View style={{paddingHorizontal: 16, paddingVertical: 16, backgroundColor: '#fff', borderRadius: 10, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'stretch', overflow: 'hidden'}}>
-                        <Text
-                            style={{
-                                paddingBottom: 10,
-                                fontSize: 15,
-                                fontWeight: '500',
-                                lineHeight: 18,
-                                flex: 1,          // Chiếm tối đa không gian có thể
-                                flexShrink: 1,    // Co lại nếu không đủ không gian
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis' // Thêm dấu "..." nếu text bị cắt bớt
-                            }}
-                        >
-                            Tháng 12, 2024
-                        </Text>
+                    {
+                        historyOperationDevice.map((byDate, index) => {
 
-                        <Divider style={{ height: 1, backgroundColor: '#e4e4e7' }}></Divider>
+                            return (
+                                <View key={index} style={{ paddingHorizontal: 16, paddingVertical: 16, backgroundColor: '#fff', borderRadius: 10, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'stretch', overflow: 'hidden' }}>
+                                    <Text
+                                        style={{
+                                            paddingBottom: 10,
+                                            fontSize: 15,
+                                            fontWeight: '500',
+                                            lineHeight: 18,
+                                            flex: 1,          // Chiếm tối đa không gian có thể
+                                            flexShrink: 1,    // Co lại nếu không đủ không gian
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis' // Thêm dấu "..." nếu text bị cắt bớt
+                                        }}
+                                    >
+                                        {byDate.date.day} Tháng {byDate.date.month}, {byDate.date.year}
+                                    </Text>
+                                    <Divider style={{ height: 1, backgroundColor: '#e4e4e7' }}></Divider>
+                                    {
+                                        byDate.event.map((event: any, index: number) => {
+                                            return (
+                                                <View
+                                                    key={index}
+                                                    style={{
+                                                        paddingTop: 20,
+                                                        flexDirection: 'row',
+                                                        alignItems: 'center',
+                                                    }}
+                                                >
+                                                    <Text style={{
+                                                        width: 60,
+                                                        fontSize: 15,
+                                                        fontWeight: '400',
+                                                        lineHeight: 18,
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis'
+                                                    }}>
+                                                        {event.time.hour}:{event.time.mins}
+                                                    </Text>
+                                                    <Text style={{
+                                                        fontSize: 15,
+                                                        fontWeight: '400',
+                                                        lineHeight: 18,
+                                                        flex: 1,          // Chiếm tối đa không gian có thể
+                                                        flexShrink: 1,    // Co lại nếu không đủ không gian
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        textAlign: 'left',
+                                                    }}>
+                                                        {event.value.state ? 'Mở' : 'Tắt'} nguồn
+                                                    </Text>
+                                                    <IconCPN iconName='circleSolid' size={8} color={event.value.state ? colorGlobal.onPower : colorGlobal.offPower}></IconCPN>
+                                                </View>
+                                            )
+                                        })
+                                    }
 
-                        <View
-                            style={{
-                                paddingTop: 20,
-                                // backgroundColor: 'red',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <Text style={{
-                                width: 50,
-                                fontSize: 15,
-                                fontWeight: '400',
-                                lineHeight: 18,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}>23:46</Text>
-                            <Text style={{
-                                fontSize: 15,
-                                fontWeight: '400',
-                                lineHeight: 18,
-                                flex: 1,          // Chiếm tối đa không gian có thể
-                                flexShrink: 1,    // Co lại nếu không đủ không gian
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                textAlign: 'left',
-                            }}>Công tắc đóng</Text>
-                            <IconCPN iconName='circleSolid' size={8} color={colorGlobal.onPower}></IconCPN>
-                        </View>
+                                </View>
+                            )
+                        })
+                    }
 
-
-                        <View
-                            style={{
-                                paddingTop: 20,
-                                // backgroundColor: 'red',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <Text style={{
-                                width: 50,
-                                fontSize: 15,
-                                fontWeight: '400',
-                                lineHeight: 18,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}>22:39</Text>
-                            <Text style={{
-                                fontSize: 15,
-                                fontWeight: '400',
-                                lineHeight: 18,
-                                flex: 1,          // Chiếm tối đa không gian có thể
-                                flexShrink: 1,    // Co lại nếu không đủ không gian
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                textAlign: 'left',
-                            }}>Công tắc mở</Text>
-                            <IconCPN iconName='circleSolid' size={8} color={colorGlobal.offPower}></IconCPN>
-                        </View>
-
-
-
-                    </View>
-
-                    <View style={{paddingHorizontal: 16, paddingVertical: 16, backgroundColor: '#fff', borderRadius: 10, flexDirection: 'column', justifyContent: 'space-between', alignItems: 'stretch', overflow: 'hidden'}}>
-                        <Text
-                            style={{
-                                paddingBottom: 10,
-                                fontSize: 15,
-                                fontWeight: '500',
-                                lineHeight: 18,
-                                flex: 1,          // Chiếm tối đa không gian có thể
-                                flexShrink: 1,    // Co lại nếu không đủ không gian
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis' // Thêm dấu "..." nếu text bị cắt bớt
-                            }}
-                        >
-                            Tháng 12, 2024
-                        </Text>
-
-                        <Divider style={{ height: 1, backgroundColor: '#e4e4e7' }}></Divider>
-
-                        <View
-                            style={{
-                                paddingTop: 20,
-                                // backgroundColor: 'red',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <Text style={{
-                                width: 50,
-                                fontSize: 15,
-                                fontWeight: '400',
-                                lineHeight: 18,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}>23:46</Text>
-                            <Text style={{
-                                fontSize: 15,
-                                fontWeight: '400',
-                                lineHeight: 18,
-                                flex: 1,          // Chiếm tối đa không gian có thể
-                                flexShrink: 1,    // Co lại nếu không đủ không gian
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                textAlign: 'left',
-                            }}>Công tắc đóng</Text>
-                            <IconCPN iconName='circleSolid' size={8} color={colorGlobal.onPower}></IconCPN>
-                        </View>
-
-
-                        <View
-                            style={{
-                                paddingTop: 20,
-                                // backgroundColor: 'red',
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <Text style={{
-                                width: 50,
-                                fontSize: 15,
-                                fontWeight: '400',
-                                lineHeight: 18,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}>22:39</Text>
-                            <Text style={{
-                                fontSize: 15,
-                                fontWeight: '400',
-                                lineHeight: 18,
-                                flex: 1,          // Chiếm tối đa không gian có thể
-                                flexShrink: 1,    // Co lại nếu không đủ không gian
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                textAlign: 'left',
-                            }}>Công tắc mở</Text>
-                            <IconCPN iconName='circleSolid' size={8} color={colorGlobal.offPower}></IconCPN>
-                        </View>
-
-
-
-                    </View>
+                    <Divider style={{ height: 30, backgroundColor: 'transparent' }}></Divider>
 
                 </ScrollView>
             </View>

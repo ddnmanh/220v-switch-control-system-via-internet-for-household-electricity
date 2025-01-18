@@ -16,8 +16,8 @@ const LogInScreen = () => {
 
     const { saveToken, setTimeLiveAccessToken } = React.useContext(AuthContext) || {};
 
-    const [usernameInput, setUsernameInput] = React.useState({ value: 'ndm', errorMessage: '' });
-    const [passwordInput, setPasswordInput] = React.useState({ value: '123456@Abcc', errorMessage: '' });
+    const [usernameInput, setUsernameInput] = React.useState({ value: '', errorMessage: '' });
+    const [passwordInput, setPasswordInput] = React.useState({ value: '', errorMessage: '' });
     const [isLogIn, setIsLogIn] = React.useState(false);
 
     const handleLogIn = async () => {

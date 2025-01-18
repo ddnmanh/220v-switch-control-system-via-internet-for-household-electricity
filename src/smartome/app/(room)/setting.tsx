@@ -37,7 +37,7 @@ const RoomSettingScreen = () => {
 
 
     React.useEffect(() => {
-        if (roomDataSelected && Object.keys(roomDataSelected).length > 0) {
+        if (roomDataSelected && Object.keys(roomDataSelected).length > 0 && JSON.stringify(roomDataSelected) !== JSON.stringify(thisRoomData)) {
             setThisRoomData(roomDataSelected);
             setNewRoomName(roomDataSelected?.name);
             setNewRoomDesc(roomDataSelected?.desc);
@@ -70,6 +70,8 @@ const RoomSettingScreen = () => {
 
         try {
             let response:ResponseDTO = await RoomFetch.update({room_id: thisRoomData?.id, name: newRoomName, desc: newRoomDesc});
+
+
             if (response.code === 200) {
                 handleUpdateDataRoom({...thisRoomData, name: newRoomName, desc: newRoomDesc} as RoomWithRelationINF);
             }

@@ -199,7 +199,7 @@ const Setting = () => {
                                             : imagesGlobal.WallpaperDefault
                                     }
                                     resizeMode="contain"
-                                    style={{ height: 250, borderRadius: 10 }}
+                                    style={{ width: '100%', height: 250 }}
                                 />
                             </View>
                         </View>
@@ -276,7 +276,6 @@ const Setting = () => {
 
                 </View>
             </Modal>
-
 
         </View>
     );

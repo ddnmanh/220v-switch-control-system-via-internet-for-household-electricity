@@ -17,21 +17,25 @@ import fontsGlobal from '@/constants/fonts';
 import { OwnDeviceINF } from '@/interfaces/House.interface';
 
 
-const Device = ({route}: any) => {
-
-    const { device } = route.params;
+const Device = () => {
 
     const navigation = useNavigation();
 
-    const { idRoomSelected, handleUpdateDataOwnDevice } = useContext(HouseContext) as HouseContextProps;
+    const { idRoomSelected, handleUpdateDataOwnDevice, ownDeviceDataSelected, handleChooseOwnDeviceByID } = useContext(HouseContext) as HouseContextProps;
 
     const {dimensionsSize} = React.useContext(DynamicValuesContext) as DynamicValuesContextProps;
 
-    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF>(device);
+    const [thisOwnDevice, setThisOwnDevice] = React.useState<OwnDeviceINF | null>(ownDeviceDataSelected);
 
     const [newNameDevice, setNewNameDevice] = React.useState<string>('');
 
     const [isRenameDevice, setIsRenameDevice] = React.useState<boolean>(false);
+
+    React.useEffect(() => {
+        if (ownDeviceDataSelected && JSON.stringify(ownDeviceDataSelected) !== JSON.stringify(thisOwnDevice)) {
+            setThisOwnDevice(ownDeviceDataSelected);
+        }
+    }, [ownDeviceDataSelected]);
 
     React.useEffect(() => {
         if (thisOwnDevice) handleUpdateDataOwnDevice(thisOwnDevice);
@@ -52,7 +56,7 @@ const Device = ({route}: any) => {
         const strTimestamp = new Date().getTime().toString();
         setIdRequire(strTimestamp);
         publishToTopicMQTT(
-            thisOwnDevice?.mqtt_topic_send,
+            thisOwnDevice?.mqtt_topic_send ? thisOwnDevice?.mqtt_topic_send : "",
             JSON.stringify({
                 type: type,
                 id: strTimestamp,
@@ -65,21 +69,11 @@ const Device = ({route}: any) => {
         const handleMessage = (message: Message) => {
             if (message.destinationName === thisOwnDevice?.mqtt_topic_receive) {
                 try {
-                    console.log(
-                        `Message received on Device Card ${message.destinationName}: ${message.payloadString}`
-                    );
 
                     const parsedMessage = JSON.parse(message.payloadString);
 
-                    console.log(
-                        parsedMessage.id === idRequire,
-                        " ------------------ ",
-                        idRequire,
-                        parsedMessage.id
-                    );
-
                     if (parsedMessage.type === "NOTI") {
-                        setThisOwnDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));
+                        setThisOwnDevice((prev) => prev ? ({ ...prev, state: parsedMessage.value, online: true }) : prev);
                         setIdRequire("");
                     }
 
@@ -87,7 +81,7 @@ const Device = ({route}: any) => {
                         parsedMessage.type === "CONTROLL_RES" &&
                         parsedMessage.id === idRequire
                     ) {
-                        setThisOwnDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));
+                        setThisOwnDevice((prev) => prev ? ({ ...prev, state: parsedMessage.value, online: true }) : prev);
                         setIdRequire("");
                     }
 
@@ -95,7 +89,7 @@ const Device = ({route}: any) => {
                         parsedMessage.type === "STATUS_RES" &&
                         parsedMessage.id === idRequire
                     ) {
-                        setThisOwnDevice((prev) => ({ ...prev, state: parsedMessage.value, online: true }));
+                        setThisOwnDevice((prev) => prev ? ({ ...prev, state: parsedMessage.value, online: true }) : prev);
                         setIdRequire("");
                     }
                 } catch (error) {
@@ -108,7 +102,7 @@ const Device = ({route}: any) => {
 
         return () => removeOnMessageArrivedFromMQTT(handleMessage);
     }, [
-        thisOwnDevice.mqtt_topic_receive,
+        thisOwnDevice?.mqtt_topic_receive,
         subscribeTopicMQTT,
         setOnMessageArrivedFromMQTT,
         removeOnMessageArrivedFromMQTT,
@@ -116,6 +110,7 @@ const Device = ({route}: any) => {
     ]);
 
     const handleBackButton = () => {
+        handleChooseOwnDeviceByID('');
         navigation.goBack();
     };
 
@@ -123,10 +118,10 @@ const Device = ({route}: any) => {
 
         if (newNameDevice !== thisOwnDevice?.name) {
             try {
-                const response = await OwnDeviceFetch.update({id_own_device: thisOwnDevice.id, name: newNameDevice, desc: thisOwnDevice.desc });
+                const response = await OwnDeviceFetch.update({id_own_device: thisOwnDevice?.id, name: newNameDevice, desc: thisOwnDevice?.desc });
 
                 if (response.code == 200) {
-                    setThisOwnDevice((prev) => ({ ...prev, name: newNameDevice }));
+                    setThisOwnDevice((prev) => prev ? ({ ...prev, name: newNameDevice }) : prev);
                 }
             } catch (error) {
                 console.log(error);
@@ -135,13 +130,10 @@ const Device = ({route}: any) => {
     }
 
 
-    const [isFocusNameInput, setIsFocusNameInput] = React.useState<boolean>(false);
-
     const handleOnBlurInputNewNameDevice = () => {
         Keyboard.dismiss();
 
         if (newNameDevice === thisOwnDevice?.name) {
-            setIsFocusNameInput(false);
             setIsRenameDevice(false);
         }
     }
@@ -193,7 +185,6 @@ const Device = ({route}: any) => {
                                 onPress={() => {
                                     if (!isRenameDevice) {
                                         setIsRenameDevice(true);
-                                        setIsFocusNameInput(true);
                                     } else {
                                         setIsRenameDevice(false);
                                         handleRenameDevice();
@@ -244,7 +235,8 @@ const Device = ({route}: any) => {
                             </TouchableOpacity >
 
                             <TouchableOpacity activeOpacity={0.8} style={{width: 50, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', rowGap: 3 }}
-                                onPress={() => navigation.navigate('settingDeviceScreen', {device: thisOwnDevice, idRoom: idRoomSelected })}
+                                // onPress={() => navigation.navigate('settingDeviceScreen', {device: thisOwnDevice, idRoom: idRoomSelected })}
+                                onPress={() => navigation.navigate('(devices)', {screen: 'settingDeviceScreen'})}
                             >
                                 <View style={{padding: 15, borderRadius: 100, justifyContent: 'center', alignItems: 'center', backgroundColor: '#e9d5ff' }}>
                                     <IconCPN iconName='gearSolid' size={18} color={colorGlobal.textSecondary}></IconCPN>
