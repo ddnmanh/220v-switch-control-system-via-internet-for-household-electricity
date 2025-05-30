@@ -1,0 +1,41 @@
+{
+    "cli": {
+        "version": ">= 14.2.0",
+        "appVersionSource": "remote"
+    },
+    "build": {
+        "development": {
+            "developmentClient": true,
+            "distribution": "internal"
+        },
+        "preview": {
+            "distribution": "internal",
+            "android": {
+                "buildType": "apk"
+            },
+            "env": {
+                "EXPO_PUBLIC_DOMAIN_SERVER": "http://192.168.1.12:3000",
+                "EXPO_PUBLIC_DOMAIN_SERVER_STATIC": "http://192.168.1.12:3000/resource/static",
+                "EXPO_PUBLIC_DOMAIN_SERVER_API": "http://192.168.1.12:3000/api",
+                "EXPO_PUBLIC_TOKEN_ACCESS_NAME": "access-token",
+                "EXPO_PUBLIC_TOKEN_REFRESH_NAME": "refresh-token",
+                "EXPO_PUBLIC_GRACE_PERIOD_BEFORE_TOKEN_EXPIRES": "10000",
+                "EXPO_PUBLIC_MQTT_BROKER_HOST": "example.com",
+                "EXPO_PUBLIC_MQTT_BROKER_PORT": "8083",
+                "EXPO_PUBLIC_MQTT_BROKER_PATH": "/mqtt",
+                "EXPO_PUBLIC_MQTT_BROKER_USERNAME": "test",
+                "EXPO_PUBLIC_MQTT_BROKER_PASSWORD": "123123"
+            }
+        },
+        "production": {
+            "distribution": "store",
+            "android": {
+                "buildType": "app-bundle"
+            },
+            "autoIncrement": true
+        }
+    },
+    "submit": {
+        "production": {}
+    }
+}
