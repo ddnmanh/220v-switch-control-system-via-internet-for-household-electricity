@@ -1,9 +1,0 @@
-authorityKeyIdentifier=keyid,issuer
-basicConstraints=CA:FALSE
-keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-subjectAltName = @alt_names
-[alt_names]
-DNS.1 = localhost
-DNS.2 = *.localhost
-DNS.3 = example.dnmanh.io.vn
-DNS.4 = *.example.dnmanh.io.vn

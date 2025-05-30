@@ -6,7 +6,7 @@
 #include <EEPROM.h>
 #include <ESP8266WebServer.h>
 
-String client_id = "KHGQCC";  // Thay khi nạp code cho mỗi thiết bị
+String deviceId = "KHGQCC";  // Thay khi nạp code cho mỗi thiết bị
 
 #define EEPROM_SIZE 256
 
@@ -21,11 +21,11 @@ PubSubClient mqtt_client(espClient);
 String ownerId = "";
 bool isSaveState = false;
 bool isVerifyWhenReset = false;
-String ssid = ""; // labech_dnm
-String password = ""; // techlab@dnmanh
-String mqttAddress = "mqttsmartome.dnmanh.io.vn";
-String mqttUsername = "testUser";
-String mqttPassword = "123123@Test";
+String ssid = "";
+String password = "";
+String mqttAddress = "example.io.vn";
+String mqttUsername = "mqttUser";
+String mqttPassword = "123123123";
 int mqttPort = 1883;
 int GMTSeconds = 25200; // 7h
 
@@ -98,23 +98,30 @@ bool checkWiFiConnection();
 
 void mqttCallback(char *topic, byte *payload, unsigned int length);
 
-void publishJson(const char *topic, const char *id, const char *type, bool value);
+void publishJson(const char *topic, const char *id, const char *type);
  
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
     pinMode(RELAY_PIN, OUTPUT); 
     digitalWrite(RELAY_PIN, LOW);
     pinMode(LED_PIN, OUTPUT);
     EEPROM.begin(EEPROM_SIZE);   
 
-    // Lưu dữ liệu mặc định vào EEPROM
+    // Khởi tạo dữ liệu cho thiết bị khi xuất xưởng
+    // uncomment để nạp code lần đầu và bắt buộc comment lại để nạp code lần cuối
+    // saveToEEPROM("ownerId", "");
+    // saveToEEPROM("switchState", "FALSE");
     // saveToEEPROM("isSaveState", "FALSE");
     // saveToEEPROM("isVerifyWhenReset", "FALSE"); 
-    saveToEEPROM("MQTTAddress", mqttAddress);
-    saveToEEPROM("MQTTUsername", mqttUsername);
-    saveToEEPROM("MQTTPass", mqttPassword);
-    saveToEEPROM("MQTTPort", String(mqttPort));
+    // saveToEEPROM("GMTSeconds", "0"); 
+    // saveToEEPROM("SSID", ""); 
+    // saveToEEPROM("SSIDPass", ""); 
+    // saveToEEPROM("MQTTAddress", mqttAddress);
+    // saveToEEPROM("MQTTUsername", mqttUsername);
+    // saveToEEPROM("MQTTPass", mqttPassword);
+    // saveToEEPROM("MQTTPort", String(mqttPort));
+    // ----------------------------
 
     // Đọc dữ liệu từ EEPROM
     loadEEPROM(); 
@@ -125,13 +132,13 @@ void setup() {
         relayState = readFromEEPROM("switchState") == "TRUE" ? true : false;
         Serial.println("Restoring switch state from EEPROM");
         handleToggleStateElectric(relayState);
-        publishJson(send_topic.c_str(), "", "NOTI", relayState);
+        publishJson(send_topic.c_str(), "", "NOTI");
     }
 
 
     // Tạo lại chuỗi topic
-    send_topic = ownerId + "/" + client_id + "/send";
-    receive_topic = ownerId + "/" + client_id + "/receive";  
+    send_topic = ownerId + "/" + deviceId + "/send";
+    receive_topic = ownerId + "/" + deviceId + "/receive";  
 
     connectToWiFi();
 
@@ -199,7 +206,7 @@ void loop() {
         }
 
         handleToggleStateElectric(relayState);
-        publishJson(send_topic.c_str(), "", "NOTI", relayState);
+        publishJson(send_topic.c_str(), "", "NOTI");
     }
 }
 
@@ -312,7 +319,7 @@ void connectToMQTTBroker() {
 
     if (currentMillisForMQTT - lastMQTTReconnect >= MQTTReconnectInterval || lastMQTTReconnect == 0) {
         lastMQTTReconnect = currentMillisForMQTT;
-        // Serial.printf("Attempting to connect to MQTT Broker as %s...\n", client_id.c_str());
+        // Serial.printf("Attempting to connect to MQTT Broker as %s...\n", deviceId.c_str());
         // Serial.println("topic send: " + String(send_topic));
 
         // Serial.printf("MQTT Address: %s\n", mqttAddress.c_str());
@@ -320,10 +327,10 @@ void connectToMQTTBroker() {
         // Serial.printf("MQTT Password: %s\n", mqttPassword.c_str());
         // Serial.printf("MQTT Port: %d\n", mqttPort);
 
-        if (mqtt_client.connect(client_id.c_str(), mqttUsername.c_str(), mqttPassword.c_str())) {
+        if (mqtt_client.connect(deviceId.c_str(), mqttUsername.c_str(), mqttPassword.c_str())) {
             Serial.println("Connected to MQTT broker");
             mqtt_client.subscribe(receive_topic.c_str());
-            publishJson(send_topic.c_str(), "", "NOTI", relayState);
+            publishJson(send_topic.c_str(), "", "NOTI");
         } else {
             Serial.print("Failed to connect to MQTT broker, rc=");
             Serial.print(mqtt_client.state());
@@ -394,35 +401,36 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
 
             // digitalWrite(LED_PIN, relayState ? HIGH : LOW);
             handleToggleStateElectric(relayState);
-            publishJson(send_topic.c_str(), id, "CONTROLL_RES", relayState);
+            publishJson(send_topic.c_str(), id, "CONTROLL_RES");
         }
 
         // Nhận lệnh cài đặt thiết bị
         if (strcmp(type, "SETTING") == 0) {
-            if (saveState == 1) {
-                Serial.println("Require device save state: TRUE");
-                isSaveState = true;
-                saveToEEPROM("isSaveState", "TRUE"); 
-            } else {
-                Serial.println("Require device save state: FALSE");
-                isSaveState = false;
-                saveToEEPROM("isSaveState", "FALSE"); 
-            }
+          if (saveState == 1) {
+              Serial.println("Require device save state: TRUE");
+              isSaveState = true;
+              saveToEEPROM("isSaveState", "TRUE"); 
+          } else {
+              Serial.println("Require device save state: FALSE");
+              isSaveState = false;
+              saveToEEPROM("isSaveState", "FALSE"); 
+          }
 
-            if (resetFromApp == 1) {
-                Serial.println("Require device accept reset from app: TRUE");
-                isVerifyWhenReset = true;
-                saveToEEPROM("isVerifyWhenReset", "TRUE"); 
-            } else {
-                Serial.println("Require device accept reset from app: FALSE");
-                isVerifyWhenReset = false;
-                saveToEEPROM("isVerifyWhenReset", "FALSE"); 
-            }
+          if (resetFromApp == 1) {
+              Serial.println("Require device accept reset from app: TRUE");
+              isVerifyWhenReset = true;
+              saveToEEPROM("isVerifyWhenReset", "TRUE"); 
+          } else {
+              Serial.println("Require device accept reset from app: FALSE");
+              isVerifyWhenReset = false;
+              saveToEEPROM("isVerifyWhenReset", "FALSE"); 
+          }
+          publishJson(send_topic.c_str(), id, "SETTING_RES");
         }
 
         // Nhận lệnh truy vấn trạng thái
         if (strcmp(type, "STATUS") == 0) {
-            publishJson(send_topic.c_str(), id, "STATUS_RES", relayState);
+          publishJson(send_topic.c_str(), id, "STATUS_RES");
         }
         
         // Nhận lệnh reset thiết bị, xoá dữ liệu và ở chế độ AP
@@ -442,11 +450,13 @@ void mqttCallback(char *topic, byte *payload, unsigned int length) {
 }
 
 //-----Hàm gửi JSON qua MQTT---------
-void publishJson(const char *topic, const char *id, const char *type, bool value) {
+void publishJson(const char *topic, const char *id, const char *type) {
     JsonDocument doc;  // Khai báo JsonDocument
     doc["id"] = id;
     doc["type"] = type;
-    doc["value"] = value;
+    doc["value"] = relayState;
+    doc["is_save_state"] = isSaveState;
+    doc["is_reset_confirm"] = isVerifyWhenReset;
 
     char jsonBuffer[200];
     serializeJson(doc, jsonBuffer);  // Chuyển thành chuỗi JSON
@@ -469,7 +479,7 @@ void startAccessPoint() {
     delay(100);
 
     WiFi.softAPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
-    WiFi.softAP(client_id+"_WIFI", accessPointPass);
+    WiFi.softAP(deviceId, accessPointPass);
 
     Serial.println("ESP is in AP mode. Connect to SSID 'ESP-AP-Setup' and send POST requests.");
     Serial.printf("AP Status: %d\n", WiFi.status());
@@ -485,8 +495,8 @@ void startAccessPoint() {
             password = server.arg("password");
 
             // Tạo lại chuỗi topic
-            send_topic = ownerId + "/" + client_id + "/send";
-            receive_topic = ownerId + "/" + client_id + "/receive"; 
+            send_topic = ownerId + "/" + deviceId + "/send";
+            receive_topic = ownerId + "/" + deviceId + "/receive"; 
             // -------------
 
             saveToEEPROM("ownerId", ownerId);
@@ -587,29 +597,30 @@ void clearEEPROM(String nameValue) {
     EEPROM.commit(); 
 }
 
+
 int getMemoriesIndexStart(String nameValue) { 
     if (nameValue == "ownerId") {
-        return 1; // 0 - 7
+        return 1; // 0 - 10 --> 10 character
     } else if (nameValue == "switchState") {
-        return 9; // 9 - 14
+        return 12; // 12 - 17 --> 5 character
     } else if (nameValue == "isSaveState") {
-        return 16; // 16 - 20
+        return 19; // 19 - 24 --> 5 character
     } else if (nameValue == "isVerifyWhenReset") {
-        return 22; // 22 - 28
+        return 26; // 26 - 31 --> 5 character
     } else if (nameValue == "GMTSeconds") {
-        return 30; // 30 - 34
+        return 33; // 33 - 38 --> 5 character
     } else if (nameValue == "SSID") {
-        return 37; // 37 - 68
+        return 40; // 40 - 72 --> 32 character
     } else if (nameValue == "SSIDPass") {
-        return 70; // 70 - 101
+        return 74; // 74 - 106 --> 32 character
     } else if (nameValue == "MQTTAddress") {
-        return 103; // 103 - 127  
+        return 108; // 108 - 138 --> 30 character
     } else if (nameValue == "MQTTUsername") {
-        return 129; // 129 - 144
+        return 140; // 140 - 161 --> 20 character
     } else if (nameValue == "MQTTPass") {
-        return 146; // 146 - 177
+        return 163; // 163 - 190 --> 27 character
     } else if (nameValue == "MQTTPort") {
-        return 179; // 179 - 183
+        return 192; // 192 - 197 --> 5 character
     } 
     return -1;
 }
