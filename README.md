@@ -66,8 +66,8 @@ Giao diện người dùng (UI) của phần mềm được lấy cảm hứng t
 
 Màn hình này được xem như là "hồ sơ" và "luật" dành cho thiết bị đó. Đầu tiên ta dễ dàng xem được lịch sử hoạt động của thiết bị 24/7 (Cũng giống như "Màn hình chuyên", tùy thuộc vào thiết bị sẽ có giao diện hiển thị lịch sử riêng biệt). Điều quan trọng tại màn hình này ta có thể thiết đặt cho thiết bị nhớ trạng thái của nó trước khi xảy ra sự cố (điển hình là hiện tượng nháy điện và mất điện) sau khi được cung cấp lại nguồn điện thiết bị sẽ khôi phục về trạng thái đã được ghi nhận. Do thiết bị được thiết kế để có thể tái sử dụng cho nên việc bảo vệ thiết bị trước sự đánh cắp là điều bắt buộc phải có, đó là tính năng reset thiết bị và chống reset thiết bị ngay trên phần mềm.
 
-# 4. Quy Tắc Về Dự Án Với Git
-## 4.1 Thông Tin Các Nhánh
+## 4. Quy Tắc Về Dự Án Với Git
+### 4.1 Thông Tin Các Nhánh
 -   `main` các tài nguyên hoàn thiện của dự án (Theo từng giai đoạn), nhánh này không được thay đổi trực tiếp (Ngoại trừ lần đầu tạo repository) mà chỉ được tạo nên nhờ gộp các nhánh con trực tiếp.
 -   `dev` các tài nguyên về mặt coding
     -   Thư mục làm việc: `./src`
