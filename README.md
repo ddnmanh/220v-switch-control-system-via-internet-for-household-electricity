@@ -69,6 +69,7 @@ Màn hình này được xem như là "hồ sơ" và "luật" dành cho thiết 
 ## 4. Quy Tắc Về Dự Án Với Git
 ### 4.1 Thông Tin Các Nhánh
 -   `main` các tài nguyên hoàn thiện của dự án (Theo từng giai đoạn), nhánh này không được thay đổi trực tiếp (Ngoại trừ lần đầu tạo repository) mà chỉ được tạo nên nhờ gộp các nhánh con trực tiếp.
+    - `src` là thư mục chứa mã nguồn được gộp từ nhánh `dev`. Thư mục `src-2` là mã nguồn được lấy từ nhánh `project-rework` (gặp sự cố nên không thể gộp nhánh).
 -   `dev` các tài nguyên về mặt coding
     -   Thư mục làm việc: `./src`
     -   Có 4 nhánh con:
